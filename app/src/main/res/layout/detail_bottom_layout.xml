@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/bg"
+    android:id="@+id/part2"
+    app:layout_constraintBottom_toBottomOf="parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:paddingLeft="12dp"
+        android:paddingBottom="12dp"
+        android:paddingRight="12dp"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/image_tag"
+            android:text="#卡通动漫#"
+            android:textSize="12sp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:textColor="#FFAF4C"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+
+        <TextView
+            android:id="@+id/image_title"
+            app:layout_constraintLeft_toRightOf="@+id/image_tag"
+            android:text="深秋夜晚，日料探店"
+            android:textSize="12sp"
+            android:paddingTop="12dp"
+            android:paddingLeft="12dp"
+            android:textColor="@color/white"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+
+        <ImageView
+            android:id="@+id/author_icon"
+            app:layout_constraintTop_toBottomOf="@+id/image_tag"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:src="@mipmap/author_head"
+            android:layout_width="24dp"
+            android:layout_height="24dp" />
+
+
+        <TextView
+            android:id="@+id/author_name"
+            app:layout_constraintLeft_toRightOf="@+id/author_icon"
+            app:layout_constraintTop_toBottomOf="@+id/image_tag"
+            android:paddingLeft="12dp"
+            android:text="mask"
+            android:textSize="14sp"
+            android:textColor="@color/white"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <ImageView
+            android:id="@+id/icon_share"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:src="@mipmap/icon_share"
+            android:paddingLeft="10dp"
+            android:layout_width="38dp"
+            android:layout_height="18dp" />
+
+
+        <ImageView
+            android:id="@+id/icon_love"
+            app:layout_constraintRight_toLeftOf="@+id/icon_share"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:src="@mipmap/icon_love"
+            android:paddingLeft="10dp"
+            android:layout_width="38dp"
+            android:layout_height="18dp" />
+
+
+        <ImageView
+            android:id="@+id/icon_preview"
+            app:layout_constraintRight_toLeftOf="@+id/icon_love"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:src="@mipmap/icon_preview"
+            android:paddingLeft="10dp"
+            android:layout_width="38dp"
+            android:layout_height="18dp" />
+
+        <ImageView
+            android:id="@+id/icon_save"
+            app:layout_constraintRight_toLeftOf="@+id/icon_preview"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:src="@mipmap/icon_save"
+            android:paddingLeft="10dp"
+            android:layout_width="38dp"
+            android:layout_height="18dp" />
+
+    </android.support.constraint.ConstraintLayout>
+
+
+
+</android.support.constraint.ConstraintLayout>
+

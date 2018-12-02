@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tl="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+    <RelativeLayout
+        android:id="@+id/part1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/iv_blur"
+            android:layout_width="match_parent"
+            android:layout_height="220dp" />
+
+
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/constrantLayout"
+            android:layout_width="match_parent"
+            android:layout_height="180dp">
+
+
+            <FrameLayout
+                android:id="@+id/upload_fl"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginTop="20dp"
+                android:layout_marginRight="20dp"
+                android:background="@drawable/upload_icon_bg"
+                android:layout_width="24dp"
+                android:layout_height="24dp" >
+
+                <ImageView
+                    android:id="@+id/upload"
+                    android:src="@mipmap/upload_icon"
+                    android:layout_gravity="center"
+                    android:layout_width="11dp"
+                    android:layout_height="11dp" />
+
+            </FrameLayout>
+
+            <ImageView
+                android:id="@+id/settting"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginTop="10dp"
+                android:layout_marginRight="10dp"
+                app:layout_constraintRight_toLeftOf="@+id/upload_fl"
+                android:src="@mipmap/setting_icon"
+                android:padding="10dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp" />
+
+            <ImageView
+                android:id="@+id/default_head"
+                android:src="@mipmap/default_head"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                android:layout_width="84dp"
+                android:layout_height="84dp" />
+
+            <TextView
+                android:id="@+id/mane"
+                app:layout_constraintTop_toBottomOf="@+id/default_head"
+                android:layout_marginTop="8dp"
+                android:text="Mask"
+                android:gravity="center"
+                android:textSize="16sp"
+                android:textColor="@color/white"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+
+        </android.support.constraint.ConstraintLayout>
+
+        <com.flyco.tablayout.SlidingTabLayout
+            android:id="@+id/tablayout"
+            android:layout_below="@+id/constrantLayout"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            tl:tl_textsize="14sp"
+            tl:tl_indicator_color="#FFAF4C"
+            tl:tl_indicator_height="2dp"
+            tl:tl_indicator_width = "46dp"
+            tl:tl_indicator_corner_radius = "2dp"
+            tl:tl_indicator_width_equal_title="true"
+            tl:tl_tab_space_equal="true"
+            tl:tl_textSelectColor="#FFFFFF"
+            tl:tl_textUnselectColor="#AEB0BE" />
+
+    </RelativeLayout>
+
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/view_pager"
+        app:layout_constraintTop_toBottomOf="@+id/part1"
+        tl:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        tl:layout_constraintVertical_weight="1"/>
+
+
+
+
+</android.support.constraint.ConstraintLayout>

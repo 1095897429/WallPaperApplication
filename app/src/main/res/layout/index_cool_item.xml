@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+<android.support.constraint.ConstraintLayout
+    android:padding="10dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    
+    <ImageView
+        android:id="@+id/imgUrl"
+        android:src="@mipmap/cool_icon"
+        android:layout_width="44dp"
+        android:layout_height="44dp" />
+
+
+    <TextView
+        app:layout_constraintTop_toBottomOf="@+id/imgUrl"
+        android:id="@+id/title"
+        android:textSize="10sp"
+        android:textColor="#AEB0BE"
+        android:layout_marginTop="4dp"
+        android:text="动态壁纸"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+
+</android.support.constraint.ConstraintLayout>
+
+</LinearLayout>

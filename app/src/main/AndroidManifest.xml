@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.ngbj.wallpaper">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
+
+    <!-- 壁纸权限 -->
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <uses-permission android:name="android.permission.SET_WALLPAPER_HINTS" />
+
+    <!--友盟统计所需权限-->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"></uses-permission>
+
+
+
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:name=".MyApplication"
+        android:roundIcon="@mipmap/logo"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        tools:ignore="AllowBackup,GoogleAppIndexingWarning">
+
+        <!-- value的值填写你在友盟后台申请的应用Appkey -->
+        <meta-data android:value="5bea861cb465f54c850001be" android:name="UMENG_APPKEY"/>
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.ngbj.wallpaper.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
+
+        <activity android:name=".module.app.LoginActivity">
+        </activity>
+
+
+        <activity android:name=".module.app.DetailActivityNew"
+            android:screenOrientation="portrait">
+        </activity>
+
+        <activity android:name=".module.app.DetailActivity"
+            android:screenOrientation="portrait">
+        </activity>
+
+
+
+        <activity android:name=".module.app.HomeActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".MainActivity">
+        </activity>
+
+        <activity android:name=".UserInfoActivity"
+            android:screenOrientation="portrait">
+        </activity>
+
+        <activity android:name=".UploadPicActivity"
+            android:screenOrientation="portrait">
+        </activity>
+
+        <activity android:name=".PreviewPicActivity"
+            android:screenOrientation="portrait">
+
+        </activity>
+
+
+        <activity android:name=".PreviewDynamicPicActivity"
+            android:screenOrientation="portrait">
+
+        </activity>
+
+
+        <!-- 配置实时壁纸Service -->
+        <service
+            android:name=".service.VideoLiveWallpaperService"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_WALLPAPER"
+            android:process=":wallpaper">
+            <!-- 为实时壁纸配置intent-filter -->
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService" />
+            </intent-filter>
+            <!-- 为实时壁纸配置meta-data -->
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/livewallpaper" />
+        </service>
+
+    </application>
+
+</manifest>

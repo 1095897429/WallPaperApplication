@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+
+
+    <LinearLayout
+        android:id="@+id/part2"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:gravity="center|left"
+        android:orientation="horizontal">
+
+        <TextView
+            android:text="@string/index_hot_search"
+            android:textSize="10dp"
+            android:textColor="#AEB0BE"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:overScrollMode="never"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent">
+
+        </android.support.v7.widget.RecyclerView>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/part3"
+        app:layout_constraintTop_toBottomOf="@+id/part2"
+        android:layout_width="match_parent"
+        android:layout_height="162dp"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:orientation="horizontal">
+
+        <com.youth.banner.Banner
+            android:id="@+id/banner"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            app:indicator_width="10dp"
+            app:indicator_height="10dp"
+            app:image_scale_type="center_inside">
+        </com.youth.banner.Banner>
+
+
+
+
+    </LinearLayout>
+
+
+    <android.support.v4.view.ViewPager
+        app:layout_constraintTop_toBottomOf="@+id/part3"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:id="@+id/viewpager"
+        android:layout_width="match_parent"
+        android:layout_height="160dp">
+
+    </android.support.v4.view.ViewPager>
+    
+    <RelativeLayout
+        app:layout_constraintTop_toBottomOf="@+id/viewpager"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:text="我的推荐"
+            android:textColor="@color/white"
+            android:padding="12dp"
+            android:textSize="14sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+
+        <TextView
+            android:id="@+id/more_recommend"
+            android:text="更多"
+            android:padding="12dp"
+            android:textColor="#636682"
+            android:textSize="12sp"
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+
+    </RelativeLayout>
+
+
+
+</android.support.constraint.ConstraintLayout>

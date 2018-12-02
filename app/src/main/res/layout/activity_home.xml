@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/bg"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:id="@+id/frameLayout"
+        android:layout_above="@+id/part2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/part2"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+
+        <FrameLayout
+            android:id="@+id/index"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/index_icon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:src="@mipmap/index_check" />
+
+        </FrameLayout>
+
+
+        <FrameLayout
+            android:id="@+id/category"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/category_icon"
+                android:layout_width="22dp"
+                android:layout_gravity="center"
+                android:layout_height="22dp"
+                android:src="@mipmap/category_uncheck" />
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/my"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/my_icon"
+                android:layout_width="22dp"
+                android:layout_gravity="center"
+                android:layout_height="22dp"
+                android:src="@mipmap/my_uncheck" />
+
+        </FrameLayout>
+
+
+    </LinearLayout>
+
+</RelativeLayout>
