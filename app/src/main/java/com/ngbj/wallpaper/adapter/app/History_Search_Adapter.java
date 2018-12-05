@@ -1,4 +1,4 @@
-package com.ngbj.wallpaper.adapter.search;
+package com.ngbj.wallpaper.adapter.app;
 
 
 

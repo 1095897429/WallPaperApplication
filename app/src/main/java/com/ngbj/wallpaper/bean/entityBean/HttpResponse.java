@@ -1,4 +1,4 @@
-package com.ngbj.wallpaper.network.response;
+package com.ngbj.wallpaper.bean.entityBean;
 
 import java.io.Serializable;
 

@@ -45,6 +45,10 @@
         </provider>
 
         <activity android:name=".module.app.LoginActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
 
@@ -59,10 +63,7 @@
 
 
         <activity android:name=".module.app.HomeActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+
         </activity>
 
         <activity android:name=".MainActivity">
@@ -93,6 +94,23 @@
         </activity>
 
         <activity android:name=".module.app.SearchActivity"
+            android:screenOrientation="portrait">
+
+        </activity>
+
+        <activity android:name=".module.app.InterestActivity"
+            android:screenOrientation="portrait">
+
+        </activity>
+
+
+        <activity android:name=".module.app.SafeActivity"
+            android:screenOrientation="portrait">
+
+        </activity>
+
+
+        <activity android:name=".module.app.CategoryNewAndHotActivity"
             android:screenOrientation="portrait">
 
         </activity>

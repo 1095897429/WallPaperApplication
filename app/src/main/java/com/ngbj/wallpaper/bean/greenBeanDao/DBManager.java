@@ -86,6 +86,14 @@ public class DBManager {
         historyBeanDao.insertInTx(historyBeanList);
     }
 
+    /** 更新一条浏览广告 */
+    public void updateHistory(HistoryBean historyBean) {
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        HistoryBeanDao historyBeanDao = daoSession.getHistoryBeanDao();
+        historyBeanDao.update(historyBean);
+    }
+
 
 
     /** 删除一条记录 */
@@ -103,6 +111,15 @@ public class DBManager {
         DaoSession daoSession = daoMaster.newSession();
         HistoryBeanDao historyDataDao = daoSession.getHistoryBeanDao();
         historyDataDao.deleteAll();
+    }
+
+    /** 查询一条历史记录 */
+    public HistoryBean queryHistory(String historyName) {
+        DaoMaster daoMaster = new DaoMaster(getReadableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        HistoryBeanDao userDao = daoSession.getHistoryBeanDao();
+        HistoryBean historyBean = userDao.queryBuilder().where(HistoryBeanDao.Properties.HistoryName.eq(historyName)).unique();
+        return historyBean;
     }
 
     /** 查询所有历史记录 降序 */

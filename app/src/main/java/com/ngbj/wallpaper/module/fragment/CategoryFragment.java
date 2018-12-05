@@ -1,6 +1,8 @@
 package com.ngbj.wallpaper.module.fragment;
 
 
+import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,6 +16,9 @@ import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
 import com.ngbj.wallpaper.base.BaseFragment;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
+import com.ngbj.wallpaper.module.app.CategoryNewAndHotActivity;
+import com.ngbj.wallpaper.module.app.DetailActivityNew;
+import com.ngbj.wallpaper.module.app.SearchActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.CategoryContract;
 import com.ngbj.wallpaper.mvp.presenter.fragment.CategoryPresenter;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
@@ -114,10 +119,16 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
     @Override
     protected void initEvent() {
 
+        //分类上的点击
         categoryTopAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 KLog.d("tag",myTopList.get(position).getTitle());
+                Intent intent = new Intent(getActivity(),CategoryNewAndHotActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putString("keyword",myTopList.get(position).getTitle());
+                intent.putExtras(bundle);
+                startActivity(intent);
             }
         });
 
@@ -131,7 +142,7 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
                 }else {
                     KLog.d("tag -- 广告",recommendList.get(position).apiAdBean.getName());
                 }
-
+                startActivity(new Intent(getActivity(),DetailActivityNew.class));
             }
         });
 
@@ -175,7 +186,7 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
 
     @OnClick(R.id.search_part)
     public void SearchPart(){
-        KLog.d("to search");
+        startActivity(new Intent(getActivity(),SearchActivity.class));
     }
 
 

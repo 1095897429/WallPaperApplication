@@ -24,8 +24,8 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
         mPresenter = new LoginPresenter();
     }
 
-    @OnClick(R.id.getCode)
-    public void getCode(){
+    @OnClick(R.id.get_done)
+    public void GetDone(){
         mPresenter.getVerCodeData();
     }
 

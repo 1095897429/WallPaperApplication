@@ -2,7 +2,7 @@ package com.ngbj.wallpaper.network.api;
 
 import com.ngbj.wallpaper.bean.entityBean.IpBean;
 import com.ngbj.wallpaper.bean.entityBean.VerCodeBean;
-import com.ngbj.wallpaper.network.response.HttpResponse;
+import com.ngbj.wallpaper.bean.entityBean.HttpResponse;
 
 import io.reactivex.Flowable;
 import okhttp3.RequestBody;

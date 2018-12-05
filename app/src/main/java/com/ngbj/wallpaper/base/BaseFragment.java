@@ -102,8 +102,8 @@ public abstract class BaseFragment<T extends BaseContract.BasePresenter>
         initPresenter();
         initInject();
         initData();
-        initEvent();
         finishCreateView();
+        initEvent();
     }
 
 

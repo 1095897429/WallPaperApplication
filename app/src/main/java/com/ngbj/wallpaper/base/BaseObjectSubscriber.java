@@ -2,7 +2,7 @@ package com.ngbj.wallpaper.base;
 
 
 import com.google.gson.JsonParseException;
-import com.ngbj.wallpaper.network.response.HttpResponse;
+import com.ngbj.wallpaper.bean.entityBean.HttpResponse;
 import com.socks.library.KLog;
 
 import org.json.JSONException;

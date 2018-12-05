@@ -1,10 +1,14 @@
 package com.ngbj.wallpaper.module.app;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.constraint.ConstraintLayout;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,11 +18,13 @@ import android.widget.TextView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.ngbj.wallpaper.R;
-import com.ngbj.wallpaper.adapter.search.History_Search_Adapter;
+import com.ngbj.wallpaper.adapter.app.History_Search_Adapter;
+import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
 import com.ngbj.wallpaper.base.BaseActivity;
 import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.HistoryBean;
+import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.mvp.contract.app.SearchContract;
 import com.ngbj.wallpaper.mvp.presenter.app.SearchPresenter;
 import com.ngbj.wallpaper.utils.common.StringUtils;
@@ -38,9 +44,18 @@ import butterknife.OnClick;
 public class SearchActivity extends BaseActivity<SearchPresenter>
             implements SearchContract.View {
 
-    @BindView(R.id.edittext)
-    EditTextWithDel edittext;
 
+    @BindView(R.id.recycler)
+    RecyclerView recycler;
+
+    @BindView(R.id.edittext)
+    EditTextWithDel editText;
+
+    @BindView(R.id.part1)
+    ConstraintLayout part1;
+
+    @BindView(R.id.part2)
+    ConstraintLayout part2;
 
     @BindView(R.id.ad_part)
     ConstraintLayout ad_part;
@@ -70,8 +85,10 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
     @Override
     protected void initData() {
         initRecycleView();
+        initHistoryRecycleView();
         mPresenter.getHotWordsAndAd();
         mPresenter.getHistoryData();
+        mPresenter.getRecommendData();
     }
 
     @Override
@@ -83,8 +100,12 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
             public boolean onTagClick(View view, int position, FlowLayout parent) {
                 AdBean adBean = hotWords.get(position);
                 KLog.d("选择的标签是：" + adBean.getTitle());
-                HistoryBean historyBean = new HistoryBean(adBean.getTitle(),StringUtils.getDate(SearchActivity.this)[0]);
-                MyApplication.getDbManager().insertHistrory(historyBean);
+
+                searchContent(adBean.getTitle());
+                //TODO 打开列表页，隐藏历史记录页
+                editText.setText(adBean.getTitle());
+                part2.setVisibility(View.VISIBLE);
+                part1.setVisibility(View.GONE);
                 return false;
             }
         });
@@ -95,7 +116,11 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 HistoryBean historyBean = historyList.get(position);
                 KLog.d("历史记录：" + historyBean.getHistoryName());
-
+                searchContent(historyBean.getHistoryName());
+                //TODO 打开列表页，隐藏历史记录页
+                editText.setText(historyBean.getHistoryName());
+                part2.setVisibility(View.VISIBLE);
+                part1.setVisibility(View.GONE);
             }
         });
 
@@ -113,11 +138,11 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
         });
 
         //软键盘 -- 搜索
-        edittext.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if(actionId == EditorInfo.IME_ACTION_SEARCH){//搜索按键action
-                    String content = edittext.getText().toString().trim();
+                    String content = editText.getText().toString().trim();
                     if(TextUtils.isEmpty(content)){
                         KLog.d("不能搜索空内容");
                         return true;
@@ -128,16 +153,38 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
                             .hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),InputMethodManager.HIDE_NOT_ALWAYS);
 
                     KLog.d("搜索内容:" + content);
-                    HistoryBean historyBean = new HistoryBean(content,StringUtils.getDate(SearchActivity.this)[0]);
-                    MyApplication.getDbManager().insertHistrory(historyBean);
+                    searchContent(content);
+
+                    //TODO 打开列表页，隐藏历史记录页
+                    editText.setText(content);
+                    part2.setVisibility(View.VISIBLE);
+                    part1.setVisibility(View.GONE);
                 }
                 return false;
             }
         });
 
+        //EditText的内容监听
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                //内容为空 显示历史记录页
+                if(TextUtils.isEmpty(s.toString().trim())){
+                    part1.setVisibility(View.VISIBLE);
+                    part2.setVisibility(View.GONE);
+                }
+            }
+        });
+
     }
 
-    private void initRecycleView() {
+    private void initHistoryRecycleView() {
         layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         //设置布局管理器
@@ -165,6 +212,7 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
         historySearchAdapter.setNewData(historyList);
 
     }
+
 
     private void initAds(List<AdBean> ads) {
         if(ads.isEmpty()){
@@ -201,10 +249,69 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
     }
 
 
+    private void searchContent(String content){
+        HistoryBean historyBean = MyApplication.getDbManager().queryHistory(content);
+        if(null == historyBean){
+            historyBean = new HistoryBean(content,StringUtils.getDate(SearchActivity.this)[0]);
+            MyApplication.getDbManager().insertHistrory(historyBean);
+        }else{
+            historyBean.setClickTime(StringUtils.getDate(SearchActivity.this)[0]);
+            MyApplication.getDbManager().updateHistory(historyBean);
+        }
+    }
+
+
+    /** -----------------------  搜索列表页  -----------------------*/
+    GridLayoutManager gridLayoutManager;
+    RecomendAdapter recomendAdapter;
+    List<MulAdBean> recommendList = new ArrayList<>();
+
+    private void initRecycleView() {
+        recomendAdapter = new RecomendAdapter(recommendList);
+        gridLayoutManager = new GridLayoutManager(this,2);
+        //设置占据的列数 -- 根据实体中的类型
+        recomendAdapter.setSpanSizeLookup(new BaseQuickAdapter.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(GridLayoutManager gridLayoutManager, int position) {
+                return recommendList.get(position).getItemType();
+            }
+        });
+        //设置布局管理器
+        recycler.setLayoutManager(gridLayoutManager);
+        //设置Adapter
+        recycler.setAdapter(recomendAdapter);
+        //一行代码开启动画 默认CUSTOM动画
+        recomendAdapter.openLoadAnimation(BaseQuickAdapter.SCALEIN);
+
+        //加载更多数据
+        recomendAdapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
+            @Override
+            public void onLoadMoreRequested() {
+                mPresenter.getMoreRecommendData();
+            }
+        },recycler);
+        //点击事件
+        recomendAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                startActivity(new Intent(SearchActivity.this,DetailActivityNew.class));
+            }
+        });
+    }
 
 
 
+    @Override
+    public void showRecommendData(List<MulAdBean> recommendList) {
+        this.recommendList = recommendList;
+        recomendAdapter.setNewData(recommendList);
+    }
 
+    @Override
+    public void showMoreRecommendData(List<MulAdBean> recommendList) {
+        recomendAdapter.loadMoreComplete();
+        recomendAdapter.addData(recommendList);
+    }
 
 
 

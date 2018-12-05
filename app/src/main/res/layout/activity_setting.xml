@@ -9,16 +9,18 @@
     <RelativeLayout
         android:id="@+id/head"
         android:layout_width="match_parent"
-        android:padding="10dp"
+        android:paddingTop="10dp"
+        android:paddingRight="10dp"
         android:layout_height="50dp">
 
         <ImageView
             android:id="@+id/back"
-            android:paddingRight="10dp"
             android:layout_centerVertical="true"
             android:src="@mipmap/icon_back"
-            android:layout_width="20dp"
-            android:layout_height="30dp" />
+            android:paddingRight="10dp"
+            android:paddingLeft="12dp"
+            android:layout_width="35dp"
+            android:layout_height="20dp" />
 
         <TextView
             android:id="@+id/down"

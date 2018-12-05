@@ -1,12 +1,16 @@
 package com.ngbj.wallpaper.module.fragment;
 
+import android.content.Intent;
 import android.support.v7.widget.GridLayoutManager;
+import android.view.View;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.my.MyCommonAdapter;
 import com.ngbj.wallpaper.base.BaseRefreshFragment;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.module.app.DetailActivityNew;
+import com.ngbj.wallpaper.module.app.SearchActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.MyContract;
 import com.ngbj.wallpaper.mvp.presenter.fragment.MyPresenter;
 import com.socks.library.KLog;
@@ -37,6 +41,7 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,AdBean>
         mPresenter = new MyPresenter();
     }
 
+
     @Override
     protected void initRecyclerView() {
         myCommonAdapter = new MyCommonAdapter(mList);
@@ -57,6 +62,14 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,AdBean>
         },mRecyclerView);
         //设置空布局
         myCommonAdapter.setEmptyView(R.layout.commom_empty);
+        //事件
+        myCommonAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                KLog.d("选择的--- ：" + mList.get(position).getTitle());
+                startActivity(new Intent(getActivity(),DetailActivityNew.class));
+            }
+        });
     }
 
 
