@@ -25,10 +25,10 @@ import com.ngbj.wallpaper.adapter.index.IndexCoolGridAdapter;
 import com.ngbj.wallpaper.adapter.index.Index_HotSearch_Adapter;
 import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
 import com.ngbj.wallpaper.base.BaseFragment;
-import com.ngbj.wallpaper.bean.AdBean;
-import com.ngbj.wallpaper.bean.MulAdBean;
-import com.ngbj.wallpaper.module.app.DetailActivity;
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.module.app.DetailActivityNew;
+import com.ngbj.wallpaper.module.app.SearchActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.IndexContract;
 import com.ngbj.wallpaper.mvp.presenter.fragment.IndexPresenter;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
@@ -318,7 +318,7 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
 
     @OnClick(R.id.search_part)
     public void SearchPart(){
-        KLog.d("to search");
+        startActivity(new Intent(getActivity(),SearchActivity.class));
     }
 
 

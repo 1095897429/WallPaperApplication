@@ -8,9 +8,8 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.ngbj.wallpaper.R;
-import com.ngbj.wallpaper.bean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
 
 import java.util.List;
 

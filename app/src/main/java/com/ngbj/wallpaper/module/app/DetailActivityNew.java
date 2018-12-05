@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.detail.DetailAdapter;
 import com.ngbj.wallpaper.base.BaseActivity;
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.mvp.contract.app.DetailContract;
 import com.ngbj.wallpaper.mvp.presenter.app.DetailPresenter;
 import com.socks.library.KLog;
@@ -22,6 +23,7 @@ import com.socks.library.KLog;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -70,7 +72,7 @@ public class DetailActivityNew extends BaseActivity<DetailPresenter>
     @Override
     protected void initData() {
 
-//        mPresenter.getDynamicData();
+        mPresenter.getDynamicData();
 
         //TODO viewpager加载view的数据源
         mPresenter.getVerCodeData();
@@ -82,38 +84,19 @@ public class DetailActivityNew extends BaseActivity<DetailPresenter>
 
     }
 
-    private byte[] InputStreamToByte(InputStream is) {
-
-        try {
-            ByteArrayOutputStream bytestream = new ByteArrayOutputStream();
-            int ch;
-            while ((ch = is.read()) != -1) {
-                bytestream.write(ch);
-            }
-            byte imgdata[] = bytestream.toByteArray();
-            bytestream.close();
-            return imgdata;
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-
 
 
 
     @Override
     public void showVerCodeData() {
-        DetailAdapter detailAdapter = new DetailAdapter(this);
-        verticalviewpager.setAdapter(detailAdapter);
+
 
     }
 
     @Override
-    public void showDynamicData() {
-
+    public void showDynamicData(List<AdBean> adBeanList) {
+        DetailAdapter detailAdapter = new DetailAdapter(this,adBeanList);
+        verticalviewpager.setAdapter(detailAdapter);
     }
 
 

@@ -6,7 +6,7 @@ import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.my.MyCommonAdapter;
 import com.ngbj.wallpaper.base.BaseRefreshFragment;
-import com.ngbj.wallpaper.bean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.mvp.contract.fragment.MyContract;
 import com.ngbj.wallpaper.mvp.presenter.fragment.MyPresenter;
 import com.socks.library.KLog;

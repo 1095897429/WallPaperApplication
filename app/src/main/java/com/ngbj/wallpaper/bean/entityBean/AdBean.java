@@ -1,4 +1,4 @@
-package com.ngbj.wallpaper.bean;
+package com.ngbj.wallpaper.bean.entityBean;
 
 import android.os.Parcel;
 import android.os.Parcelable;

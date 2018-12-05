@@ -1,11 +1,10 @@
 package com.ngbj.wallpaper.network.api;
 
-import com.ngbj.wallpaper.bean.IpBean;
-import com.ngbj.wallpaper.bean.VerCodeBean;
+import com.ngbj.wallpaper.bean.entityBean.IpBean;
+import com.ngbj.wallpaper.bean.entityBean.VerCodeBean;
 import com.ngbj.wallpaper.network.response.HttpResponse;
 
 import io.reactivex.Flowable;
-import io.reactivex.Observable;
 import okhttp3.RequestBody;
 import retrofit2.http.Body;
 import retrofit2.http.GET;

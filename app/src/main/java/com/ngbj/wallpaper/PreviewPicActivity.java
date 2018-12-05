@@ -19,7 +19,7 @@ import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.target.Target;
 import com.ngbj.wallpaper.base.BaseActivity;
-import com.ngbj.wallpaper.bean.IpBean;
+import com.ngbj.wallpaper.bean.entityBean.IpBean;
 import com.ngbj.wallpaper.network.helper.RetrofitHelper;
 import com.ngbj.wallpaper.network.response.HttpResponse;
 import com.ngbj.wallpaper.service.VideoLiveWallpaperService;

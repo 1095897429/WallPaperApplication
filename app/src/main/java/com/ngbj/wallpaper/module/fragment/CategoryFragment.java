@@ -10,15 +10,12 @@ import android.widget.RelativeLayout;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.category.Category_Top_Adapter;
-import com.ngbj.wallpaper.adapter.index.Index_HotSearch_Adapter;
 import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
 import com.ngbj.wallpaper.base.BaseFragment;
-import com.ngbj.wallpaper.bean.AdBean;
-import com.ngbj.wallpaper.bean.MulAdBean;
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.mvp.contract.fragment.CategoryContract;
-import com.ngbj.wallpaper.mvp.contract.fragment.IndexContract;
 import com.ngbj.wallpaper.mvp.presenter.fragment.CategoryPresenter;
-import com.ngbj.wallpaper.mvp.presenter.fragment.IndexPresenter;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.socks.library.KLog;
 

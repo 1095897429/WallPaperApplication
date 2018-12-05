@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tag"
+    android:text="欧美影视"
+    android:tag="position0"
+    android:textColor="@color/white"
+    android:gravity="center"
+    android:textSize="12sp"
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:layout_marginRight="12dp"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/hot_search_bg"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+</TextView>

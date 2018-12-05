@@ -1,4 +1,4 @@
-package com.ngbj.wallpaper.bean;
+package com.ngbj.wallpaper.bean.entityBean;
 
 /***
  * api的实体

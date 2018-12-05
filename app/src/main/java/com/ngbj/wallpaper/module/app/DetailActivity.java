@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.detail.DetailAdapter;
 import com.ngbj.wallpaper.base.BaseActivity;
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.mvp.contract.app.DetailContract;
 import com.ngbj.wallpaper.mvp.contract.app.LoginContract;
 import com.ngbj.wallpaper.mvp.presenter.app.DetailPresenter;
@@ -26,6 +27,7 @@ import com.socks.library.KLog;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -149,7 +151,7 @@ public class DetailActivity extends BaseActivity<DetailPresenter>
     }
 
     @Override
-    public void showDynamicData() {
+    public void showDynamicData(List<AdBean> list) {
 
         //准备数据
         if(mediaPlayer.isPlaying()) mediaPlayer.reset();

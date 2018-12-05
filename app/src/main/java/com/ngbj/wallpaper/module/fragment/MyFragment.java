@@ -3,6 +3,7 @@ package com.ngbj.wallpaper.module.fragment;
 
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -19,6 +20,7 @@ import com.flyco.tablayout.listener.OnTabSelectListener;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.my.MyFragmentAdapter;
 import com.ngbj.wallpaper.base.BaseFragment;
+import com.ngbj.wallpaper.module.app.SettingActivity;
 import com.ngbj.wallpaper.mvp.presenter.fragment.IndexPresenter;
 import com.ngbj.wallpaper.utils.common.StringUtils;
 import com.ngbj.wallpaper.utils.common.UtilBitmap;
@@ -133,7 +135,7 @@ public class MyFragment extends BaseFragment{
 
     @OnClick(R.id.settting)
     public void Setting(){
-        KLog.d("setting");
+       startActivity(new Intent(getActivity(),SettingActivity.class));
     }
 
 

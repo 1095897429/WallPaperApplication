@@ -66,11 +66,34 @@
     4.vp中列表显示不全的问题 -- ok
     5.点击事件 -- ok
     6.添加空布局 -- ok
-2.抓包工具
-3.CPL
-4.mac打包
-5.mac 链接的话，首先在Terminal上授权，所谓的授权就是通过  git config --global 配置远程仓库 ，然后在设置中的github填入密码 -- ok
+2.mac 链接的话，首先在Terminal上授权，所谓的授权就是通过  git config --global 配置远程仓库 ，然后在设置中的github填入密码 -- ok
 
+2018.12.3
+1.抓包工具
+2.CPL
+3.mac打包 -- 利用python打包工具 -- ok
+    cd channel(切换到对应目录下) -- python /Users/niaogebiji/channel/MultiChannelBuildTool.py(执行命令)
+
+4.软著的代码和使用手册 -- 预计周三下午给代码
+5.微信登录
+    1.-- https://blog.csdn.net/qq_15796477/article/details/78813665 -- ok
+
+2018.12.4
+1.搜索界面
+   1.热搜点击 -- ok
+   2.广告 + delete广告 -- ok
+   3.历史记录  -- ok
+   4.历史记录删除 -- ok
+   5.软键盘 -- 搜索action -- ok
+   6.数据库查询 -- 确定热搜中没有广告 -- dbmanager放application中 -- ok
+   7.点击搜索 -- 添加到数据库中 -- ok
+   8.点击热搜 -- 添加到数据库中 -- ok
+   9.点击删除 -- 删除到数据库中 -- ok
+
+2.调用第三方浏览器打开网址或下载文件 -- https://blog.csdn.net/yingtian648/article/details/79128663/ -- ok
+
+2018.12.5
+1.了解测试(https://blog.csdn.net/lmj623565791/article/details/79623159)
 
 
 

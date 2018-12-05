@@ -1,8 +1,7 @@
 package com.ngbj.wallpaper.mvp.contract.fragment;
 
 import com.ngbj.wallpaper.base.BaseContract;
-import com.ngbj.wallpaper.bean.AdBean;
-import com.ngbj.wallpaper.bean.MulAdBean;
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
 
 import java.util.List;
 

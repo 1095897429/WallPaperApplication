@@ -5,7 +5,7 @@ import android.support.annotation.Nullable;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
-import com.ngbj.wallpaper.bean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
 
 import java.util.List;
 

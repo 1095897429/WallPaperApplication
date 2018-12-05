@@ -1,11 +1,10 @@
 package com.ngbj.wallpaper.mvp.presenter.fragment;
 
 import com.ngbj.wallpaper.base.RxPresenter;
-import com.ngbj.wallpaper.bean.AdBean;
-import com.ngbj.wallpaper.bean.ApiAdBean;
-import com.ngbj.wallpaper.bean.MulAdBean;
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.ApiAdBean;
+import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.mvp.contract.fragment.CategoryContract;
-import com.ngbj.wallpaper.mvp.contract.fragment.IndexContract;
 
 import java.util.ArrayList;
 import java.util.List;

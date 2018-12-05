@@ -1,4 +1,4 @@
-package com.ngbj.wallpaper.bean;
+package com.ngbj.wallpaper.bean.entityBean;
 
 import com.chad.library.adapter.base.entity.MultiItemEntity;
 
