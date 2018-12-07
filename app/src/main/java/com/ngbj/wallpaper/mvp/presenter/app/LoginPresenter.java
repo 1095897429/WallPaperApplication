@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import com.google.gson.Gson;
 import com.ngbj.wallpaper.base.BaseObjectSubscriber;
 import com.ngbj.wallpaper.base.RxPresenter;
+import com.ngbj.wallpaper.bean.entityBean.LoginBean;
 import com.ngbj.wallpaper.bean.entityBean.VerCodeBean;
 import com.ngbj.wallpaper.mvp.contract.app.LoginContract;
 import com.ngbj.wallpaper.network.helper.RetrofitHelper;
@@ -24,22 +25,31 @@ public class LoginPresenter extends RxPresenter<LoginContract.View>
     @SuppressLint("CheckResult")
     @Override
     public void getVerCodeData() {
-        Gson gson = new Gson();
-        HashMap<String,String> hashMap = new HashMap<>();
-        hashMap.put("mobile","15240128165");
-        String strEntity = gson.toJson(hashMap);
-        RequestBody body = RequestBody.create(
-                MediaType.parse("application/json;charset=UTF-8"),strEntity);
-        addSubscribe(RetrofitHelper.getApiService()
-                .getVerCode(body)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseObjectSubscriber<VerCodeBean>(mView) {
-                    @Override
-                    public void onSuccess(VerCodeBean verCodeBean) {
-                        mView.showVerCodeData();
-                    }
-                }));
+//        Gson gson = new Gson();
+//        HashMap<String,String> hashMap = new HashMap<>();
+//        hashMap.put("mobile","15240128165");
+//        String strEntity = gson.toJson(hashMap);
+//        RequestBody body = RequestBody.create(
+//                MediaType.parse("application/json;charset=UTF-8"),strEntity);
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .getVerCode(body)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new BaseObjectSubscriber<VerCodeBean>(mView) {
+//                    @Override
+//                    public void onSuccess(VerCodeBean verCodeBean) {
+//                        mView.showVerCodeData();
+//                    }
+//                }));
+        VerCodeBean codeBean = new VerCodeBean();
+        codeBean.setCode(1234);
+        mView.showVerCodeData(codeBean);
+    }
+
+    @Override
+    public void getLoginData() {
+        LoginBean loginBean = new LoginBean();
+        mView.showLoginData(loginBean);
     }
 
 }

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/bg"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:id="@+id/head"
+        android:layout_width="match_parent"
+        android:padding="10dp"
+        android:layout_height="50dp">
+
+        <ImageView
+            android:id="@+id/back"
+            android:paddingRight="10dp"
+            android:layout_centerVertical="true"
+            android:src="@mipmap/icon_back"
+            android:layout_width="20dp"
+            android:layout_height="30dp" />
+
+        <TextView
+            android:id="@+id/title"
+            android:text="发布"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:layout_centerInParent="true"
+            android:layout_centerVertical="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </RelativeLayout>
+
+    <View
+        android:id="@+id/line1"
+        app:layout_constraintTop_toBottomOf="@+id/head"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/line_color"></View>
+
+    <RelativeLayout
+        app:layout_constraintTop_toBottomOf="@+id/line1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <FrameLayout
+            android:id="@+id/upload_file"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/upload_file_bg"
+            android:layout_width="104dp"
+            android:layout_height="138dp" >
+
+            <ImageView
+                android:id="@+id/upload"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:src="@mipmap/upload_add_icon" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/add_tag"
+            android:background="@drawable/identify_code_bg"
+            android:layout_alignBottom="@+id/upload_file"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:layout_marginLeft="10dp"
+            android:text="#添加标签#"
+            android:gravity="center"
+            android:textSize="12sp"
+            android:textColor="@color/white"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+
+    <EditText
+        android:id="@+id/upload_text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignTop="@+id/upload_file"
+        android:layout_toLeftOf="@+id/upload_file"
+        android:layout_above="@+id/add_tag"
+        android:background="@null"
+        android:gravity="left"
+        android:hint="写标题并使用合适的话题，能让更多的人看到～"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="10dp"
+        android:textColor="@color/text_color"
+        android:textColorHint="@color/text_color"
+        android:textSize="12sp" />
+
+
+
+
+        <com.zhy.view.flowlayout.TagFlowLayout
+            android:id="@+id/tagflowlayout"
+            app:layout_constraintTop_toBottomOf="@+id/add_tag"
+            android:padding="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        </com.zhy.view.flowlayout.TagFlowLayout>
+
+
+
+
+    </RelativeLayout>
+
+
+
+
+
+
+
+
+    <TextView
+        android:id="@+id/makedone"
+        android:background="@drawable/detail_down_bg"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginLeft="12dp"
+        android:layout_marginRight="12dp"
+        android:layout_marginBottom="32dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:text="完成"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+
+
+
+</android.support.constraint.ConstraintLayout>

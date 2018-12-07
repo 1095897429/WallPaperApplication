@@ -29,6 +29,7 @@ import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.module.app.DetailActivityNew;
 import com.ngbj.wallpaper.module.app.SearchActivity;
+import com.ngbj.wallpaper.module.app.SpecialActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.IndexContract;
 import com.ngbj.wallpaper.mvp.presenter.fragment.IndexPresenter;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
@@ -160,7 +161,7 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
         banner.setOnBannerListener(new OnBannerListener() {
             @Override
             public void OnBannerClick(int position) {
-                KLog.d("tag",myBannerList.get(position).getTitle());
+               startActivity(new Intent(getActivity(),SpecialActivity.class));
             }
         });
 
@@ -206,14 +207,12 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
         mRecommandRecyclerView.setAdapter(recomendAdapter);
         //一行代码开启动画 默认CUSTOM动画
         recomendAdapter.openLoadAnimation(BaseQuickAdapter.SCALEIN);
-        //设置头布局
-        recomendAdapter.addHeaderView(headView);
 
-        //解决数据加载不完的问题
-        mRecommandRecyclerView.setNestedScrollingEnabled(false);
-        mRecommandRecyclerView.setHasFixedSize(true);
-        //解决数据加载完成后, 没有停留在顶部的问题
-        mRecommandRecyclerView.setFocusable(false);
+//        //解决数据加载不完的问题
+//        mRecommandRecyclerView.setNestedScrollingEnabled(false);
+//        mRecommandRecyclerView.setHasFixedSize(true);
+//        //解决数据加载完成后, 没有停留在顶部的问题
+//        mRecommandRecyclerView.setFocusable(false);
 
         //加载更多数据
         recomendAdapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
@@ -222,6 +221,8 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
                 mPresenter.getMoreRecommendData();
             }
         },mRecommandRecyclerView);
+        //设置头布局
+        recomendAdapter.addHeaderView(headView);
     }
 
 

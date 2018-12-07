@@ -86,5 +86,7 @@ dependencies {
     implementation 'com.hyman:flowlayout-lib:1.1.2'
     //greendao
     implementation 'org.greenrobot:greendao:3.0.1'
+    //eventBus
+    implementation 'org.greenrobot:eventbus:3.1.1'
 
 }

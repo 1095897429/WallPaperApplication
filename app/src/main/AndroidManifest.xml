@@ -45,10 +45,7 @@
         </provider>
 
         <activity android:name=".module.app.LoginActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+
         </activity>
 
 
@@ -61,9 +58,20 @@
         </activity>
 
 
+        <activity android:name=".module.app.ReleaseActivity">
+
+        </activity>
+
+        <activity android:name=".module.app.SpecialActivity">
+
+        </activity>
+
 
         <activity android:name=".module.app.HomeActivity">
-
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <activity android:name=".MainActivity">

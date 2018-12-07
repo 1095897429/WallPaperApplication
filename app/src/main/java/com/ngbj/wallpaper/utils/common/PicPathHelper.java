@@ -24,7 +24,7 @@ import java.io.InputStream;
 /**
  * Date:2018/7/19
  * author:zl
- * 备注：相册路径获取工具类
+ * 备注：相册路径获取工具类 -- 获取相册的路径
  */
 public class PicPathHelper {
 
@@ -48,7 +48,7 @@ public class PicPathHelper {
         }
 
         String picPath;
-        //TODO 8.10
+
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
             picPath = getFilePath_above19(context,photoUri);
         }else

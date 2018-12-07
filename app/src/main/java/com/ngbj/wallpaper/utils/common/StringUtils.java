@@ -42,4 +42,10 @@ public class StringUtils {
     }
 
 
+    /** 尺寸转换 */
+    public static int dp2px(Context context, float dpValue) {
+        final float scale = context.getResources().getDisplayMetrics().density;
+        return (int) (dpValue * scale);
+    }
+
 }

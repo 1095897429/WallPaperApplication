@@ -47,11 +47,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
-        <com.ngbj.wallpaper.utils.widget.EditTextWithDel
+        <EditText
             android:id="@+id/phone"
             app:layout_constraintTop_toBottomOf="@+id/phone_text"
             android:background="@null"
             android:singleLine="true"
+            android:maxLength="11"
+            android:inputType="number"
+            android:textColor="@color/white"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
@@ -60,7 +63,7 @@
             app:layout_constraintTop_toBottomOf="@+id/phone"
             android:layout_width="match_parent"
             android:layout_height="1px"
-            android:background="@color/white"></View>
+            android:background="#4f2b56"></View>
 
 
         <TextView
@@ -74,11 +77,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
-        <com.ngbj.wallpaper.utils.widget.EditTextWithDel
+        <EditText
             android:id="@+id/code"
             app:layout_constraintTop_toBottomOf="@+id/code_text"
+            app:layout_constraintRight_toLeftOf="@+id/get_done"
             android:background="@null"
             android:singleLine="true"
+            android:maxLength="6"
+            android:textColor="@color/white"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
@@ -87,7 +93,7 @@
             app:layout_constraintTop_toBottomOf="@+id/code"
             android:layout_width="match_parent"
             android:layout_height="1px"
-            android:background="@color/white"></View>
+            android:background="#4f2b56"></View>
 
         <TextView
             android:id="@+id/get_done"
@@ -147,57 +153,61 @@
 
     <TextView
         android:id="@+id/choose_txt"
-        app:layout_constraintTop_toBottomOf="@+id/part1"
+        app:layout_constraintBottom_toTopOf="@+id/tab1"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:text="选择其他登录方式"
+        android:layout_marginBottom="32dp"
         android:textSize="12sp"
         android:textColor="@color/white"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
 
-    <ImageView
-        android:id="@+id/login_qq"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginLeft="76dp"
-        android:background="@drawable/login_third_bg"
-        android:padding="6dp"
-        android:src="@mipmap/login_qq"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_weight="1"
-        app:layout_constraintLeft_toLeftOf="parent" />
 
     <ImageView
-        android:id="@+id/login_weixin"
+        android:id="@+id/tab1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginLeft="156dp"
         android:background="@drawable/login_third_bg"
+        android:gravity="center"
+        android:padding="6dp"
+        android:src="@mipmap/login_qq"
+        android:layout_marginBottom="30dp"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/tab2" />
+
+
+    <ImageView
+        android:id="@+id/tab2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/login_third_bg"
+        android:gravity="center"
+        android:layout_marginLeft="37dp"
+        android:layout_marginRight="37dp"
+        android:layout_marginBottom="30dp"
         android:padding="6dp"
         android:src="@mipmap/login_weixin"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toRightOf="@+id/login_qq" />
+        app:layout_constraintLeft_toRightOf="@id/tab1"
+        app:layout_constraintRight_toLeftOf="@+id/tab3" />
+
 
     <ImageView
-        android:id="@+id/login_weibo"
+        android:id="@+id/tab3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginEnd="56dp"
-        android:layout_marginRight="56dp"
         android:background="@drawable/login_third_bg"
+        android:gravity="center"
+        android:layout_marginBottom="30dp"
         android:padding="6dp"
         android:src="@mipmap/login_weibo"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_weight="1"
-        app:layout_constraintLeft_toRightOf="@+id/login_weixin" />
-
-
+        app:layout_constraintLeft_toRightOf="@id/tab2"
+        app:layout_constraintRight_toRightOf="parent" />
 
 
 </android.support.constraint.ConstraintLayout>
