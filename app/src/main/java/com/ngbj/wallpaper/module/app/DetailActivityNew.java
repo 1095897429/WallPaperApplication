@@ -39,23 +39,8 @@ public class DetailActivityNew extends BaseActivity<DetailPresenter>
     @BindView(R.id.verticalviewpager)
     VerticalViewPager verticalviewpager;
 
-
-//    @BindView(R.id.imageView)
-//    ImageView imageView;
-//
-//
-//    @BindView(R.id.part1)
-//    ConstraintLayout part1;
-//
-//    @BindView(R.id.part2)
-//    ConstraintLayout part2;
-//
-//    @BindView(R.id.surfaceview)
-//    SurfaceView surfaceView;
-//
-//
-//    SurfaceHolder surfaceHolder;
-//    MediaPlayer mediaPlayer;
+    DetailAdapter detailAdapter;
+    int position;
 
 
 
@@ -71,6 +56,8 @@ public class DetailActivityNew extends BaseActivity<DetailPresenter>
 
     @Override
     protected void initData() {
+        position = getIntent().getIntExtra("position",0);
+        KLog.d("当前选择的位置为：" + position);
 
         mPresenter.getDynamicData();
 
@@ -95,7 +82,9 @@ public class DetailActivityNew extends BaseActivity<DetailPresenter>
 
     @Override
     public void showDynamicData(List<AdBean> adBeanList) {
-        DetailAdapter detailAdapter = new DetailAdapter(this,adBeanList);
+        detailAdapter = new DetailAdapter(this,adBeanList);
+        verticalviewpager.setOffscreenPageLimit(5);
+        verticalviewpager.setCurrentItem(position);
         verticalviewpager.setAdapter(detailAdapter);
     }
 

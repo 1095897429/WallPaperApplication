@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.detail.ReportAdapter;
 import com.ngbj.wallpaper.utils.widget.CustomDecoration;
@@ -21,12 +22,7 @@ import java.util.List;
 
 /**
  * Date:2018/8/9
- * author:zl
- * 备注：一般的Dialog
- *
- *      1.给Dialog设置一个风格主体（无边框全透明背景）
- *      2.自定义xml (shape)
- *      3.自定义代码 (链式调用)
+ * 举报 弹出框
  */
 public class ReportAlertDialog {
     private Context mContext;
@@ -36,6 +32,19 @@ public class ReportAlertDialog {
     private ReportAdapter mReportAdapter;
     private LinearLayoutManager mLinearLayoutManager;
     private List<String> mStrings = new ArrayList<>();
+
+    /** 回调接口 开始 */
+    public OnDialogItemClickListener mOnDialogItemClickListener;
+
+    public interface OnDialogItemClickListener{
+        void func(int position);
+    }
+
+    public void setOnDialogItemClickListener(OnDialogItemClickListener onDialogItemClickListener) {
+        mOnDialogItemClickListener = onDialogItemClickListener;
+    }
+
+    /** 回调接口 结束 */
 
 
 
@@ -104,7 +113,15 @@ public class ReportAlertDialog {
     }
 
     private void setEvent() {
-
+        mReportAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                if(null != mOnDialogItemClickListener){
+                    mOnDialogItemClickListener.func(position);
+                    dialog.dismiss();
+                }
+            }
+        });
     }
 
     private void setData(){

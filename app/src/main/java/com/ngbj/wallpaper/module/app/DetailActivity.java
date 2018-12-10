@@ -215,10 +215,6 @@ public class DetailActivity extends BaseActivity<DetailPresenter>
         play();
     }
 
-    @OnClick(R.id.warning)
-    public void warning(){
-        KLog.d("warning");
-    }
 
     @OnClick(R.id.imageView)
     public void ImageView(){

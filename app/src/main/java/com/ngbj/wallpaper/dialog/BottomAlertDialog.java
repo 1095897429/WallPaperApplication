@@ -17,7 +17,6 @@ import android.widget.TextView;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.bean.entityBean.UploadTagBean;
 import com.ngbj.wallpaper.eventbus.TagPositionEvent;
-import com.socks.library.KLog;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -28,7 +27,7 @@ import java.util.List;
 /**
  * hashmap<integer,UploadTagBean></>
  */
-public class BottomAlertDialog2 {
+public class BottomAlertDialog {
     private Context mContext;
     private Dialog dialog;
     private Display display;
@@ -41,7 +40,7 @@ public class BottomAlertDialog2 {
 
 
 
-    public BottomAlertDialog2(Context context, List<UploadTagBean> list){
+    public BottomAlertDialog(Context context, List<UploadTagBean> list){
         this.uploadTagBeanList = list;
         mContext = context;
         WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
@@ -49,7 +48,7 @@ public class BottomAlertDialog2 {
     }
 
 
-    public BottomAlertDialog2 builder(){
+    public BottomAlertDialog builder(){
         View view = LayoutInflater.from(mContext).inflate(R.layout.bottom_tag_dialog,null); // 获取Dialog布局
         // 获取自定义Dialog布局中的控件
         tag_recyclerView = view.findViewById(R.id.tag_recyclerView);
@@ -78,14 +77,14 @@ public class BottomAlertDialog2 {
 
 
 
-    public BottomAlertDialog2 setCancelable(boolean cancel) {
+    public BottomAlertDialog setCancelable(boolean cancel) {
         dialog.setCancelable(cancel);
         return this;
     }
 
 
 
-    public BottomAlertDialog2 setCanceledOnTouchOutside(boolean b) {
+    public BottomAlertDialog setCanceledOnTouchOutside(boolean b) {
         dialog.setCanceledOnTouchOutside(b);
         return this;
     }

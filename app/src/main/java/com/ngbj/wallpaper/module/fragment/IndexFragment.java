@@ -112,7 +112,10 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
                 MulAdBean mulAdBean = recommendList.get(position);
                 if(mulAdBean.getItemType() == MulAdBean.TYPE_ONE){
                     KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
-                    startActivity(new Intent(getActivity(),DetailActivityNew.class));
+
+                    Intent intent = new Intent(getActivity(),DetailActivityNew.class);
+                    intent.putExtra("position",position);
+                    startActivity(intent);
                 }else {
                     KLog.d("tag -- 广告",recommendList.get(position).apiAdBean.getName());
                 }
@@ -207,12 +210,6 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
         mRecommandRecyclerView.setAdapter(recomendAdapter);
         //一行代码开启动画 默认CUSTOM动画
         recomendAdapter.openLoadAnimation(BaseQuickAdapter.SCALEIN);
-
-//        //解决数据加载不完的问题
-//        mRecommandRecyclerView.setNestedScrollingEnabled(false);
-//        mRecommandRecyclerView.setHasFixedSize(true);
-//        //解决数据加载完成后, 没有停留在顶部的问题
-//        mRecommandRecyclerView.setFocusable(false);
 
         //加载更多数据
         recomendAdapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {

@@ -38,7 +38,7 @@
 
 
         <ImageView
-            android:id="@+id/warning"
+            android:id="@+id/report"
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:layout_marginRight="20dp"

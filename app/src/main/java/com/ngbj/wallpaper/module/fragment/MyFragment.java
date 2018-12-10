@@ -16,6 +16,8 @@ import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.my.MyFragmentAdapter;
 import com.ngbj.wallpaper.base.BaseFragment;
 import com.ngbj.wallpaper.bean.entityBean.ShareBean;
+import com.ngbj.wallpaper.dialog.HeadAlertDialog;
+import com.ngbj.wallpaper.dialog.ReportAlertDialog;
 import com.ngbj.wallpaper.dialog.ShareAlertDialog;
 import com.ngbj.wallpaper.module.app.ReleaseActivity;
 import com.ngbj.wallpaper.module.app.SettingActivity;
@@ -142,29 +144,14 @@ public class MyFragment extends BaseFragment{
 
     @OnClick(R.id.default_head)
     public void DefaultHead(){
-        //测试 举报
-//        List<String> temps = new ArrayList<>();
-//        temps.add("色情低俗");
-//        temps.add("侵犯版权");
-//        temps.add("取消");
-//
-//        new ReportAlertDialog(getActivity())
-//                .builder()
-//                .setReportBeanList(temps)
-//                .show();
 
-        //测试 分享
-        List<ShareBean> temps = new ArrayList<>();
-        temps.add(new ShareBean(R.mipmap.wechat_share,"微信"));
-        temps.add(new ShareBean(R.mipmap.friend_share,"朋友圈"));
-        temps.add(new ShareBean(R.mipmap.qq_share,"QQ"));
-        temps.add(new ShareBean(R.mipmap.weibo_share,"微博"));
-        temps.add(new ShareBean(R.mipmap.qqkj_share,"QQ空间"));
 
-        new ShareAlertDialog(getActivity())
-                .builder()
-                .seShareBeanList(temps)
-                .show();
+
+
+
+
+
+
     }
 
 

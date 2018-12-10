@@ -24,7 +24,14 @@ public class RecomendAdapter extends BaseMultiItemQuickAdapter<MulAdBean,BaseVie
         switch (holder.getItemViewType()){
             case MulAdBean.TYPE_ONE://正常
                 AdBean adBean = item.adBean;
+
+                if(adBean.getType().equals("1")){
+                    holder.setVisible(R.id.live_or_ad,false);
+                }else if(adBean.getType().equals("0") || adBean.getType().equals("2")){
+                    holder.setVisible(R.id.live_or_ad,true);
+                }
                 holder.setText(R.id.live_or_ad,adBean.getTitle());
+
                 if("0".equals(adBean.getIs_collected())){
                     holder.setImageResource(R.id.icon_love,R.mipmap.recommend_unlove);
                 }else{

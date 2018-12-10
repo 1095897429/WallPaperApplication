@@ -30,7 +30,7 @@ public class PicPathHelper {
 
 
     /**
-     * 选择图片后，获取图片的路径 并做一些判断
+     * 选择图片后，获取图片的路径 并做一些判断 -- 一般在onActivityResult中调用
      * @return 图片文件的绝对路径 比如:storage/emulate/0/zl.png
      */
     @SuppressLint("NewApi")
@@ -48,11 +48,11 @@ public class PicPathHelper {
         }
 
         String picPath;
-
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
-            picPath = getFilePath_above19(context,photoUri);
+        //判断手机系统版本号
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
+            picPath = getFilePath_above19(context,photoUri); //4.4及以上系统使用这个方法处理图片
         }else
-            picPath  = getFilePath_above19(context,photoUri);
+            picPath  = getFilePath_below19(context,photoUri); //4.4以下系统使用这个放出处理图片
 
         if(picPath != null &&(picPath.endsWith(".png")||picPath.endsWith(".PNG")
                 || picPath.endsWith(".jpg")||picPath.endsWith(".JPG"))) {
@@ -67,10 +67,10 @@ public class PicPathHelper {
 
     /**
      * 获取小于api19时获取相册中图片真正的uri
-     * 对于路径是：content://media/external/images/media/33517这种的，需要转成/storage/emulated/0/DCIM/Camera/IMG_20160807_133403.jpg路径，也是使用这种方法
+     * 对于路径是：content://media/external/images/media/33517这种的，
      * @param context
      * @param uri
-     * @return
+     * @return  /storage/emulated/0/DCIM/Camera/IMG_20160807_133403.jpg路径
      */
    public static String getFilePath_below19(Context context, Uri uri){
        Cursor cursor ;
@@ -87,14 +87,14 @@ public class PicPathHelper {
 
     /***
      * 对于Android 4.4及以上机型获取path
+     * 返回路径是：file:///media/external/images/media/33517
      * @param context
      * @param uri
-     * @return
+     * @return  /storage/emulated/0/DCIM/Camera/IMG_20160807_133403.jpg路径
      */
    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
    public static String getFilePath_above19(Context context, Uri uri){
        boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
-       String pathHead = "file:///";
 
        // 1. DocumentProvider
        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
@@ -104,7 +104,7 @@ public class PicPathHelper {
                final String[] split = docId.split(":");
                final String type = split[0];
                if ("primary".equalsIgnoreCase(type)) {
-                   return pathHead + Environment.getExternalStorageDirectory() + "/" + split[1];
+                   return  Environment.getExternalStorageDirectory() + "/" + split[1];
                }
            }
            // 1.2 DownloadsProvider
@@ -112,7 +112,7 @@ public class PicPathHelper {
                final String id = DocumentsContract.getDocumentId(uri);
                final Uri contentUri = ContentUris.
                        withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
-               return pathHead + getDataColumn(context,
+               return  getDataColumn(context,
                        contentUri, null, null);
            }
            // 1.3 MediaProvider
@@ -133,7 +133,7 @@ public class PicPathHelper {
                final String selection = "_id=?";
                final String[] selectionArgs = new String[]{split[1]};
 
-               return pathHead + getDataColumn(context, contentUri, selection, selectionArgs);
+               return getDataColumn(context, contentUri, selection, selectionArgs);
            }
        } // 2. MediaStore (and general)
        else if ("content".equalsIgnoreCase(uri.getScheme())) {
@@ -147,7 +147,7 @@ public class PicPathHelper {
        }
        // 3. 判断是否是文件形式 File
        else if ("file".equalsIgnoreCase(uri.getScheme())) {
-           return pathHead + uri.getPath();
+           return  uri.getPath();
        }
 
        return null;
