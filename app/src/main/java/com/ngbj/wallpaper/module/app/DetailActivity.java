@@ -18,6 +18,7 @@ import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.detail.DetailAdapter;
 import com.ngbj.wallpaper.base.BaseActivity;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.mvp.contract.app.DetailContract;
 import com.ngbj.wallpaper.mvp.contract.app.LoginContract;
 import com.ngbj.wallpaper.mvp.presenter.app.DetailPresenter;
@@ -92,7 +93,7 @@ public class DetailActivity extends BaseActivity<DetailPresenter>
 //        mPresenter.getDynamicData();
 
         //TODO viewpager加载view的数据源
-        mPresenter.getVerCodeData();
+//        mPresenter.getData(1);
     }
 
 
@@ -146,12 +147,12 @@ public class DetailActivity extends BaseActivity<DetailPresenter>
 
 
     @Override
-    public void showVerCodeData() {
+    public void showData(AdBean adBean) {
 
     }
 
     @Override
-    public void showDynamicData(List<AdBean> list) {
+    public void showDynamicData(List<WallpagerBean> list) {
 
         //准备数据
         if(mediaPlayer.isPlaying()) mediaPlayer.reset();

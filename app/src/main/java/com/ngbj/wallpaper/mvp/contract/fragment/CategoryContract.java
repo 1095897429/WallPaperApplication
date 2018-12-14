@@ -9,8 +9,8 @@ import java.util.List;
 public interface CategoryContract {
 
     interface Presenter<T> extends BaseContract.BasePresenter<T>{
-        void getData();
-        void getMoreRecommendData();
+        void getData(int page,String category,int order);
+        void getMoreRecommendData(int page,String category,int order);
     }
 
     interface View extends BaseContract.BaseView{

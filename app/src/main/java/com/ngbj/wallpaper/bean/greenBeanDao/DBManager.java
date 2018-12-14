@@ -3,7 +3,9 @@ package com.ngbj.wallpaper.bean.greenBeanDao;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.HistoryBean;
+import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 
 import org.greenrobot.greendao.query.QueryBuilder;
 
@@ -63,7 +65,7 @@ public class DBManager {
         return db;
     }
 
-    /** =========================================================================== */
+    /** ========================= 历史记录  开始================================================== */
 
 
     /** 插入一条历史记录 */
@@ -143,6 +145,92 @@ public class DBManager {
         List<HistoryBean> list = qb.list();
         return list;
     }
+
+    /** ========================= 历史记录  结束================================================== */
+
+
+
+
+    /** ========================= 壁纸数据  开始================================================== */
+
+    /** 插入一条壁纸记录 */
+    public void insertWallpagerBean(WallpagerBean wallpagerBean) {
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        WallpagerBeanDao userDao = daoSession.getWallpagerBeanDao();
+        userDao.insert(wallpagerBean);
+    }
+
+
+    /** 插入壁纸记录集合 */
+    public void inserWallpagerBeanList(List<WallpagerBean> wallpagerBeanList) {
+        if (wallpagerBeanList == null || wallpagerBeanList.isEmpty()) {
+            return;
+        }
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        WallpagerBeanDao wallpagerBeanDao = daoSession.getWallpagerBeanDao();
+        wallpagerBeanDao.insertInTx(wallpagerBeanList);
+    }
+
+    /** 更新一条壁纸 */
+    public void updateWallpagerBean(WallpagerBean wallpagerBean) {
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        WallpagerBeanDao wallpagerBeanDao = daoSession.getWallpagerBeanDao();
+        wallpagerBeanDao.update(wallpagerBean);
+    }
+
+
+
+    /** 删除一条壁纸 */
+    public void deleteWallpagerBean(WallpagerBean wallpagerBean) {
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        WallpagerBeanDao historyBeanDao = daoSession.getWallpagerBeanDao();
+        historyBeanDao.delete(wallpagerBean);
+    }
+
+
+    /** 删除所有壁纸记录 */
+    public void deleteAllWallpagerBean() {
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        WallpagerBeanDao historyDataDao = daoSession.getWallpagerBeanDao();
+        historyDataDao.deleteAll();
+    }
+
+    /** 查询一条壁纸记录 */
+    public WallpagerBean queryWallpagerBean(String categoryId) {
+        DaoMaster daoMaster = new DaoMaster(getReadableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        WallpagerBeanDao userDao = daoSession.getWallpagerBeanDao();
+        WallpagerBean wallpagerBean = userDao.queryBuilder().where(WallpagerBeanDao.Properties.Category_id.eq(categoryId)).unique();
+        return wallpagerBean;
+    }
+
+    /** 查询所有壁纸记录 降序 */
+    public List<WallpagerBean> queryWallpagerBeanList() {
+        DaoMaster daoMaster = new DaoMaster(getReadableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        WallpagerBeanDao userDao = daoSession.getWallpagerBeanDao();
+        QueryBuilder<WallpagerBean> qb = userDao.queryBuilder();
+        List<WallpagerBean> list = qb.list();
+        return list;
+    }
+
+
+    /** 查询一定数量壁纸列表 */
+    public List<WallpagerBean> queryWallpagerBeanLimitList() {
+        DaoMaster daoMaster = new DaoMaster(getReadableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        WallpagerBeanDao userDao = daoSession.getWallpagerBeanDao();
+        QueryBuilder<WallpagerBean> qb = userDao.queryBuilder();
+        List<WallpagerBean> list = qb.list();
+        return list;
+    }
+
+    /** ========================= 壁纸数据  结束================================================== */
 
 
 }

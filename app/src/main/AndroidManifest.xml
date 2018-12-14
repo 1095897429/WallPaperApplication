@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.ngbj.wallpaper">
 
+    <!-- 一般权限 -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
@@ -12,6 +12,8 @@
     <!-- 壁纸权限 -->
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
     <uses-permission android:name="android.permission.SET_WALLPAPER_HINTS" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
 
     <!--友盟统计所需权限-->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
@@ -33,6 +35,8 @@
 
         <!-- value的值填写你在友盟后台申请的应用Appkey -->
         <meta-data android:value="5bea861cb465f54c850001be" android:name="UMENG_APPKEY"/>
+
+
 
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -67,11 +71,27 @@
         </activity>
 
 
+        <activity android:name=".module.app.SplashActivity"
+            android:screenOrientation="portrait">
+
+        </activity>
+
+        <activity android:name=".module.app.GalleryActivity"
+            android:theme="@style/NoTitleFullscreen"
+            android:screenOrientation="portrait">
+
+        </activity>
+
+
+
+
         <activity android:name=".module.app.HomeActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+
         </activity>
 
         <activity android:name=".MainActivity">
@@ -124,6 +144,15 @@
         </activity>
 
 
+        <!-- 配置实时网络Receiver -->
+        <receiver android:name=".receiver.NetBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
+
+
+
 
         <!-- 配置实时壁纸Service -->
         <service
@@ -138,7 +167,7 @@
             <!-- 为实时壁纸配置meta-data -->
             <meta-data
                 android:name="android.service.wallpaper"
-                android:resource="@xml/livewallpaper" />
+                android:resource="@xml/my_wallpaper" />
         </service>
 
     </application>

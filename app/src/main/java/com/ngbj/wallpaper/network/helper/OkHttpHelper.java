@@ -2,11 +2,16 @@ package com.ngbj.wallpaper.network.helper;
 
 
 
+import com.google.gson.Gson;
 import com.ngbj.wallpaper.BuildConfig;
+import com.ngbj.wallpaper.base.MyApplication;
+import com.ngbj.wallpaper.utils.common.AppHelper;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.FormBody;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -14,6 +19,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
+import okio.Buffer;
 
 /**
  * Created by zl on 2018/5/22.
@@ -46,28 +52,55 @@ public class OkHttpHelper {
     private OkHttpHelper(){
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
-        if(BuildConfig.DEBUG){
-            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);//包含header、body数据
-            builder.addInterceptor(loggingInterceptor);
-        }
 
         mOkHttpClient = builder
                 .readTimeout(DEFAULT_READ_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
                 .writeTimeout(DEFAULT_WRITE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
                 .connectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
                 .retryOnConnectionFailure(true) // 失败重发
-                .addInterceptor(new Interceptor() {//自定义拦截器
-                    @Override
-                    public Response intercept(Chain chain) throws IOException {
-                        Request request = chain.request()
-                                .newBuilder()//关键部分，设置requestBody的编码格式为json
-                                .addHeader("Content-Type","application/json;charset=UTF-8")
-                                .build();
-                        return chain.proceed(request);
-                    }
-                })
+                .addInterceptor(new HttpBaseParamsInterceptor())
+                .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
                 .build();
+
+//        if(BuildConfig.DEBUG){
+//            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+//            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);//包含header、body数据
+//            builder.addInterceptor(loggingInterceptor);
+//        }
+    }
+
+    //公共参数拦截器
+    class HttpBaseParamsInterceptor implements Interceptor{
+
+        @Override
+        public Response intercept(Chain chain) throws IOException {
+            Gson gson = new Gson();
+            HashMap<String,String> hashMap = new HashMap<>();
+            //获取到请求链接
+            Request request = chain.request();
+            Request.Builder requestBuilder = request.newBuilder();
+
+            //对请求参数获取
+            if(request.body() instanceof FormBody){
+                FormBody oldFormBody = (FormBody) request.body();
+                for (int i = 0; i < oldFormBody.size(); i++) {
+                    hashMap.put(oldFormBody.encodedName(i),oldFormBody.encodedValue(i));
+                }
+            }
+
+            hashMap.put("fromPlat", "default");
+            hashMap.put("appVersion", AppHelper.getPackageName(MyApplication.getInstance()));
+            hashMap.put("deviceId", AppHelper.getUniquePsuedoID());
+            hashMap.put("deviceType", "android");
+            hashMap.put("timestamp", System.currentTimeMillis() + "");
+            hashMap.put("sign", "");
+            String strEntity = gson.toJson(hashMap);
+            request = requestBuilder
+                    .post(RequestBody.create(MediaType.parse("application/json;charset=UTF-8"),
+                            strEntity))
+                    .build();
+            return chain.proceed(request);
+        }
     }
 
 

@@ -166,6 +166,9 @@ public class UploadPicActivity extends BaseActivity {
                     String thumbPath = "http://phcsxfrh8.bkt.clouddn.com/" + key + "?imageView2/1/w/108/h/192";
                     KLog.i(TAG, "缩略图的地址: " + thumbPath);
 
+                    //TODO
+                    KLog.d("上传图片路径给后台，ok");
+
                 }
             }
         }, null);

@@ -2,6 +2,7 @@ package com.ngbj.wallpaper.mvp.contract.app;
 
 import com.ngbj.wallpaper.base.BaseContract;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 
 import java.util.List;
 
@@ -11,13 +12,13 @@ import java.util.List;
 public interface DetailContract {
 
     interface View extends BaseContract.BaseView{
-        void showVerCodeData();
-        void showDynamicData(List<AdBean> list);
+        void showData(AdBean adBean);
+        void showDynamicData(List<WallpagerBean> list);
 
     }
 
     interface Presenter<T> extends BaseContract.BasePresenter<T>{
-        void getVerCodeData();
+        void getData(String wallpaperId);
         void getDynamicData();
     }
 }

@@ -6,21 +6,21 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.google.gson.Gson;
 import com.ngbj.wallpaper.R;
-import com.ngbj.wallpaper.adapter.app.History_Search_Adapter;
 import com.ngbj.wallpaper.adapter.app.Interest_Adapter;
 import com.ngbj.wallpaper.base.BaseActivity;
 import com.ngbj.wallpaper.bean.entityBean.InterestBean;
-import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.mvp.contract.app.InterestContract;
-import com.ngbj.wallpaper.mvp.contract.app.LoginContract;
-import com.ngbj.wallpaper.mvp.contract.fragment.IndexContract;
 import com.ngbj.wallpaper.mvp.presenter.app.InterestPresenter;
-import com.ngbj.wallpaper.mvp.presenter.app.LoginPresenter;
 import com.socks.library.KLog;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -37,7 +37,7 @@ public class InterestActivity extends BaseActivity<InterestPresenter>
     GridLayoutManager layoutManager;
     List<InterestBean> interestBeanList = new ArrayList<>();
     Interest_Adapter interestAdapter;
-    List<String> selectList = new ArrayList<>();
+    List<String> selectList = new ArrayList<>();//集合存储选择中的兴趣ID
 
     @Override
     protected int getLayoutId() {
@@ -63,14 +63,21 @@ public class InterestActivity extends BaseActivity<InterestPresenter>
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 InterestBean interestBean = interestBeanList.get(position);
-                KLog.d("点击的条目 " + interestBean.getName() + " " + interestBean.getInterestId());
+                KLog.d("点击的条目 " + interestBean.getName() + " 兴趣ID " + interestBean.getIs_interested());
                 if(interestBean.isSelect()){
                     interestBean.setSelect(false);
-                    selectList.remove(interestBean.getInterestId());
+                    selectList.remove(interestBean.getIs_interested());
                 }else{
                     interestBean.setSelect(true);
-                    selectList.add(interestBean.getInterestId());
+                    selectList.add(interestBean.getIs_interested());
                 }
+                if(!selectList.isEmpty()){
+                    for (int i = 0; i < selectList.size(); i++) {
+                        KLog.d("兴趣ID有 " + selectList.get(i));
+                    }
+
+                }
+
             interestAdapter.notifyDataSetChanged();
             }
         });
@@ -94,10 +101,31 @@ public class InterestActivity extends BaseActivity<InterestPresenter>
         interestAdapter.setNewData(interestBeanList);
     }
 
+    @Override
+    public void showWriteInterestData(String string) {
+        KLog.d(string);
+    }
+
 
     @OnClick(R.id.interest_done)
     public void InterestDone(){
+        //TODO TEST
+        selectList.add("1");
         KLog.d("选中的数量:" + selectList.size());
+        Gson gson = new Gson();
+        String jsonStringlist = gson.toJson(selectList);
+        KLog.d("转为" + jsonStringlist);
+
+        Map<String,Object> map = new HashMap<>();
+        map.put("interest",selectList);
+        Gson g = new Gson();
+        String jsonString = g.toJson(map);
+        KLog.d("转为" + jsonString);
+
+        mPresenter.writeInterestData(jsonStringlist);
+
+//        startActivity(new Intent(InterestActivity.this,HomeActivity.class));
+//        finish();
     }
 
 }

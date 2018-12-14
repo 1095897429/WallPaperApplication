@@ -25,13 +25,21 @@ import com.ngbj.wallpaper.adapter.index.IndexCoolGridAdapter;
 import com.ngbj.wallpaper.adapter.index.Index_HotSearch_Adapter;
 import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
 import com.ngbj.wallpaper.base.BaseFragment;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.IndexBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
+import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
+import com.ngbj.wallpaper.bean.greenBeanDao.DBManager;
 import com.ngbj.wallpaper.module.app.DetailActivityNew;
+import com.ngbj.wallpaper.module.app.GalleryActivity;
 import com.ngbj.wallpaper.module.app.SearchActivity;
 import com.ngbj.wallpaper.module.app.SpecialActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.IndexContract;
 import com.ngbj.wallpaper.mvp.presenter.fragment.IndexPresenter;
+import com.ngbj.wallpaper.receiver.NetBroadcastReceiver;
+import com.ngbj.wallpaper.utils.common.AppHelper;
+import com.ngbj.wallpaper.utils.common.StringUtils;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.socks.library.KLog;
 import com.youth.banner.Banner;
@@ -59,9 +67,9 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
     ViewPager mViewpager;
     TextView more_recommend;
 
-    List<AdBean> myCoolList = new ArrayList<>();
-    List<AdBean> myBannerList = new ArrayList<>();
-    List<AdBean> hotAdList = new ArrayList<>();
+    List<IndexBean.Navigation> myCoolList = new ArrayList<>();
+    List<IndexBean.Banner> myBannerList = new ArrayList<>();
+    List<IndexBean.HotSearch> hotAdList = new ArrayList<>();
     LinearLayoutManager layoutManager;
     Index_HotSearch_Adapter indexHotSearchAdapter;
 
@@ -70,6 +78,7 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
     GridLayoutManager gridLayoutManager;
     RecomendAdapter recomendAdapter;
     List<MulAdBean> recommendList = new ArrayList<>();
+    int page = 1;//默认为第一页
 
 
     /** 通过这种形式获取Fragment */
@@ -99,26 +108,36 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
     protected void initData() {
         initRecommandRecycleView();
         initRecycleView();
-        mPresenter.getAdData();
-        mPresenter.getRecommendData();
+        mPresenter.getAdData(page);
     }
 
     @Override
     protected void initEvent() {
-        //壁纸Item点击
+        //TODO 壁纸Item点击
         recomendAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                MulAdBean mulAdBean = recommendList.get(position);
-                if(mulAdBean.getItemType() == MulAdBean.TYPE_ONE){
-                    KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
 
-                    Intent intent = new Intent(getActivity(),DetailActivityNew.class);
-                    intent.putExtra("position",position);
-                    startActivity(intent);
-                }else {
-                    KLog.d("tag -- 广告",recommendList.get(position).apiAdBean.getName());
-                }
+                /**  首先判断网络 */
+                int netType = NetBroadcastReceiver.getNetWorkState(getActivity());
+                if(AppHelper.isNetConnect(netType)){
+
+                    MulAdBean mulAdBean = recommendList.get(position);
+                    if(mulAdBean.getItemType() == MulAdBean.TYPE_ONE){
+                        KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
+                        Intent intent = new Intent(getActivity(),DetailActivityNew.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putInt("position",position);
+                        bundle.putString("wallpagerId",mulAdBean.adBean.getCategory_id());
+                        bundle.putParcelable("bean",mulAdBean.adBean);
+                        intent.putExtras(bundle);
+                        startActivity(intent);
+                    }else {
+                        KLog.d("tag -- 广告",recommendList.get(position).apiAdBean.getName());
+                    }
+                }else
+                    ToastHelper.customToastView(mContext,"网络异常，请先连接网络");
+
 
             }
         });
@@ -215,7 +234,8 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
         recomendAdapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
             @Override
             public void onLoadMoreRequested() {
-                mPresenter.getMoreRecommendData();
+                ++page;
+                mPresenter.getMoreRecommendData(page);
             }
         },mRecommandRecyclerView);
         //设置头布局
@@ -235,20 +255,44 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
         indexHotSearchAdapter.openLoadAnimation(BaseQuickAdapter.SCALEIN);
     }
 
+
     @Override
-    public void showAdData(List<AdBean> list,List<AdBean> bannerList,List<AdBean> coolList) {
-         hotAdList.addAll(list);
-         indexHotSearchAdapter.setNewData(list);
-         myBannerList.addAll(bannerList);
-         startBanner();
-         myCoolList = coolList;
-         setCoolData(myCoolList);
+    public void showAdData(List<IndexBean.HotSearch> list, List<IndexBean.Banner> bannerList,
+                           List<IndexBean.Navigation> coolList) {
+        hotAdList.addAll(list);
+        indexHotSearchAdapter.setNewData(list);
+        myBannerList.addAll(bannerList);
+        startBanner();
+        myCoolList = coolList;
+        setCoolData(myCoolList);
     }
 
     @Override
-    public void showRecommendData(List<MulAdBean> recommendList) {
+    public void showRecommendData(final List<MulAdBean> recommendList) {
         this.recommendList = recommendList;
         recomendAdapter.setNewData(recommendList);
+
+        MyApplication.getDbManager().deleteAllWallpagerBean();
+
+        //TODO 线程加入到数据库中 -- 先删除，后添加
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                WallpagerBean wallpagerBean;
+                AdBean adBean ;
+                for (MulAdBean bean: recommendList) {
+                    if(bean.getItemType() == MulAdBean.TYPE_ONE){
+                        adBean = bean.adBean;
+                        wallpagerBean = new WallpagerBean();
+                        wallpagerBean.setCategory_id(adBean.getCategory_id());
+                        wallpagerBean.setNickname(adBean.getNickname());
+                        wallpagerBean.setTitle(adBean.getTitle());
+                        wallpagerBean.setThumb_img_url(adBean.getThumb_img_url());
+                        MyApplication.getDbManager().insertWallpagerBean(wallpagerBean);
+                    }
+                }
+            }
+        }).start();
     }
 
     @Override
@@ -258,7 +302,7 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
     }
 
     /** 设置 酷站数据 -- GridView数据 */
-    private void setCoolData(final List<AdBean> myCoolList) {
+    private void setCoolData(final List<IndexBean.Navigation> myCoolList) {
         List<View> viewPagerList = new ArrayList<>();
         GridView gridView;
         IndexCoolGridAdapter indexCoolAdapter;
@@ -308,8 +352,8 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
         @Override
         public void displayImage(Context context, Object path, ImageView imageView) {
             //Glide 加载图片简单用法
-            AdBean adBean = (AdBean) path;
-            Glide.with(context).load(adBean.getThumb_img_url()).centerCrop().into(imageView);
+            IndexBean.Banner banner = (IndexBean.Banner) path;
+            Glide.with(context).load(banner.getImg_url()).centerCrop().into(imageView);
         }
     }
 

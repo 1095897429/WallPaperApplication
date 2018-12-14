@@ -1,6 +1,7 @@
 package com.ngbj.wallpaper.adapter.index;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,8 +9,10 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.IndexBean;
 
 import java.util.List;
 
@@ -19,13 +22,13 @@ import java.util.List;
  */
 public class IndexCoolGridAdapter extends BaseAdapter {
 
-    private List<AdBean> listData;
+    private List<IndexBean.Navigation> listData;
     private LayoutInflater inflater;
     private Context context;
     private int mIndex;//表示第几页 从0开始
     private int mPageSize;//每页显示最大数量
 
-    public IndexCoolGridAdapter(Context context, List<AdBean> listData, int mIndex , int mPageSize){
+    public IndexCoolGridAdapter(Context context, List<IndexBean.Navigation> listData, int mIndex , int mPageSize){
         this.context = context;
         this.listData = listData;
         this.mIndex = mIndex;
@@ -63,11 +66,17 @@ public class IndexCoolGridAdapter extends BaseAdapter {
 
         //设置数据
         final int pos = position + mIndex * mPageSize;
-        AdBean bean = listData.get(pos);
-        viewHolder.title.setText("动态壁纸");
-//        Glide.with(context)
-//                .load(bean.getImg_url())
-//                .into(viewHolder.imgUrl);
+        IndexBean.Navigation bean = listData.get(pos);
+        viewHolder.title.setText(bean.getTitle());
+        //图片 ，如果没有图片地址，显示默认
+        if(!TextUtils.isEmpty(bean.getImg_url())){
+            Glide.with(context)
+                    .load(bean.getImg_url())
+                    .into(viewHolder.imgUrl);
+        }else{
+            viewHolder.imgUrl.setImageResource(R.mipmap.cool_icon);
+        }
+
 
         return convertView;
     }

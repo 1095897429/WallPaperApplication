@@ -1,9 +1,11 @@
 package com.ngbj.wallpaper.module.app;
 
+import android.app.Activity;
 import android.content.Intent;
 
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.base.BaseActivity;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.mvp.contract.app.LoginContract;
 import com.ngbj.wallpaper.mvp.presenter.app.LoginPresenter;
 import com.socks.library.KLog;
@@ -28,6 +30,11 @@ public class  SettingActivity extends BaseActivity{
     @OnClick(R.id.part3)
     public void Part3(){
       startActivity(new Intent(this,SafeActivity.class));
+    }
+
+    @OnClick(R.id.logout)
+    public void Logout(){
+        MyApplication.getInstance().exitApp();
     }
 
 }

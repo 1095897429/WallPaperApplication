@@ -88,5 +88,6 @@ dependencies {
     implementation 'org.greenrobot:greendao:3.0.1'
     //eventBus
     implementation 'org.greenrobot:eventbus:3.1.1'
-
+    //leakcanary
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
 }

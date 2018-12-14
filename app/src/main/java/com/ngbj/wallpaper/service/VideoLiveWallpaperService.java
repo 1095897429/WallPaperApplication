@@ -21,7 +21,7 @@ public class VideoLiveWallpaperService extends WallpaperService {
         return new VideoEngine();
     }
 
-    public static final String VIDEO_PARAMS_CONTROL_ACTION = "com.zhy.livewallpaper";
+    public static final String VIDEO_PARAMS_CONTROL_ACTION = "com.zhy.my_wallpaper";
     public static final String KEY_ACTION = "action";
     public static final int ACTION_VOICE_SILENCE = 110;
     public static final int ACTION_VOICE_NORMAL = 111;
@@ -106,7 +106,7 @@ public class VideoLiveWallpaperService extends WallpaperService {
             mMediaPlayer.setSurface(holder.getSurface());
             try {
                 AssetManager assetMg = getApplicationContext().getAssets();
-                AssetFileDescriptor fileDescriptor = assetMg.openFd("test1.mp4");
+                AssetFileDescriptor fileDescriptor = assetMg.openFd("test.mp4");
                 mMediaPlayer.setDataSource(fileDescriptor.getFileDescriptor(),
                         fileDescriptor.getStartOffset(), fileDescriptor.getLength());
                 mMediaPlayer.setLooping(true);

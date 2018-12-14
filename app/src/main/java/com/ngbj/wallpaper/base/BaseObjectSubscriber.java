@@ -37,7 +37,7 @@ public abstract class BaseObjectSubscriber<T>
         KLog.d("显示对话框");
     }
 
-    /** 连接成功，后台返回数据,接下来走onComplete方法*/
+
     @Override
     public void onNext(HttpResponse<T> response) {
         if(response.getCode() == 200){
@@ -59,7 +59,7 @@ public abstract class BaseObjectSubscriber<T>
     @Override
     public void onError(Throwable t) {
         KLog.d("数据返回错误信息 结束对话框");
-        KLog.d("t : " + t.getMessage().toString());
+        KLog.d("t : " + t.getMessage());
         if(t instanceof HttpException){ //   HTTP错误
             onException(ExceptionReason.BAD_NETWORK);
         }else if(t instanceof ConnectException

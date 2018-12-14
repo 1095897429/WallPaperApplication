@@ -52,6 +52,9 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
     GridLayoutManager gridLayoutManager;
     RecomendAdapter recomendAdapter;
     List<MulAdBean> recommendList = new ArrayList<>();
+    int page = 1;
+    String category = "0";//分类的id 推荐为0
+    int order = 0;// 排序 0最新 1最热
 
     public static CategoryFragment getInstance(){
         return new CategoryFragment();
@@ -72,7 +75,7 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
     protected void initData() {
         initTopRecycleView();
         initRecommandRecycleView();
-        mPresenter.getData();
+        mPresenter.getData(page,category,order);
     }
 
 
@@ -110,7 +113,8 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
         recomendAdapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
             @Override
             public void onLoadMoreRequested() {
-                mPresenter.getMoreRecommendData();
+                ++page;
+                mPresenter.getMoreRecommendData(page,category,order);
             }
         },recommandRecyclerView);
     }

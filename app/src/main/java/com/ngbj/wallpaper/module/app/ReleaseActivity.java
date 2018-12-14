@@ -1,6 +1,7 @@
 package com.ngbj.wallpaper.module.app;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -24,11 +25,19 @@ import android.widget.TextView;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.base.BaseActivity;
 import com.ngbj.wallpaper.bean.entityBean.UploadTagBean;
+import com.ngbj.wallpaper.bean.entityBean.UploadTokenBean;
+import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.dialog.BottomAlertDialog;
 import com.ngbj.wallpaper.dialog.HeadAlertDialog;
 import com.ngbj.wallpaper.eventbus.TagPositionEvent;
+import com.ngbj.wallpaper.mvp.contract.app.ReleaseContract;
+import com.ngbj.wallpaper.mvp.presenter.app.ReleasePresenter;
 import com.ngbj.wallpaper.utils.common.PicPathHelper;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
+import com.ngbj.wallpaper.utils.qiniu.Auth;
+import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.storage.UpCompletionHandler;
+import com.qiniu.android.storage.UploadManager;
 import com.socks.library.KLog;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
@@ -36,11 +45,14 @@ import com.zhy.view.flowlayout.TagFlowLayout;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -48,11 +60,15 @@ import butterknife.BindView;
 import butterknife.OnClick;
 
 
+
 /***
  * 上传作品页
  */
 
-public class ReleaseActivity extends BaseActivity{
+public class ReleaseActivity extends BaseActivity<ReleasePresenter>
+        implements ReleaseContract.View {
+
+    private static final String TAG = "ReleaseActivity";
 
     @BindView(R.id.tagflowlayout)
     TagFlowLayout tagFlowLayout;
@@ -72,6 +88,8 @@ public class ReleaseActivity extends BaseActivity{
 
     @Override
     protected void initPresenter() {
+        mPresenter = new ReleasePresenter();
+
         UploadTagBean tagBean;
         for (int i = 0; i < 15; i++) {
             tagBean = new UploadTagBean("#风景建筑");
@@ -98,7 +116,7 @@ public class ReleaseActivity extends BaseActivity{
 
     @Override
     protected void initData() {
-
+        mPresenter.getUploadToken();
 
     }
 
@@ -113,7 +131,51 @@ public class ReleaseActivity extends BaseActivity{
     public void Makedone(){
         KLog.d("选中的标签是：" + (tags.isEmpty()?0:tags.size()));
         KLog.d("文本内容：" + upload_text.getText().toString().trim());
+        uploadImg2QiNiu();
     }
+
+
+    /**  ------------- 七牛云部分 开始 -------------*/
+
+    @Override
+    public void shwoUploadToken(UploadTokenBean uploadTokenBean) {
+        KLog.d("token: " + uploadTokenBean.getToken());
+    }
+
+    private void uploadImg2QiNiu() {
+        UploadManager uploadManager = new UploadManager();
+        // 设置图片名字
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+        String key = "icon_" + sdf.format(new Date());
+        String picPath = getPicFile().toString();
+        final String yuming = "pjb68wj3e.bkt.clouddn.com/";
+        KLog.d(TAG, "picPath: " + picPath);
+        uploadManager.put(picPath, key, Auth.create(AppConstant.AccessKey, AppConstant.SecretKey).uploadToken("wallpaper01"), new UpCompletionHandler() {
+            @Override
+            public void complete(String key, ResponseInfo info, JSONObject res) {
+                // info.error中包含了错误信息，可打印调试
+                // 上传成功后将key值上传到自己的服务器
+                if (info.isOK()) {
+                    KLog.i(TAG, "token ===" + Auth.create(AppConstant.AccessKey, AppConstant.SecretKey).uploadToken("wallpaper01"));
+                    String headpicPath = "http://" + yuming + key;
+                    KLog.i(TAG, "图片的地址: " + headpicPath);
+                    String thumbPath = "http://" + yuming + key + "?imageView2/1/w/108/h/192";
+                    KLog.i(TAG, "缩略图的地址: " + thumbPath);
+
+                }
+            }
+        }, null);
+
+    }
+
+    //建立上传图片的路径及名称
+    private File getPicFile() {
+        return new File(path);
+    }
+
+
+    /**  ------------- 七牛云部分 结束 -------------*/
+
 
 
     @OnClick(R.id.back)
@@ -186,6 +248,7 @@ public class ReleaseActivity extends BaseActivity{
         headAlertDialog.show();
     }
 
+    //此为打开系统相册
     private void openAlbum() {
         Intent intent = new Intent("android.intent.action.GET_CONTENT");
         intent.setType("image/*");
@@ -230,9 +293,9 @@ public class ReleaseActivity extends BaseActivity{
         }
         if (Build.VERSION.SDK_INT >= 24){
             imageUri = FileProvider.getUriForFile(this,
-                    "com.ngbj.wallpaper.provider",outputImage);
+                    "com.ngbj.wallpaper.provider",outputImage);//content://com.ngbj.wallpaper.provider/path/output_image.jpg
         }else {
-            imageUri = Uri.fromFile(outputImage);
+            imageUri = Uri.fromFile(outputImage);//file:///storage/sdcard/Android/data/com.ngbj.wallpaper/cache/output_image.jpg
         }
 
         //启动相机程序
@@ -241,16 +304,16 @@ public class ReleaseActivity extends BaseActivity{
         startActivityForResult(intent,TAKE_PHOTO);
     }
 
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode){
             case TAKE_PHOTO:
                 if (resultCode == RESULT_OK){
                     try {
-                        //将拍摄的照片显示出来 content://com.ngbj.wallpaper.provider/path/output_image.jpg
                         Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
-                        picture.setImageBitmap(bitmap);
-                        upload_image.setVisibility(View.VISIBLE);
+                        diaplayImage(bitmap);
+                        path = PicPathHelper.getRealFilePath(this,imageUri);
                     }catch (FileNotFoundException e){
                         e.printStackTrace();
                     }
@@ -262,17 +325,22 @@ public class ReleaseActivity extends BaseActivity{
                     KLog.d("图片路径为：" + path);
                     if(null != path){
                         Bitmap bitmap = BitmapFactory.decodeFile(path);
-                        picture.setImageBitmap(bitmap);
-                        upload_image.setVisibility(View.VISIBLE);
+                        diaplayImage(bitmap);
                     }else{
                         KLog.d("图片路径获取失败");
                     }
-
                 }
                 break;
             default:
                 break;
         }
+    }
+
+
+
+    private void diaplayImage(Bitmap bitmap){
+        picture.setImageBitmap(bitmap);
+        upload_image.setVisibility(View.VISIBLE);
     }
 
     /**  ------------- 图片选择部分 结束 -------------*/
@@ -308,6 +376,8 @@ public class ReleaseActivity extends BaseActivity{
 
         initTags(tags);//更新显示
     }
+
+
     /** --------------   底部标签 EventBus 结束 -----------------*/
 
 
