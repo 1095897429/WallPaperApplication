@@ -7,5 +7,7 @@
     <external-cache-path
         name="path"
         path="."></external-cache-path>
+
+    <external-path name="sdcard" path="."/>
 </paths>
 

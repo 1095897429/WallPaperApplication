@@ -43,6 +43,7 @@ public abstract class BaseListSubscriber<T>
     public void onNext(HttpResponse<List<T>> response) {
         if(response.getCode() == 200){
             if(response.getData() != null){
+                mView.complete();
                 onSuccess(response.getData());
             }
         }else{

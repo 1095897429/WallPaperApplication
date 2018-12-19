@@ -15,8 +15,10 @@ import com.ngbj.wallpaper.adapter.category.Category_Top_Adapter;
 import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
 import com.ngbj.wallpaper.base.BaseFragment;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.InterestBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
-import com.ngbj.wallpaper.module.app.CategoryNewAndHotActivity;
+import com.ngbj.wallpaper.constant.AppConstant;
+import com.ngbj.wallpaper.module.app.CategoryNewHotActivity;
 import com.ngbj.wallpaper.module.app.DetailActivityNew;
 import com.ngbj.wallpaper.module.app.SearchActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.CategoryContract;
@@ -45,7 +47,7 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
     @BindView(R.id.recommandRecyclerView)
     RecyclerView  recommandRecyclerView;
 
-    List<AdBean> myTopList = new ArrayList<>();
+    List<InterestBean> interestBeanList = new ArrayList<>();
     LinearLayoutManager layoutManager;
     Category_Top_Adapter categoryTopAdapter;
 
@@ -54,7 +56,8 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
     List<MulAdBean> recommendList = new ArrayList<>();
     int page = 1;
     String category = "0";//分类的id 推荐为0
-    int order = 0;// 排序 0最新 1最热
+    String order = "0";// 排序 0最新 1最热
+    String keyword = "";//兴趣名称
 
     public static CategoryFragment getInstance(){
         return new CategoryFragment();
@@ -75,7 +78,8 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
     protected void initData() {
         initTopRecycleView();
         initRecommandRecycleView();
-        mPresenter.getData(page,category,order);
+        mPresenter.getInterestData();
+        mPresenter.getRecommendData(page,category,order);
     }
 
 
@@ -85,7 +89,7 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
         //设置布局管理器
         top_recyclerView.setLayoutManager(layoutManager);
         //设置Adapter
-        categoryTopAdapter = new Category_Top_Adapter(myTopList);
+        categoryTopAdapter = new Category_Top_Adapter(interestBeanList);
         top_recyclerView.setAdapter(categoryTopAdapter);
         //一行代码开启动画 默认CUSTOM动画
         categoryTopAdapter.openLoadAnimation(BaseQuickAdapter.SCALEIN);
@@ -127,12 +131,9 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
         categoryTopAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                KLog.d("tag",myTopList.get(position).getTitle());
-                Intent intent = new Intent(getActivity(),CategoryNewAndHotActivity.class);
-                Bundle bundle = new Bundle();
-                bundle.putString("keyword",myTopList.get(position).getTitle());
-                intent.putExtras(bundle);
-                startActivity(intent);
+                keyword = interestBeanList.get(position).getName();
+                category = interestBeanList.get(position).getId();
+                CategoryNewHotActivity.openActivity(mContext,category,keyword);
             }
         });
 
@@ -146,7 +147,7 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
                 }else {
                     KLog.d("tag -- 广告",recommendList.get(position).apiAdBean.getName());
                 }
-                startActivity(new Intent(getActivity(),DetailActivityNew.class));
+                DetailActivityNew.openActivity(mContext,position,mulAdBean.adBean.getId());
             }
         });
 
@@ -190,7 +191,7 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
 
     @OnClick(R.id.search_part)
     public void SearchPart(){
-        startActivity(new Intent(getActivity(),SearchActivity.class));
+        SearchActivity.openActivity(mContext,AppConstant.FROMINDEX_SEACHER,"","");
     }
 
 
@@ -205,16 +206,30 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
 
     @Override
     public void showData(List<AdBean> topList, List<MulAdBean> redListc) {
-        myTopList.addAll(topList);
-        categoryTopAdapter.setNewData(topList);
-        recommendList.addAll(redListc);
-        recomendAdapter.setNewData(recommendList);
 
+    }
+
+    @Override
+    public void showEndView() {
+        recomendAdapter.loadMoreEnd();//加载结束
+        return;
+    }
+
+    @Override
+    public void showRecommendData(List<MulAdBean> list) {
+        recommendList.addAll(list);
+        recomendAdapter.setNewData(recommendList);
     }
 
     @Override
     public void showMoreRecommendData(List<MulAdBean> recommendList) {
         recomendAdapter.loadMoreComplete();
         recomendAdapter.addData(recommendList);
+    }
+
+    @Override
+    public void showInterestData(List<InterestBean> list) {
+        interestBeanList.addAll(list);
+        categoryTopAdapter.setNewData(interestBeanList);
     }
 }

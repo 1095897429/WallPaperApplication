@@ -12,5 +12,16 @@ public class AppConstant {
     public static String DYMATIC_WP = "2";//动态壁纸
     public static String API_AD = "3";//api广告
 
+    public static String ACCESSTOKEN = "accesstoken";//xml的遍历
+
+    public static String FROMWHERE = "fromwhere";//跳转到搜索界面的来源
+    public static int FROMINDEX_SEACHER = 0;//首页搜索
+    public static int FROMINDEX_HOTSEACHER = 1;//首页热搜
+    public static int FROMINDEX_NAVICATION = 2;//首页酷站
+
+    public static String NAVICATIONID = "navicationId";//导航栏的Id
+    public static String HOTSEARCHTAG = "hotSearchTag";//热搜词
+
+    public static int PAGESIZE = 19;//数据每次加载最大限制数
 
 }

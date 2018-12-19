@@ -1,6 +1,8 @@
 package com.ngbj.wallpaper.module.fragment;
 
 import android.content.Intent;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.View;
 
@@ -9,8 +11,8 @@ import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.my.MyCommonAdapter;
 import com.ngbj.wallpaper.base.BaseRefreshFragment;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.LoginBean;
 import com.ngbj.wallpaper.module.app.DetailActivityNew;
-import com.ngbj.wallpaper.module.app.SearchActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.MyContract;
 import com.ngbj.wallpaper.mvp.presenter.fragment.MyPresenter;
 import com.socks.library.KLog;
@@ -26,9 +28,23 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,AdBean>
 
     MyCommonAdapter myCommonAdapter;
     GridLayoutManager gridLayoutManager;
+    String mType;
 
-    public static CreateFragment getInstance(){
-        return new CreateFragment();
+
+    public static CreateFragment getInstance(String type){
+        CreateFragment mFragment = new CreateFragment();
+        // 通过bundle传递数据
+        Bundle bundle = new Bundle();
+        bundle.putString("type", type);
+        mFragment.setArguments(bundle);
+        return mFragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mType = getArguments().getString("type");
+        KLog.d("类型： " + mType);
     }
 
     @Override
@@ -57,7 +73,6 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,AdBean>
         myCommonAdapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
             @Override
             public void onLoadMoreRequested() {
-                    mPresenter.getMoreData("创作");
             }
         },mRecyclerView);
         //设置空布局
@@ -67,7 +82,7 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,AdBean>
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 KLog.d("选择的--- ：" + mList.get(position).getTitle());
-                startActivity(new Intent(getActivity(),DetailActivityNew.class));
+                DetailActivityNew.openActivity(mContext,position,mList.get(position).getId());
             }
         });
     }
@@ -75,43 +90,47 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,AdBean>
 
     @Override
     protected void lazyAgainLoadData() {
-        mPresenter.getAdData("创作");
+        mPresenter.getRecord(mType);
     }
 
 
+
     @Override
-    public void showAdData(List<AdBean> list) {
-//        list.clear();
+    public void showUploadHistory(List<AdBean> list) {
         complete();
         mList.addAll(list);
         myCommonAdapter.setNewData(mList);
+    }
+
+
+    @Override
+    public void showUploadHeadData(LoginBean loginBean) {
 
     }
 
     @Override
-    public void showMoreData(List<AdBean> list) {
-
-        myCommonAdapter.loadMoreComplete();
+    public void showRecord(List<AdBean> list) {
+        complete();
         mList.addAll(list);
-        myCommonAdapter.addData(list);
+        myCommonAdapter.setNewData(mList);
     }
+
 
     /** 隐藏加载进度框 */
-    @Override
-    public void complete() {
-
-        if(mRefresh != null)
-            mRefresh.setRefreshing(false);
-
-
-        if(mIsRefreshing){
-            if(mList != null && !mList.isEmpty()){
-                mList.clear();
-                KLog.d("刷新成功");
-            }
-        }
-        mIsRefreshing = false;
-    }
+//    @Override
+//    public void complete() {
+//
+//        if(mRefresh != null)
+//            mRefresh.setRefreshing(false);
+//
+//        if(mIsRefreshing){
+//            if(mList != null && !mList.isEmpty()){
+//                mList.clear();
+//                KLog.d("刷新成功");
+//            }
+//        }
+//        mIsRefreshing = false;
+//    }
 
 
 }

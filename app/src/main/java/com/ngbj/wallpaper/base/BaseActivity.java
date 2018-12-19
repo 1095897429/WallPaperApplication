@@ -6,6 +6,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.view.View;
 
 import com.ngbj.wallpaper.receiver.NetBroadcastReceiver;
 import com.ngbj.wallpaper.utils.common.ToastHelper;

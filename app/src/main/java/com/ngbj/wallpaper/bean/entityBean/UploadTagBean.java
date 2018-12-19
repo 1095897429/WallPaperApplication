@@ -4,7 +4,7 @@ package com.ngbj.wallpaper.bean.entityBean;
 public class UploadTagBean {
 
     private String name;
-    private int tagId;
+    private String tagId;//标签的ID
     private boolean isSelect;
 
     public boolean isSelect() {
@@ -23,15 +23,15 @@ public class UploadTagBean {
         this.name = name;
     }
 
-    public int getTagId() {
+
+    public String getTagId() {
         return tagId;
     }
 
-    public void setTagId(int tagId) {
+    public void setTagId(String tagId) {
         this.tagId = tagId;
     }
 
-    public UploadTagBean(String name) {
-        this.name = name;
+    public UploadTagBean() {
     }
 }

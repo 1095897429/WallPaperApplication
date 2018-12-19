@@ -9,7 +9,20 @@
 
     <include layout="@layout/search_head_layout"></include>
 
+    <com.ngbj.wallpaper.utils.widget.EmptyView
+        android:id="@+id/emptyView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintVertical_weight="1"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/search_part">
+
+    </com.ngbj.wallpaper.utils.widget.EmptyView>
+
+
     <android.support.v7.widget.RecyclerView
+        android:visibility="gone"
         android:id="@+id/recommandRecyclerView"
         android:layout_width="match_parent"
         android:paddingLeft="12dp"

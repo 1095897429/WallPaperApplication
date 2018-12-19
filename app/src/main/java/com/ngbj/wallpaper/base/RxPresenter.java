@@ -1,5 +1,12 @@
 package com.ngbj.wallpaper.base;
 
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.ApiAdBean;
+import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 
@@ -44,5 +51,28 @@ public class RxPresenter<T extends BaseContract.BaseView>
         }
     }
 
+
+    /** 将获取的数据 根据类型重构成新的Bean  -- 首页 + 搜索*/
+    protected List<MulAdBean> getMulAdBeanData(List<AdBean> adBeanList) {
+        List<AdBean> recommendList = adBeanList;
+        List<MulAdBean> mulAdBeanList = new ArrayList<>();
+        if (!recommendList.isEmpty()) {
+            AdBean adBean;
+            ApiAdBean apiAdBean;
+            MulAdBean mulAdBean;
+            for (int i = 0; i < recommendList.size(); i++) {
+                adBean = recommendList.get(i);
+                if (adBean.getType().equals("3")) {//广告
+                    apiAdBean = new ApiAdBean();
+                    apiAdBean.setName(adBean.getTitle());
+                    mulAdBean = new MulAdBean(MulAdBean.TYPE_TWO, MulAdBean.AD_SPAN_SIZE, apiAdBean);
+                } else {//正常
+                    mulAdBean = new MulAdBean(MulAdBean.TYPE_ONE, MulAdBean.ITEM_SPAN_SIZE, adBean);
+                }
+                mulAdBeanList.add(mulAdBean);
+            }
+        }
+        return mulAdBeanList;
+    }
 
 }

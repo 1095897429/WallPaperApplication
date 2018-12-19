@@ -19,6 +19,6 @@ public interface InterestContract {
 
     interface Presenter<T> extends BaseContract.BasePresenter<T>{
         void getInterestData();
-        void writeInterestData(String jsonListString);
+        void writeInterestData(List<String> jsonListString);
     }
 }

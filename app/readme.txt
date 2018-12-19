@@ -159,9 +159,10 @@
             1.之后的代码 -- 需加固 在上传 -- ok
 
 2018.12.11
-1.七牛云上传 (uri表现形式)
+1.七牛云上传 (uri表现形式 )
     1.拍照的路径 在7.0之后 -- content://com.ngbj.wallpaper.provider/path/output_image.jpg -- ok
     2.拍照的路径 在7.0之前 -- file:///storage/sdcard/Android/data/com.ngbj.wallpaper/cache/output_image.jpg -- ok
+   -------------------  fileprovider一般用在拍照 + 安装apk的时候  -------------------
     3.相册4.4以下 -- content://media/external/images/media/14 -- ok
     4.相册4.4以上 -- content://com.android.providers.media.documents/document/image%3A50 -- ok
     问题是：在7.0系统的手机上拍照，返回的uri是利用fileProvider的，不显示全路径，如何获取全路径
@@ -224,7 +225,7 @@
 2018.12.14
 1.兴趣分类(有可能返回的key 和 value的 值 -- 可考虑map -- 有机会思考🤔)
     1.返回壁纸兴趣分类集合 -- ok
-    2.上传兴趣分类 -- 数据格式不对
+
     3.壁纸详情页 -- ok
     4.获取图片上传的token -- ok
 2.更新
@@ -242,14 +243,85 @@
     5.点击Item的加载默认的大图
         1.进入界面后加载数据，这样每个调用这个界面的入口都不要重新写 -- 逻辑正确 --
         2.进入界面前加载数据，这个在每个入口都要写，界面多起来很麻烦 -- 不建议采用
-    6.greendao只认原始数据 --
+    6.greendao只认原始数据s
 
 5.明细的话选择全加入，不然索引有问题  -- 商定ok
 
+2018.12.17
+1.fragment切换时请求明细接口
+2.接口
+    1.手机号登录 -- ok
+    2.验证码 -- ok
+
+    4.搜索壁纸 -- 输入汉字，传到后台显示的是编码后的字符，这样明显不正确 -- URLEncoder.decode -- ok
+    5.用户上传壁纸 -- 静态（）  --- 动态（）
+    6.banner专题详情页 -- ok
+    7.酷站导航列表页 -- ok
+    8.热搜词搜索壁纸 -- ok
 
 
+3.视频上传
+4.fragment中的onActivityResult调用
+    1.只嵌套一层做法 -- 直接使用startActivityForResult -- no
+
+5.读取sd卡图片到inputstream中 -- new FileInputStream(fileName) -- no
+
+6.让edittext不获取焦点
+    1.让其父控件有焦点，这样它本身就没有焦点了 -- ok
+7.下拉google官方控件 -- p中调用view.complete方法完成一些统一操作 -- ok
+
+2018.12.18
+
+2.优化Fragment传入参数和获取数据 -- ok
+3.接口
+    1.修改用户头像 -- ok
+    2.用户举报 -- ok
+    3.搜索页 -- ok
+    4.用户下载，分享，收藏 -- ok
+    5.用户关键字搜索历史 -- ok
+    6.上传兴趣分类 -- ok
+    7.用户上传壁纸
+        1.静态壁纸 -- ok
+
+4.我的界面授权不走自己的fragent中的onRequestPermissionsResult --
+5.浏览器
+    1.纯净版数据调试 -- ok
+    2.蜜桃JPush -- ok
+6.用于没考虑到图片的后缀名，xxx.jpeg的图片我没有判断，导致bitmap一直为null -- ok
+7.圆角图片 -- https://www.jianshu.com/p/4107565955e4?open_source=weibo_search --
+8.友盟appkey -- 5c18c4adb465f5aeb1000058 -- ok
+9.base64图片转换 -- http://tool.chinaz.com/tools/imgtobase -- ok
 
 
+2018.12.19
+0.优化界面跳转构建，让逻辑跳转来更优雅,在一个界面中归纳参数  -- SearchActivity ,DetailActivityNew-- ok
+
+1.视频上传研究（稍后 -- 先不做）
+    1.获取本地视频缩略图展示 ， 拿到视频的地址
+
+2.浏览器酷站导航不用翻页 和 百度ssp的研究
+    1.纯净版数据优化 -- 在head中新增两个字段，将首页请求广告的请求两个字段去掉 -- ok
+    2.浏览器酷站导航不用翻页 -- ok
+        1.TODO 新增 -- xml替换 -- onCreate初始化控件 --  initCoolRecyclerView  -- 新增adapter -- 隐藏getAdData2,换成getAdData2_2 -- 其他的fragment照样 -- ok
+3.接口
+    1.获取用户下载，分享，收藏壁纸 -- ok
+    2.用户上传壁纸历史 -- ok
+    3.用户上传壁纸
+4.列表item的优化
+    1.图片圆角/圆形 -- ok
+    2.圆形边框 -- ok
+5.布局构建
+    1.布局刚开始的加载中，加载失败 -- 利用emptyView布局在设置 --ok
+
+6.展示动态壁纸
+    1.
+
+产品分享：功能上的，一些关注喜好的话，app会类推和他相关的内容，比如我的想法是点击喜好的壁纸，在开辟一个发现模块，类似于喜好这款壁纸的人都在看什么等等，显示一些喜好明星的一些视频，新闻啥的。可以吸引用户
+
+
+2018.12.20
+1.喜好接口逻辑
+2.沉淀式状态栏
 
 
 

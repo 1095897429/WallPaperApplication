@@ -58,7 +58,7 @@ public abstract class BaseObjectSubscriber<T>
     /** 连接超时 域名不正确等等 */
     @Override
     public void onError(Throwable t) {
-        KLog.d("数据返回错误信息 结束对话框");
+        KLog.d("错误信息 结束对话框");
         KLog.d("t : " + t.getMessage());
         if(t instanceof HttpException){ //   HTTP错误
             onException(ExceptionReason.BAD_NETWORK);

@@ -13,4 +13,6 @@
 
     <color name="text_color">#AEB0BE</color>
     <color name="line_color">#2f3560</color>
+
+    <color name="item_bottom_color">#5c6ce6</color>
 </resources>

@@ -9,6 +9,7 @@ import com.ngbj.wallpaper.bean.entityBean.LoginBean;
 import com.ngbj.wallpaper.bean.entityBean.VerCodeBean;
 import com.ngbj.wallpaper.mvp.contract.app.LoginContract;
 import com.ngbj.wallpaper.mvp.contract.app.SplashContract;
+import com.ngbj.wallpaper.network.helper.OkHttpHelper;
 import com.ngbj.wallpaper.network.helper.RetrofitHelper;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -24,13 +25,9 @@ public class SplashPresenter extends RxPresenter<SplashContract.View>
     @Override
     public void initUserInfo() {
 
-        //测试数据
-//        InitUserBean initUserBean = new InitUserBean();
-//        initUserBean.setDownload_url("");
-//        mView.showInitUserInfo(initUserBean);
 
         addSubscribe(RetrofitHelper.getApiService()
-                .initUserInfo()
+                .initUserInfo(OkHttpHelper.getRequestBody(null))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new BaseObjectSubscriber<InitUserBean>(mView) {

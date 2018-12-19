@@ -6,23 +6,95 @@ import com.ngbj.wallpaper.base.RxPresenter;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.ApiAdBean;
 import com.ngbj.wallpaper.bean.entityBean.IndexBean;
+import com.ngbj.wallpaper.bean.entityBean.InterestBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
+import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.mvp.contract.fragment.CategoryContract;
+import com.ngbj.wallpaper.network.helper.OkHttpHelper;
 import com.ngbj.wallpaper.network.helper.RetrofitHelper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.RequestBody;
 
 public class CategoryPresenter extends RxPresenter<CategoryContract.View>
         implements CategoryContract.Presenter<CategoryContract.View> {
 
+
+    /** 兴趣爱好中的数据 */
     @Override
-    public void getData(final int page, String catogory, int order) {
+    public void getInterestData() {
         addSubscribe(RetrofitHelper.getApiService()
-                .wallpagerList(page,catogory,order)
+                .categoryList(OkHttpHelper.getRequestBody(new HashMap<String, Object>()))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseListSubscriber<InterestBean>(mView) {
+                    @Override
+                    public void onSuccess(List<InterestBean> interestBeanList) {
+                        mView.showInterestData(interestBeanList);
+                    }
+                }));
+    }
+
+    /** 壁纸列表页中的数据 */
+    @Override
+    public void getRecommendData(final int page, String category, String order) {
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("categoryId",category);
+        hashMap.put("order",order);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
+
+        addSubscribe(RetrofitHelper.getApiService()
+                .wallpagerList(page,requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseListSubscriber<AdBean>(mView) {
+                    @Override
+                    public void onSuccess(List<AdBean> adBeanList) {
+
+                        /** 这里转换一下 */
+                        List<MulAdBean> list = getMulAdBeanData(adBeanList);
+
+                        /** 根据 page判断是否是第一页  */
+                        if(page == 1){
+                            mView.showRecommendData(list);
+                        }else
+                            mView.showMoreRecommendData(list);
+
+
+                        if(list.isEmpty() || list.size() < AppConstant.PAGESIZE){
+                            mView.showEndView();
+                            return;
+                        }
+
+
+                        }
+                }));
+    }
+
+
+    @Override
+    public void getMoreRecommendData(int page,String catogory,String order) {
+        getRecommendData(page,catogory,order);
+    }
+
+
+
+    /** 壁纸列表页中的数据 */
+    @Override
+    public void getData(final int page, String catogory, String order) {
+
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("categoryId",catogory);
+        hashMap.put("order",order);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
+
+        addSubscribe(RetrofitHelper.getApiService()
+                .wallpagerList(page,requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new BaseListSubscriber<AdBean>(mView) {
@@ -71,10 +143,6 @@ public class CategoryPresenter extends RxPresenter<CategoryContract.View>
 
 
 
-    @Override
-    public void getMoreRecommendData(int page,String catogory,int order) {
-        getData(page,catogory,order);
-    }
 
 
     /** ----------------------------  以下是测试数据 ------------------------------------------ */

@@ -10,12 +10,12 @@ import com.ngbj.wallpaper.bean.entityBean.VerCodeBean;
 public interface LoginContract {
 
     interface View extends BaseContract.BaseView{
-        void showVerCodeData(VerCodeBean verCodeBean);
+        void showVerCodeData();
         void showLoginData(LoginBean loginBean);
     }
 
     interface Presenter<T> extends BaseContract.BasePresenter<T>{
-        void getVerCodeData();
-        void getLoginData();
+        void getVerCodeData(String phone);
+        void getLoginData(String phone,String code);
     }
 }

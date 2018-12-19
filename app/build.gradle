@@ -37,6 +37,8 @@ dependencies {
 
     //design
     implementation 'com.android.support:design:26.0.0'
+    //cardView
+    implementation 'com.android.support:cardview-v7:26.0.0'
     //Klog
     implementation 'com.github.zhaokaiqiang.klog:library:1.6.0'
     //qiniu

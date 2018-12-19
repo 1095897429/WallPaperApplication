@@ -205,7 +205,7 @@ public class DBManager {
         DaoMaster daoMaster = new DaoMaster(getReadableDatabase());
         DaoSession daoSession = daoMaster.newSession();
         WallpagerBeanDao userDao = daoSession.getWallpagerBeanDao();
-        WallpagerBean wallpagerBean = userDao.queryBuilder().where(WallpagerBeanDao.Properties.Category_id.eq(categoryId)).unique();
+        WallpagerBean wallpagerBean = userDao.queryBuilder().where(WallpagerBeanDao.Properties.Wallpager_id.eq(categoryId)).unique();
         return wallpagerBean;
     }
 

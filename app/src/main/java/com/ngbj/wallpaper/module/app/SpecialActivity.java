@@ -1,5 +1,6 @@
 package com.ngbj.wallpaper.module.app;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -14,6 +15,8 @@ import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
 import com.ngbj.wallpaper.base.BaseActivity;
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.BannerDetailBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.mvp.contract.app.SpecialContract;
 import com.ngbj.wallpaper.mvp.presenter.app.LoginPresenter;
@@ -29,6 +32,7 @@ import butterknife.OnClick;
 
 /***
  * 专题详情页
+ * 1.没有加载更多
  */
 public class SpecialActivity extends BaseActivity<SpecialPresenter>
             implements SpecialContract.View {
@@ -54,7 +58,8 @@ public class SpecialActivity extends BaseActivity<SpecialPresenter>
     private ImageView imageView;
     private ImageView back;
 
-
+    String mBannerId;
+    Context mContext;
     private int mImageViewHeight;//图片高度
 
     @Override
@@ -94,7 +99,7 @@ public class SpecialActivity extends BaseActivity<SpecialPresenter>
         mRecomendAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                startActivity(new Intent(SpecialActivity.this,DetailActivityNew.class));
+                DetailActivityNew.openActivity(mContext,position,recommendList.get(position).adBean.getId());
             }
         });
 
@@ -134,8 +139,10 @@ public class SpecialActivity extends BaseActivity<SpecialPresenter>
 
     @Override
     protected void initData() {
+        mContext = this;
+        mBannerId = getIntent().getExtras().getString("bannerId");
         initRecommandRecycleView();
-        mPresenter.getRecommendData();
+        mPresenter.getRecommendData(mBannerId);
     }
 
     private void initRecommandRecycleView() {
@@ -154,14 +161,6 @@ public class SpecialActivity extends BaseActivity<SpecialPresenter>
         mRecyclerView.setAdapter(mRecomendAdapter);
         //一行代码开启动画 默认CUSTOM动画
         mRecomendAdapter.openLoadAnimation(BaseQuickAdapter.SCALEIN);
-
-        //加载更多数据
-        mRecomendAdapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
-            @Override
-            public void onLoadMoreRequested() {
-                mPresenter.getMoreRecommendData();
-            }
-        },mRecyclerView);
         //设置头布局
         mRecomendAdapter.addHeaderView(headView);
 
@@ -169,10 +168,12 @@ public class SpecialActivity extends BaseActivity<SpecialPresenter>
 
 
     @Override
-    public void showRecommendData(List<MulAdBean> recommendList) {
+    public void showRecommendData(BannerDetailBean bannerDetailBean,List<MulAdBean> recommendList) {
         this.recommendList = recommendList;
         mRecomendAdapter.setNewData(recommendList);
+        KLog.d("size: " + recommendList.size());
     }
+
 
     @Override
     public void showMoreRecommendData(List<MulAdBean> recommendList) {
@@ -184,6 +185,12 @@ public class SpecialActivity extends BaseActivity<SpecialPresenter>
     public void MoveTop(){
         mRecyclerView.smoothScrollToPosition(0);
     }
+
+    @OnClick(R.id.back_2)
+    public void Back2(){
+        finish();
+    }
+
 
 
 

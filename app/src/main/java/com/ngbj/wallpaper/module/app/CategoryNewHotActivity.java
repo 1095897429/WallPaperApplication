@@ -1,7 +1,9 @@
 package com.ngbj.wallpaper.module.app;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.widget.TextView;
@@ -13,6 +15,7 @@ import com.ngbj.wallpaper.adapter.app.CategoryNewAndHotAdapter;
 import com.ngbj.wallpaper.adapter.my.MyFragmentAdapter;
 import com.ngbj.wallpaper.base.BaseActivity;
 import com.ngbj.wallpaper.module.fragment.CreateFragment;
+import com.ngbj.wallpaper.module.fragment.HotNewFragment;
 import com.ngbj.wallpaper.mvp.presenter.app.LoginPresenter;
 import com.socks.library.KLog;
 
@@ -25,7 +28,7 @@ import butterknife.OnClick;
 /***
  * 1.presenter传递给父类，已实例化，子类直接拿对象调用方法
  */
-public class CategoryNewAndHotActivity extends BaseActivity{
+public class CategoryNewHotActivity extends BaseActivity{
 
     @BindView(R.id.title)
     TextView title;
@@ -41,6 +44,18 @@ public class CategoryNewAndHotActivity extends BaseActivity{
     List<String> list_Title = new ArrayList<>();//标题
     String keyWord;
 
+    String category = "0";//分类的id 推荐为0
+
+    public static void openActivity(Context context,String category,String keyWord) {
+        Intent intent = new Intent(context,CategoryNewHotActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putString("category",category);
+        bundle.putString("keyword",keyWord);
+        intent.putExtras(bundle);
+        context.startActivity(intent);
+    }
+
+
     @Override
     protected int getLayoutId() {
         return R.layout.activity_new_hot;
@@ -49,6 +64,8 @@ public class CategoryNewAndHotActivity extends BaseActivity{
 
     @Override
     protected void initData() {
+
+        category = getIntent().getExtras().getString("category");
         keyWord = getIntent().getExtras().getString("keyword");
         title.setText(keyWord);
 
@@ -59,8 +76,8 @@ public class CategoryNewAndHotActivity extends BaseActivity{
     /** 填充vp的数据源 */
     @SuppressLint("NewApi")
     private void getData() {
-        fragments.add(CreateFragment.getInstance());
-        fragments.add(CreateFragment.getInstance());
+        fragments.add(HotNewFragment.getInstance(category,"0"));//0最新
+        fragments.add(HotNewFragment.getInstance(category,"1"));//1最热
         list_Title.add("最新");
         list_Title.add("最热");
         pagerAdapter = new CategoryNewAndHotAdapter(getSupportFragmentManager(),fragments,list_Title);

@@ -64,7 +64,7 @@ public class PicPathHelper {
             picPath  = getFilePath_below19(context,photoUri); //4.4以下系统使用这个放出处理图片
 
         if(picPath != null &&(picPath.endsWith(".png")||picPath.endsWith(".PNG")
-                || picPath.endsWith(".jpg")||picPath.endsWith(".JPG"))) {
+                || picPath.endsWith(".jpg")||picPath.endsWith(".JPG") || picPath.endsWith(".jpeg"))) {
             return picPath;
         }else{
             KLog.d("选择图片文件出错");

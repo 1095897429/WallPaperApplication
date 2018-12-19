@@ -4,20 +4,26 @@ package com.ngbj.wallpaper.module.app;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.view.KeyEvent;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.base.BaseActivity;
 import com.ngbj.wallpaper.module.fragment.CategoryFragment;
 import com.ngbj.wallpaper.module.fragment.IndexFragment;
 import com.ngbj.wallpaper.module.fragment.MyFragment;
+import com.ngbj.wallpaper.mvp.contract.app.HomeContract;
+import com.ngbj.wallpaper.mvp.presenter.app.HomePresenter;
+import com.ngbj.wallpaper.utils.common.ToastHelper;
 
 import butterknife.BindView;
 import butterknife.OnClick;
 
 
-public class HomeActivity extends BaseActivity {
+public class HomeActivity extends BaseActivity<HomePresenter>
+            implements HomeContract.View {
 
     @BindView(R.id.index_icon)
     ImageView indexIcon;
@@ -43,6 +49,11 @@ public class HomeActivity extends BaseActivity {
     @Override
     protected void initData() {
         initIndexFragment();
+    }
+
+    @Override
+    protected void initPresenter() {
+        mPresenter = new HomePresenter();
     }
 
     /** 默认的Fragment */
@@ -101,11 +112,33 @@ public class HomeActivity extends BaseActivity {
     }
 
 
+    @Override
+    public void showSearchHistory() {
+
+    }
 
 
+    /** --------- 退出逻辑  在2秒内快速点击2次，则退出app --------- */
+    long currentTime;
+    long mExitTime; //退出时的时间
+    public void exit() {
+        currentTime = System.currentTimeMillis();
+        if ((currentTime - mExitTime) > 2000) {
+            ToastHelper.customToastView(this,"再按一次退出");
+            mExitTime = currentTime;
+        } else {
+            mPresenter.getSearchHistory();
+            finish();
+        }
+    }
 
 
-
-
-
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0){
+            exit();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }

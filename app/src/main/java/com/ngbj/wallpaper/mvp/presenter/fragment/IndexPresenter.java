@@ -1,6 +1,8 @@
 package com.ngbj.wallpaper.mvp.presenter.fragment;
 
+import com.google.gson.Gson;
 import com.ngbj.wallpaper.base.BaseObjectSubscriber;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.base.RxPresenter;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.ApiAdBean;
@@ -9,52 +11,61 @@ import com.ngbj.wallpaper.bean.entityBean.InitUserBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.mvp.contract.fragment.IndexContract;
+import com.ngbj.wallpaper.network.helper.OkHttpHelper;
 import com.ngbj.wallpaper.network.helper.RetrofitHelper;
+import com.ngbj.wallpaper.utils.common.AppHelper;
 
+import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
+import okio.BufferedSink;
 
 public class IndexPresenter extends RxPresenter<IndexContract.View>
         implements IndexContract.Presenter<IndexContract.View> {
 
     @Override
-    public void getAdData(int page) {
+    public void getAdData(final int page) {
 
         addSubscribe(RetrofitHelper.getApiService()
-                .index(page)
+                .index(page,OkHttpHelper.getRequestBody(null))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new BaseObjectSubscriber<IndexBean>(mView) {
                     @Override
                     public void onSuccess(IndexBean indexBean) {
-                        List<IndexBean.HotSearch> hotSearches = indexBean.getHotSearch();
-                        List<IndexBean.Banner> banners = indexBean.getBanner();
-                        List<IndexBean.Navigation> navigations = indexBean.getNavigation();
-                        List<AdBean> recommendList = indexBean.getRecommend();
-                        mView.showAdData(hotSearches,banners,navigations);
-                        /** 这里转换一下 */
-                        if(!recommendList.isEmpty()){
-                            AdBean adBean;
-                            ApiAdBean apiAdBean;
-                            MulAdBean mulAdBean;
-                            List<MulAdBean> list = new ArrayList<>();
-                            for (int i = 0; i < recommendList.size(); i++) {
-                                adBean = recommendList.get(i);
 
-                                if( adBean.getType().equals(AppConstant.API_AD)){//广告
-                                    apiAdBean = new ApiAdBean();
-                                    apiAdBean.setName(adBean.getTitle());
-                                    apiAdBean.setImgUrl(adBean.getThumb_img_url());
-                                    mulAdBean = new MulAdBean(MulAdBean.TYPE_TWO,MulAdBean.AD_SPAN_SIZE,apiAdBean);
-                                }else{//正常
-                                    mulAdBean = new MulAdBean(MulAdBean.TYPE_ONE,MulAdBean.ITEM_SPAN_SIZE,adBean);
-                                }
-                                list.add(mulAdBean);
-                            }
+                        List<AdBean> recommendList = indexBean.getRecommend();
+
+                        /** 只有首页第一次加载才获取到上面的数据 */
+                        if(page == 1){
+                            List<IndexBean.HotSearch> hotSearches = indexBean.getHotSearch();
+                            List<IndexBean.Banner> banners = indexBean.getBanner();
+                            List<IndexBean.Navigation> navigations = indexBean.getNavigation();
+                            mView.showAdData(hotSearches,banners,navigations);
+                        }
+
+                        /** 这里转换一下 */
+                        List<MulAdBean> list = getMulAdBeanData(recommendList);
+
+                        /** 根据 page判断是否是第一页  */
+                        if(page == 1){
                             mView.showRecommendData(list);
+                        }else
+                            mView.showMoreRecommendData(list);
+
+
+                        if(list.isEmpty() || list.size() < AppConstant.PAGESIZE){
+                            mView.showEndView();
+                            return;
                         }
                     }
                 }));
@@ -63,35 +74,7 @@ public class IndexPresenter extends RxPresenter<IndexContract.View>
 
     @Override
     public void getMoreRecommendData(int page) {
-        addSubscribe(RetrofitHelper.getApiService()
-                .index(page)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseObjectSubscriber<IndexBean>(mView) {
-                    @Override
-                    public void onSuccess(IndexBean indexBean) {
-                        List<AdBean> recommendList = indexBean.getRecommend();
-                        /** 这里转换一下 */
-                        if(!recommendList.isEmpty()){
-                            AdBean adBean;
-                            ApiAdBean apiAdBean;
-                            MulAdBean mulAdBean;
-                            List<MulAdBean> list = new ArrayList<>();
-                            for (int i = 0; i < recommendList.size(); i++) {
-                                adBean = recommendList.get(i);
-                                if( adBean.getType().equals("3")){//广告
-                                    apiAdBean = new ApiAdBean();
-                                    apiAdBean.setName(adBean.getTitle());
-                                    mulAdBean = new MulAdBean(MulAdBean.TYPE_TWO,MulAdBean.AD_SPAN_SIZE,apiAdBean);
-                                }else{//正常
-                                    mulAdBean = new MulAdBean(MulAdBean.TYPE_ONE,MulAdBean.ITEM_SPAN_SIZE,adBean);
-                                }
-                                list.add(mulAdBean);
-                            }
-                            mView.showMoreRecommendData(list);
-                        }
-                    }
-                }));
+        getAdData(page);
     }
 
 //    private void testMoreData() {
@@ -117,31 +100,6 @@ public class IndexPresenter extends RxPresenter<IndexContract.View>
 //        mView.showMoreRecommendData(list);
 //    }
 
-
-    @Override
-    public void getRecommendData() {
-        //测试数据 -- 后台模拟19条数据
-        List<MulAdBean> list = new ArrayList<>();
-        MulAdBean mulAdBean;
-        ApiAdBean apiAdBean;
-        AdBean adBean;
-        List<AdBean> adBeanList = setFakeData();
-
-
-        for (int i = 0; i < 19; i++) {
-            adBean = adBeanList.get(i);
-            if( adBean.getType().equals("3")){//广告
-                apiAdBean = new ApiAdBean();
-                apiAdBean.setName("我是广告");
-                mulAdBean = new MulAdBean(MulAdBean.TYPE_TWO,MulAdBean.AD_SPAN_SIZE,apiAdBean);
-            }else{//正常
-                mulAdBean = new MulAdBean(MulAdBean.TYPE_ONE,MulAdBean.ITEM_SPAN_SIZE,adBean);
-            }
-            list.add(mulAdBean);
-        }
-        mView.showRecommendData(list);
-
-    }
 
     private List<AdBean> setFakeData() {
         List<AdBean> adBeanList = new ArrayList<>();

@@ -32,7 +32,7 @@ public abstract  class BaseRefreshFragment<T extends BaseContract.BasePresenter,
     }
 
 
-    /** 设置一些属性 */
+    /** 设置一些属性 自动出现下拉加载框 */
     protected void initRefreshLayout(){
         if(null != mRefresh){
             mRefresh.setColorSchemeResources(R.color.colorPrimary);

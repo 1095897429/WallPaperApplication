@@ -50,6 +50,8 @@
 
         <activity android:name=".module.app.LoginActivity">
 
+
+
         </activity>
 
 
@@ -90,7 +92,6 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
 
         </activity>
 
@@ -138,7 +139,7 @@
         </activity>
 
 
-        <activity android:name=".module.app.CategoryNewAndHotActivity"
+        <activity android:name=".module.app.CategoryNewHotActivity"
             android:screenOrientation="portrait">
 
         </activity>

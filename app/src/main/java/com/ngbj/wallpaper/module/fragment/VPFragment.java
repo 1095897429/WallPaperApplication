@@ -8,14 +8,12 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
-import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -23,15 +21,20 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.ngbj.wallpaper.R;
-import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.base.BaseFragment;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.ShareBean;
 import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.dialog.PreviewAlertDialog;
 import com.ngbj.wallpaper.dialog.ReportAlertDialog;
 import com.ngbj.wallpaper.dialog.ShareAlertDialog;
+import com.ngbj.wallpaper.mvp.contract.fragment.VpContract;
+import com.ngbj.wallpaper.mvp.presenter.fragment.VpPresenter;
+import com.ngbj.wallpaper.utils.common.AppHelper;
 import com.socks.library.KLog;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +44,12 @@ import butterknife.OnClick;
 import butterknife.Unbinder;
 
 
-public class VPFragment extends Fragment {
+public class VPFragment extends BaseFragment<VpPresenter>
+            implements VpContract.View {
+
+
+    @BindView(R.id.icon_love)
+    ImageView icon_love;
 
     @BindView(R.id.imageView)
     ImageView mImageView;
@@ -57,29 +65,58 @@ public class VPFragment extends Fragment {
     private Context mContext;
 
     private WallpaperManager wpManager;
-    private Unbinder unbinder;
+//    private Unbinder unbinder;
+
+    String wallpagerId;
 
     public VPFragment(){
 
     }
 
-    public VPFragment(WallpagerBean adBean){
-      this.mAdBean = adBean;
+
+    public static VPFragment getInstance(WallpagerBean wallpagerBean){
+        VPFragment mFragment = new VPFragment();
+        // 通过bundle传递数据
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("bean", wallpagerBean);
+        mFragment.setArguments(bundle);
+        return mFragment;
     }
 
-    @Nullable
+
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        view = LayoutInflater.from(getContext()).inflate(R.layout.activity_detail_item_1, null);
-        //初始化
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mAdBean = (WallpagerBean) getArguments().getSerializable("bean");
+        wallpagerId = mAdBean.getWallpager_id();
         mContext = getActivity();
-        unbinder = ButterKnife.bind(this, view);
-        //数据初始化
-        initData();
-        return view;
     }
 
-    private void initData() {
+//    @Nullable
+//    @Override
+//    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+//        view = LayoutInflater.from(getContext()).inflate(R.layout.activity_detail_item_1, null);
+//        //初始化
+//        mContext = getActivity();
+//        unbinder = ButterKnife.bind(this, view);
+//        //数据初始化
+//        initData();
+//        return view;
+//    }
+
+
+
+    @Override
+    protected int getLayoutId() {
+        return R.layout.activity_detail_item_1;
+    }
+
+    @Override
+    protected void initPresenter() {
+        mPresenter = new VpPresenter();
+    }
+
+    protected void initData() {
         //背景
         if(!TextUtils.isEmpty(mAdBean.getImg_url())){
             Glide.with(getActivity())
@@ -91,12 +128,14 @@ public class VPFragment extends Fragment {
                     .into(mImageView);
         }
 
+
     }
+
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        unbinder.unbind();
+//        unbinder.unbind();
     }
 
     //点击图片的事件
@@ -117,20 +156,10 @@ public class VPFragment extends Fragment {
     //设置壁纸的事件 http://pjb68wj3e.bkt.clouddn.com/bMXPcCIuQ9kef_bZucRl3puxmtnIQuZk.jpg
     @OnClick(R.id.icon_save)
     public void settingWallpaper(){
-        Glide.with(this).load(mAdBean.getThumb_img_url())
-                .asBitmap().into(new SimpleTarget<Bitmap>() {
-            @Override
-            public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                try {
-                    //壁纸管理器
-                    wpManager = WallpaperManager.getInstance(getActivity());
-                    wpManager.setBitmap(resource);
-                    Toast.makeText(getActivity(), "桌面壁纸设置成功", Toast.LENGTH_SHORT).show();
-                } catch (IOException e) {
-                    Toast.makeText(getActivity(), "桌面壁纸设置失败", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+
+
+        setWallpaper();
+
     }
 
     //返回的事件
@@ -163,8 +192,16 @@ public class VPFragment extends Fragment {
     //下载的事件
     @OnClick(R.id.down)
     public void Down(){
-        downImageVideo();
+        diffRecod("1");
     }
+
+    //收藏的事件
+    @OnClick(R.id.icon_love)
+    public void IconLove(){
+        diffRecod("2");
+    }
+
+
 
 
 
@@ -187,11 +224,11 @@ public class VPFragment extends Fragment {
                 switch (position){
                     case 0:
                         KLog.d("色情低俗");
-                        yellowReport();
+                        diffReport("1");
                         break;
                     case 1:
                         KLog.d("侵犯版权");
-                        copyrightReport();
+                        diffReport("2");
                         break;
                 }
             }
@@ -200,14 +237,16 @@ public class VPFragment extends Fragment {
     }
 
 
-    private void copyrightReport() {
-
+    /** 记录用户举报 */
+    private void diffReport(String type) {
+        mPresenter.getReportData(wallpagerId,type);
     }
 
-    private void yellowReport() {
 
+    /** 记录用户下载，分享，收藏 */
+    private void diffRecod(String type) {
+        mPresenter.getRecordData(wallpagerId,type);
     }
-
 
     private void shareImage() {
         List<ShareBean> temps = new ArrayList<>();
@@ -223,10 +262,12 @@ public class VPFragment extends Fragment {
         shareAlertDialog.setOnDialogItemClickListener(new ShareAlertDialog.OnDialogItemClickListener() {
             @Override
             public void func(int position) {
+
+                diffRecod("3");
+
                 switch (position){
                     case 0:
                         KLog.d("微信");
-
                         break;
                     case 1:
                         KLog.d("朋友圈");
@@ -247,6 +288,74 @@ public class VPFragment extends Fragment {
     }
 
 
+    private void setWallpaper() {
+        List<String> temps = new ArrayList<>();
+        temps.add("桌面壁纸");
+        temps.add("锁屏壁纸");
+        temps.add("取消");
+
+        PreviewAlertDialog previewAlertDialog =  new PreviewAlertDialog(mContext)
+                .builder()
+                .setPreviewBeanList(temps);
+        previewAlertDialog.setOnDialogItemClickListener(new PreviewAlertDialog.OnDialogItemClickListener() {
+            @Override
+            public void func(int position) {
+                switch (position){
+                    case 0:
+                        KLog.d("桌面壁纸");
+                        setDesktopWallpaper();
+                        break;
+                    case 1:
+                        KLog.d("锁屏壁纸");
+                        setLockScreenWallpaper();
+                        break;
+                }
+            }
+        });
+        previewAlertDialog.show();
+    }
+
+    //设置桌面壁纸
+    private void setDesktopWallpaper() {
+
+        Glide.with(this).load(mAdBean.getImg_url())
+                .asBitmap().into(new SimpleTarget<Bitmap>() {
+            @Override
+            public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                try {
+                    //壁纸管理器
+                    wpManager = WallpaperManager.getInstance(MyApplication.getInstance());
+                    wpManager.setBitmap(resource);
+                    Toast.makeText(getActivity(), "桌面壁纸设置成功", Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    Toast.makeText(getActivity(), "桌面壁纸设置失败", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    //设置锁屏壁纸
+    private void setLockScreenWallpaper() {
+        Glide.with(this).load(mAdBean.getImg_url())
+                .asBitmap().into(new SimpleTarget<Bitmap>() {
+            @Override
+            public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                try {
+                    //获取类名
+                    Class class1 = wpManager.getClass();
+                    //获取设置锁屏壁纸的函数
+                    Method setWallPaperMethod = class1.getMethod("setBitmapToLockWallpaper", Bitmap.class);
+                    //调用锁屏壁纸的函数，并指定壁纸的路径imageFilesPath
+                    setWallPaperMethod.invoke(wpManager, resource);
+                    Toast.makeText(getActivity(), "锁屏壁纸设置成功", Toast.LENGTH_SHORT).show();
+                } catch (Throwable e) {
+                    Toast.makeText(getActivity(), "锁屏壁纸设置失败", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+
     private void previewImage() {
         List<String> temps = new ArrayList<>();
         temps.add("桌面预览");
@@ -262,11 +371,11 @@ public class VPFragment extends Fragment {
                 switch (position){
                     case 0:
                         KLog.d("桌面预览");
-                        yellowReport();
+
                         break;
                     case 1:
                         KLog.d("锁屏预览");
-                        copyrightReport();
+
                         break;
                 }
             }
@@ -274,9 +383,26 @@ public class VPFragment extends Fragment {
         previewAlertDialog.show();
     }
 
-    private void downImageVideo() {
+
+    /** ------------ 接口回调 ------------ */
+
+    @Override
+    public void showError(String msg) {
 
     }
 
+    @Override
+    public void complete() {
 
+    }
+
+    @Override
+    public void showReportData() {
+        KLog.d("用户举报");
+    }
+
+    @Override
+    public void showRecordData() {
+        KLog.d("用户下载");
+    }
 }

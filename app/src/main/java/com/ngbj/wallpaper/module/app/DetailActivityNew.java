@@ -2,6 +2,7 @@ package com.ngbj.wallpaper.module.app;
 
 import android.app.WallpaperManager;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.ApplicationInfo;
@@ -18,12 +19,14 @@ import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -34,12 +37,15 @@ import com.ngbj.wallpaper.PreviewPicActivity;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.detail.DetailAdapter;
 import com.ngbj.wallpaper.base.BaseActivity;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
+import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.module.fragment.VPFragment;
 import com.ngbj.wallpaper.mvp.contract.app.DetailContract;
 import com.ngbj.wallpaper.mvp.presenter.app.DetailPresenter;
 import com.ngbj.wallpaper.utils.common.ScreenHepler;
+import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.ngbj.wallpaper.utils.common.WallpaperUtil;
 import com.socks.library.KLog;
 
@@ -69,37 +75,25 @@ public class DetailActivityNew extends BaseActivity<DetailPresenter>
     VerticalViewPager verticalviewpager;
 
 
-    int position;//当前选择的位置
+    int mPosition;//当前选择的位置
     String wallpagerId;//当前选择的壁纸ID
-    AdBean mAdBean;//当前选择的实体
     MediaPlayer mMediaPlayer;
 
 
     private List<VPFragment> vpFragments = new ArrayList<>();   //碎片集合
 
 
-    /** ------ viewPager的PagerAdapter适配器 开始 ------ */
 
-    class VpAdapter extends FragmentPagerAdapter {
-
-        public VpAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        /** 返回要显示的碎片 */
-        @Override
-        public Fragment getItem(int position) {
-            return vpFragments.get(position);
-        }
-
-        /** 返回要显示多少页 */
-        @Override
-        public int getCount() {
-            return vpFragments.size();
-        }
+    /** position -- 点击的位置   wallpagerId -- 壁纸唯一的索引  */
+    public static void openActivity(Context context, int position, String wallpagerId){
+        Intent intent = new Intent(context,DetailActivityNew.class);
+        Bundle bundle = new Bundle();
+        bundle.putInt("position",position);
+        bundle.putString("wallpagerId",wallpagerId);
+        intent.putExtras(bundle);
+        context.startActivity(intent);
     }
 
-    /** ------ viewPager的PagerAdapter适配器 结束 ------ */
 
 
     @Override
@@ -114,10 +108,8 @@ public class DetailActivityNew extends BaseActivity<DetailPresenter>
 
     @Override
     protected void initData() {
-        position = getIntent().getExtras().getInt("position");
-        KLog.d("当前选择的位置为：" + position);
-        mAdBean = getIntent().getExtras().getParcelable("bean");
-        KLog.d("bean" + mAdBean.getTitle());
+        mPosition = getIntent().getExtras().getInt("position");
+        KLog.d("当前选择的位置为：" + mPosition);
         wallpagerId = getIntent().getExtras().getString("wallpagerId");
         KLog.d("wallpagerId" + wallpagerId);
 
@@ -128,7 +120,30 @@ public class DetailActivityNew extends BaseActivity<DetailPresenter>
 
     @Override
     protected void initEvent() {
+        verticalviewpager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
 
+            @Override
+            public void onPageSelected(int position) {
+                KLog.d("postion:" + position);
+                if(position < 0){
+                    ToastHelper.customToastView(DetailActivityNew.this,"已达到第一页");
+                    return;
+                }
+
+
+//                mPosition = position;
+//                List<WallpagerBean> list = MyApplication.getDbManager().queryWallpagerBeanList();
+//                mPresenter.getData(list.get(position).getWallpager_id());
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
     }
 
 
@@ -155,21 +170,56 @@ public class DetailActivityNew extends BaseActivity<DetailPresenter>
     public void showData(AdBean adBean) {
 
         KLog.d("大图的url：" + adBean.getImg_url());
-        mPresenter.getDynamicData();
+        //根据数据,我们是可以知道我们要返回多少页的,所以我们就创建多少个碎片
+        List<WallpagerBean> adBeanList =  MyApplication.getDbManager().queryWallpagerBeanList();
+//        vpFragments.clear();
+        for(int position = 0; position < adBeanList.size(); position++){
+            vpFragments.add(VPFragment.getInstance(adBeanList.get(position)));
+        }
+        //给viewpager设置适配器
+        VpAdapter adapter = new VpAdapter(getSupportFragmentManager());
+        verticalviewpager.setAdapter(adapter);
+        verticalviewpager.setCurrentItem(mPosition);
+//        adapter.notifyDataSetChanged();
     }
 
     @Override
     public void showDynamicData(List<WallpagerBean> adBeanList) {
         //根据数据,我们是可以知道我们要返回多少页的,所以我们就创建多少个碎片
         for(int position = 0; position < adBeanList.size(); position++){
-            vpFragments.add(new VPFragment(adBeanList.get(position)));
+            vpFragments.add(VPFragment.getInstance(adBeanList.get(position)));
         }
         //给viewpager设置适配器
         verticalviewpager.setAdapter(new VpAdapter(getSupportFragmentManager()));
         //给viewpager设置索引
-        verticalviewpager.setCurrentItem(position);
+        verticalviewpager.setCurrentItem(mPosition);
 
     }
+
+
+
+    /** ------ viewPager的PagerAdapter适配器 开始 ------ */
+
+    class VpAdapter extends FragmentPagerAdapter {
+
+        public VpAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        /** 返回要显示的碎片 */
+        @Override
+        public Fragment getItem(int position) {
+            return vpFragments.get(position);
+        }
+
+        /** 返回要显示多少页 */
+        @Override
+        public int getCount() {
+            return vpFragments.size();
+        }
+    }
+
+    /** ------ viewPager的PagerAdapter适配器 结束 ------ */
 
 
 

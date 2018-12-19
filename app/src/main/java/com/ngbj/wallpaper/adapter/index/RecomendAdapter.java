@@ -11,6 +11,8 @@ import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.ApiAdBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
+import com.ngbj.wallpaper.utils.widget.GlideCircleTransform;
+import com.ngbj.wallpaper.utils.widget.GlideRoundTransform;
 
 import java.util.List;
 
@@ -38,27 +40,54 @@ public class RecomendAdapter extends BaseMultiItemQuickAdapter<MulAdBean,BaseVie
 
                 //背景
                 if(!TextUtils.isEmpty(adBean.getThumb_img_url())){
+//                    Glide.with(mContext)
+//                            .load(adBean.getThumb_img_url())
+//                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+//                            .centerCrop()
+//                            .crossFade()
+//                            .into((ImageView) holder.getView(R.id.imageView));
+
                     Glide.with(mContext)
                             .load(adBean.getThumb_img_url())
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .centerCrop()
                             .crossFade()
+                            .transform(new GlideRoundTransform(mContext,5))
                             .into((ImageView) holder.getView(R.id.imageView));
+
                 }else
                     holder.setImageResource(R.id.imageView,R.mipmap.release_image);
 
 
 
                 //头像
-                if(!TextUtils.isEmpty(adBean.getHead_img())){
-                    Glide.with(mContext)
-                            .load(adBean.getHead_img())
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .centerCrop()
-                            .crossFade()
-                            .into((ImageView) holder.getView(R.id.author_icon));
-                }else
-                    holder.setImageResource(R.id.author_icon,R.mipmap.author_icon);
+
+                Glide.with(mContext)
+                        .load("http://pjb68wj3e.bkt.clouddn.com/jmCTgYg96Nh_2u4HfI_UJXIks_lvOGsR.jpg?imageView2/1/w/162/h/216")
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .centerCrop()
+                        .crossFade()
+                        .transform(new GlideCircleTransform(mContext,4,
+                                mContext.getResources().getColor(R.color.item_bottom_color)))
+                        .into((ImageView) holder.getView(R.id.author_icon));
+
+//                if(!TextUtils.isEmpty(adBean.getHead_img())){
+////                    Glide.with(mContext)
+////                            .load(adBean.getHead_img())
+////                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+////                            .centerCrop()
+////                            .crossFade()
+////                            .into((ImageView) holder.getView(R.id.author_icon));
+//
+//                    Glide.with(mContext)
+//                            .load(adBean.getHead_img())
+//                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+//                            .centerCrop()
+//                            .crossFade()
+//                            .transform(new GlideCircleTransform(mContext,4,mContext.getResources().getColor(R.color.colorPrimary)))
+//                            .into((ImageView) holder.getView(R.id.author_icon));
+//                }else
+//                    holder.setImageResource(R.id.author_icon,R.mipmap.author_icon);
 
                 //喜爱
                 if("0".equals(adBean.getIs_collected())){
@@ -70,25 +99,34 @@ public class RecomendAdapter extends BaseMultiItemQuickAdapter<MulAdBean,BaseVie
                 //作者
                 holder.setText(R.id.author_name,adBean.getNickname());
 
-                //隐藏 左上角的文本 右上角喜好 作者 头像
-                if(adBean.getType().equals("0")){
-                    holder.setVisible(R.id.live_or_ad,true);
-                    holder.setVisible(R.id.author_name,false);
-                    holder.setVisible(R.id.author_icon,false);
-                    holder.setVisible(R.id.icon_love,false);
-                    holder.setText(R.id.live_or_ad,"广告");
-                }else if(adBean.getType().equals("2")){
-                    holder.setVisible(R.id.live_or_ad,true);
-                    holder.setVisible(R.id.author_name,true);
-                    holder.setVisible(R.id.author_icon,true);
-                    holder.setVisible(R.id.icon_love,true);
-                    holder.setText(R.id.live_or_ad,"live");
-                }else if(adBean.getType().equals("1")){
-                    holder.setVisible(R.id.live_or_ad,false);
-                    holder.setVisible(R.id.author_name,true);
-                    holder.setVisible(R.id.author_icon,true);
-                    holder.setVisible(R.id.icon_love,true);
+                //隐藏 左上角的文本 右上角喜好 作者 头像 底部背景色
+                if(!TextUtils.isEmpty(adBean.getType())){
+                    if(adBean.getType().equals("0")){
+                        holder.setVisible(R.id.live_or_ad,true);
+                        holder.setVisible(R.id.author_name,false);
+                        holder.setVisible(R.id.author_icon,false);
+                        holder.setVisible(R.id.icon_love,false);
+                        holder.setVisible(R.id.bottom_view,false);
+                        holder.setText(R.id.live_or_ad,"广告");
+
+                    }else if(adBean.getType().equals("2")){
+                        holder.setVisible(R.id.live_or_ad,true);
+                        holder.setVisible(R.id.author_name,true);
+                        holder.setVisible(R.id.author_icon,true);
+                        holder.setVisible(R.id.icon_love,true);
+                        holder.setVisible(R.id.bottom_view,true);
+                        holder.setText(R.id.live_or_ad,"live");
+                    }else if(adBean.getType().equals("1")){
+                        holder.setVisible(R.id.live_or_ad,false);
+                        holder.setVisible(R.id.author_name,true);
+                        holder.setVisible(R.id.author_icon,true);
+                        holder.setVisible(R.id.icon_love,true);
+                        holder.setVisible(R.id.bottom_view,true);
+                    }
                 }
+
+
+
 
                     //设置点击
                 holder.addOnClickListener(R.id.icon_love);
@@ -106,6 +144,7 @@ public class RecomendAdapter extends BaseMultiItemQuickAdapter<MulAdBean,BaseVie
                             .crossFade()
                             .into((ImageView) holder.getView(R.id.imageView_ad));
                 }
+
                 break;
 
         }

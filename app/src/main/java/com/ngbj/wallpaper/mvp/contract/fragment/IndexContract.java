@@ -12,10 +12,12 @@ public interface IndexContract {
     interface Presenter<T> extends BaseContract.BasePresenter<T>{
         void getAdData(int page);
         void getMoreRecommendData(int page);
-        void getRecommendData();
     }
 
     interface View extends BaseContract.BaseView{
+
+        void showEndView();
+
         void showAdData(List<IndexBean.HotSearch> list, List<IndexBean.Banner> bannerList,
                         List<IndexBean.Navigation> coolList);
         void showRecommendData(List<MulAdBean> recommendList);

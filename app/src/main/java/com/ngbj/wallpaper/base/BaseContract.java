@@ -13,7 +13,7 @@ public interface BaseContract {
 
     interface BaseView {
         void showError(String msg); /** 请求出错 */
-        void complete(); /** 请求完成 */
+        void complete(); /** 请求成功 */
     }
 
 }

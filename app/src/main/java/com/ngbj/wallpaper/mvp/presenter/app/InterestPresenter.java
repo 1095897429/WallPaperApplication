@@ -2,6 +2,7 @@ package com.ngbj.wallpaper.mvp.presenter.app;
 
 import android.annotation.SuppressLint;
 
+import com.google.gson.Gson;
 import com.ngbj.wallpaper.base.BaseListSubscriber;
 import com.ngbj.wallpaper.base.BaseObjectSubscriber;
 import com.ngbj.wallpaper.base.MyApplication;
@@ -12,15 +13,21 @@ import com.ngbj.wallpaper.bean.entityBean.InitUserBean;
 import com.ngbj.wallpaper.bean.entityBean.InterestBean;
 import com.ngbj.wallpaper.mvp.contract.app.InterestContract;
 import com.ngbj.wallpaper.mvp.contract.app.SearchContract;
+import com.ngbj.wallpaper.network.helper.OkHttpHelper;
 import com.ngbj.wallpaper.network.helper.RetrofitHelper;
+import com.ngbj.wallpaper.utils.common.AppHelper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 
 
 public class InterestPresenter extends RxPresenter<InterestContract.View>
@@ -29,8 +36,9 @@ public class InterestPresenter extends RxPresenter<InterestContract.View>
 
     @Override
     public void getInterestData() {
+
         addSubscribe(RetrofitHelper.getApiService()
-                .categoryList()
+                .categoryList(OkHttpHelper.getRequestBody(new HashMap<String, Object>()))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new BaseListSubscriber<InterestBean>(mView) {
@@ -39,13 +47,17 @@ public class InterestPresenter extends RxPresenter<InterestContract.View>
                         mView.showInterestData(interestBeanList);
                     }
                 }));
-//        test();
     }
 
     @Override
-    public void writeInterestData(String jsonListString) {
+    public void writeInterestData(List<String> jsonListString) {
+
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("interest",jsonListString);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
+
         addSubscribe(RetrofitHelper.getApiService()
-                .interestCategory(jsonListString)
+                .interestCategory(requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new BaseObjectSubscriber<String>(mView) {

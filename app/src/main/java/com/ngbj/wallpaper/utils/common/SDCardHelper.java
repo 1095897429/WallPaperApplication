@@ -17,7 +17,7 @@ import java.io.IOException;
 /***
  * SD卡的帮助类
  *  存储一般是
- *      外部私有：storage/sdcard/Android/data/包名/files
+ *      外部私有：storage/sdcard/Android/data/包名/files,cache
  *      外部公有：storage/sdcard/DICM
  *      内部私有：data/data/包名/files
  */

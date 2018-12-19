@@ -8,6 +8,7 @@ import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.annotation.ToOne;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,14 +17,15 @@ import java.util.List;
  * 壁纸实体
  */
 @Entity
-public class WallpagerBean  {
+public class WallpagerBean  implements Serializable {
+
     //壁纸
     @Id(autoincrement = true)
     private Long id;//共用
     private String type;//共用
     private String title;//共用
     private String movie_url;
-    private String wallpager_id;
+    private String wallpager_id;//唯一区分的id,与AdBean中的id 一一对应
     private String nickname;//昵称
     private String head_img;//用户上传头像
     private String thumb_img_url;//缩略图

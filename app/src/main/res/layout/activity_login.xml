@@ -63,7 +63,7 @@
             app:layout_constraintTop_toBottomOf="@+id/phone"
             android:layout_width="match_parent"
             android:layout_height="1px"
-            android:background="#4f2b56"></View>
+            android:background="#33306a"></View>
 
 
         <TextView
@@ -83,7 +83,8 @@
             app:layout_constraintRight_toLeftOf="@+id/get_done"
             android:background="@null"
             android:singleLine="true"
-            android:maxLength="6"
+            android:maxLength="4"
+            android:inputType="number"
             android:textColor="@color/white"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
@@ -93,11 +94,11 @@
             app:layout_constraintTop_toBottomOf="@+id/code"
             android:layout_width="match_parent"
             android:layout_height="1px"
-            android:background="#4f2b56"></View>
+            android:background="#33306a"></View>
 
         <TextView
             android:id="@+id/get_done"
-            android:background="@drawable/identify_code_bg"
+            android:background="@drawable/login_code_bg"
             app:layout_constraintBottom_toTopOf="@+id/line2"
             app:layout_constraintRight_toRightOf="parent"
             android:paddingLeft="12dp"

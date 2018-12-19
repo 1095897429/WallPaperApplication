@@ -15,6 +15,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -24,6 +25,7 @@ import android.widget.TextView;
 
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.base.BaseActivity;
+import com.ngbj.wallpaper.bean.entityBean.InterestBean;
 import com.ngbj.wallpaper.bean.entityBean.UploadTagBean;
 import com.ngbj.wallpaper.bean.entityBean.UploadTokenBean;
 import com.ngbj.wallpaper.constant.AppConstant;
@@ -33,6 +35,7 @@ import com.ngbj.wallpaper.eventbus.TagPositionEvent;
 import com.ngbj.wallpaper.mvp.contract.app.ReleaseContract;
 import com.ngbj.wallpaper.mvp.presenter.app.ReleasePresenter;
 import com.ngbj.wallpaper.utils.common.PicPathHelper;
+import com.ngbj.wallpaper.utils.common.SPHelper;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.ngbj.wallpaper.utils.qiniu.Auth;
 import com.qiniu.android.http.ResponseInfo;
@@ -53,6 +56,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -76,9 +80,13 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
     @BindView(R.id.upload_text)
     EditText upload_text;
 
+
     List<UploadTagBean> uploadTagBeanList = new ArrayList<>();//后台返回的数据
     List<UploadTagBean> temps = new ArrayList<>();//临时数据
     List<UploadTagBean> tags = new ArrayList<>();
+    List<String> categoryIdList = new ArrayList<>();//上传tagId部分
+
+    String token;//上传的token
 
 
     @Override
@@ -90,12 +98,6 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
     protected void initPresenter() {
         mPresenter = new ReleasePresenter();
 
-        UploadTagBean tagBean;
-        for (int i = 0; i < 15; i++) {
-            tagBean = new UploadTagBean("#风景建筑");
-            uploadTagBeanList.add(tagBean);
-        }
-        temps.addAll(uploadTagBeanList);
     }
 
     private void initTags(List<UploadTagBean> tags) {
@@ -117,8 +119,22 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
     @Override
     protected void initData() {
         mPresenter.getUploadToken();
-
+        mPresenter.getInterestData();
     }
+
+
+    @Override
+    public void showInterestData(List<InterestBean> interestBeanList) {
+        UploadTagBean tagBean;
+        for (int i = 0; i < interestBeanList.size(); i++) {
+            tagBean = new UploadTagBean();
+            tagBean.setName(interestBeanList.get(i).getName());
+            tagBean.setTagId(interestBeanList.get(i).getId());
+            uploadTagBeanList.add(tagBean);
+        }
+        temps.addAll(uploadTagBeanList);
+    }
+
 
     @OnClick(R.id.add_tag)
     public void AddTag(){
@@ -140,7 +156,14 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
     @Override
     public void shwoUploadToken(UploadTokenBean uploadTokenBean) {
         KLog.d("token: " + uploadTokenBean.getToken());
+        token = uploadTokenBean.getToken();
     }
+
+    @Override
+    public void showUploadWallpaper() {
+
+    }
+
 
     private void uploadImg2QiNiu() {
         UploadManager uploadManager = new UploadManager();
@@ -150,17 +173,30 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
         String picPath = getPicFile().toString();
         final String yuming = "pjb68wj3e.bkt.clouddn.com/";
         KLog.d(TAG, "picPath: " + picPath);
-        uploadManager.put(picPath, key, Auth.create(AppConstant.AccessKey, AppConstant.SecretKey).uploadToken("wallpaper01"), new UpCompletionHandler() {
+        uploadManager.put(picPath, key, token, new UpCompletionHandler() {
             @Override
             public void complete(String key, ResponseInfo info, JSONObject res) {
-                // info.error中包含了错误信息，可打印调试
                 // 上传成功后将key值上传到自己的服务器
                 if (info.isOK()) {
-                    KLog.i(TAG, "token ===" + Auth.create(AppConstant.AccessKey, AppConstant.SecretKey).uploadToken("wallpaper01"));
                     String headpicPath = "http://" + yuming + key;
-                    KLog.i(TAG, "图片的地址: " + headpicPath);
-                    String thumbPath = "http://" + yuming + key + "?imageView2/1/w/108/h/192";
-                    KLog.i(TAG, "缩略图的地址: " + thumbPath);
+//                    KLog.i(TAG, "图片的地址: " + headpicPath);
+//                    String thumbPath = "http://" + yuming + key + "?imageView2/1/w/108/h/192";
+//                    KLog.i(TAG, "缩略图的地址: " + thumbPath);
+
+                    String accessToken = (String) SPHelper.get(ReleaseActivity.this,AppConstant.ACCESSTOKEN,"");
+                    if(TextUtils.isEmpty(accessToken)){
+                        accessToken = "7v72FRobjPBvOFD6udGGq2UgRNPANUrv";
+                    }
+
+                    Map<String,Object> map = new HashMap<>();
+
+                    map.put("title","标题");
+                    map.put("imgUrl",headpicPath);
+                    map.put("movieUrl","null");
+                    map.put("resolution","标题");
+                    map.put("categoryId",categoryIdList);
+                    map.put("type","1");//1静态壁纸 2动态壁纸
+                    mPresenter.uploadWallpaper(accessToken,map);
 
                 }
             }
@@ -265,7 +301,7 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                     openTakePhoto();
                 }else {
-                    ToastHelper.customToastView(this,"存储卡权限拒绝，请先开启权限");
+                    ToastHelper.customToastView(this,"相机权限拒绝，请先开启权限");
                 }
                 break;
             case 2:
@@ -360,16 +396,19 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
     }
 
 
+    /** 记录选中的类型 */
     @Subscribe
     public void onUploadTagEvent(TagPositionEvent event){
         Map<Integer,UploadTagBean> hashMap = event.getMap();
 
         temps.clear();
         tags.clear();
+        categoryIdList.clear();
 
         for (UploadTagBean value : hashMap.values()) {
             if(value.isSelect()){
                 tags.add(value);
+                categoryIdList.add(value.getTagId());
             }
             temps.add(value);//更新数据源
         }

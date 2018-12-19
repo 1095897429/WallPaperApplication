@@ -10,11 +10,14 @@ import com.google.gson.Gson;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.app.Interest_Adapter;
 import com.ngbj.wallpaper.base.BaseActivity;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.InterestBean;
 import com.ngbj.wallpaper.mvp.contract.app.InterestContract;
 import com.ngbj.wallpaper.mvp.presenter.app.InterestPresenter;
+import com.ngbj.wallpaper.utils.common.AppHelper;
 import com.socks.library.KLog;
 
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,6 +27,8 @@ import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+import okhttp3.FormBody;
+import okhttp3.Request;
 
 /***
  * 1.presenter传递给父类，已实例化，子类直接拿对象调用方法
@@ -116,16 +121,27 @@ public class InterestActivity extends BaseActivity<InterestPresenter>
         String jsonStringlist = gson.toJson(selectList);
         KLog.d("转为" + jsonStringlist);
 
-        Map<String,Object> map = new HashMap<>();
-        map.put("interest",selectList);
-        Gson g = new Gson();
-        String jsonString = g.toJson(map);
-        KLog.d("转为" + jsonString);
+        Object object = gson.fromJson(jsonStringlist,Object.class);
+        KLog.d("object:" + object.toString());
 
-        mPresenter.writeInterestData(jsonStringlist);
+//        KLog.d("转为" + jsonStringlist);
 
-//        startActivity(new Intent(InterestActivity.this,HomeActivity.class));
-//        finish();
+
+//        HashMap<String,Object> hashMap = new HashMap<>();
+//        hashMap.put("interest",selectList);
+//        hashMap.put("fromPlat", "default");
+//        hashMap.put("appVersion", AppHelper.getPackageName(MyApplication.getInstance()));
+//        hashMap.put("deviceId", AppHelper.getUniquePsuedoID());
+//        hashMap.put("deviceType", "android");
+//        hashMap.put("timestamp", System.currentTimeMillis() + "");
+//        hashMap.put("sign", "");
+//        String strEntity = gson.toJson(hashMap);
+//        KLog.d("转为" + strEntity);
+
+        mPresenter.writeInterestData(selectList);
+
+        startActivity(new Intent(InterestActivity.this,HomeActivity.class));
+        finish();
     }
 
 }
