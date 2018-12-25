@@ -3,6 +3,7 @@ package com.ngbj.wallpaper.mvp.contract.fragment;
 import com.ngbj.wallpaper.base.BaseContract;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.LoginBean;
+import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 
 import java.util.List;
 
@@ -22,9 +23,9 @@ public interface MyContract {
     interface View extends BaseContract.BaseView{
 
         /** -------------- */
-        void showUploadHistory(List<AdBean> list);
+        void showUploadHistory(List<MulAdBean> list);
         void showUploadHeadData(LoginBean loginBean);
-        void showRecord(List<AdBean> list);
+        void showRecord(List<MulAdBean> list);
 
     }
 }

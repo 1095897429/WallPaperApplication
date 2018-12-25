@@ -30,6 +30,7 @@ import android.support.v4.view.ViewPager;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -44,9 +45,11 @@ import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.module.fragment.VPFragment;
 import com.ngbj.wallpaper.mvp.contract.app.DetailContract;
 import com.ngbj.wallpaper.mvp.presenter.app.DetailPresenter;
+import com.ngbj.wallpaper.utils.common.SPHelper;
 import com.ngbj.wallpaper.utils.common.ScreenHepler;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.ngbj.wallpaper.utils.common.WallpaperUtil;
+import com.ngbj.wallpaper.utils.widget.VerticalViewPager;
 import com.socks.library.KLog;
 
 import java.io.ByteArrayOutputStream;
@@ -59,7 +62,6 @@ import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.OnClick;
-import fr.castorflex.android.verticalviewpager.VerticalViewPager;
 
 /***
  * 1.mediaPlayer.setDataSource(this,Uri.parse(uri));//url 路径 方式一
@@ -68,16 +70,14 @@ import fr.castorflex.android.verticalviewpager.VerticalViewPager;
 public class DetailActivityNew extends BaseActivity<DetailPresenter>
             implements DetailContract.View{
 
-    private final static int REQUEST_CODE_SET_WALLPAPER = 0x001;//动态
-    private final static int REQUEST_CODE_SELECT_SYSTEM_WALLPAPER = 0x002;//静态
-
     @BindView(R.id.verticalviewpager)
     VerticalViewPager verticalviewpager;
 
 
     int mPosition;//当前选择的位置
     String wallpagerId;//当前选择的壁纸ID
-    MediaPlayer mMediaPlayer;
+    String fromWhere;//从哪里点击
+
 
 
     private List<VPFragment> vpFragments = new ArrayList<>();   //碎片集合
@@ -85,11 +85,12 @@ public class DetailActivityNew extends BaseActivity<DetailPresenter>
 
 
     /** position -- 点击的位置   wallpagerId -- 壁纸唯一的索引  */
-    public static void openActivity(Context context, int position, String wallpagerId){
+    public static void openActivity(Context context, int position, String wallpagerId,String fromWhere){
         Intent intent = new Intent(context,DetailActivityNew.class);
         Bundle bundle = new Bundle();
         bundle.putInt("position",position);
         bundle.putString("wallpagerId",wallpagerId);
+        bundle.putString("fromWhere",fromWhere);
         intent.putExtras(bundle);
         context.startActivity(intent);
     }
@@ -111,10 +112,15 @@ public class DetailActivityNew extends BaseActivity<DetailPresenter>
         mPosition = getIntent().getExtras().getInt("position");
         KLog.d("当前选择的位置为：" + mPosition);
         wallpagerId = getIntent().getExtras().getString("wallpagerId");
-        KLog.d("wallpagerId" + wallpagerId);
+        KLog.d("wallpagerId: " + wallpagerId);
 
-        //TODO viewpager加载view的数据源
-        mPresenter.getData(wallpagerId);
+        fromWhere = getIntent().getExtras().getString("fromWhere");
+        KLog.d("从哪里点击,并存入数据库中：" + fromWhere);
+        SPHelper.put(this,"fromWhere",fromWhere);
+
+
+        //viewpager加载view的数据源
+        setViewPager();
     }
 
 
@@ -122,80 +128,71 @@ public class DetailActivityNew extends BaseActivity<DetailPresenter>
     protected void initEvent() {
         verticalviewpager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-            }
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 
             @Override
             public void onPageSelected(int position) {
-                KLog.d("postion:" + position);
+                KLog.d("postion: " + position);
+                KLog.d("adBean: " + adBeanList.get(position));
                 if(position < 0){
-                    ToastHelper.customToastView(DetailActivityNew.this,"已达到第一页");
+//                    ToastHelper.customToastView(MyApplication.getInstance(),"已达到第一页");
                     return;
                 }
 
-
-//                mPosition = position;
-//                List<WallpagerBean> list = MyApplication.getDbManager().queryWallpagerBeanList();
-//                mPresenter.getData(list.get(position).getWallpager_id());
             }
 
             @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
+            public void onPageScrollStateChanged(int state) {}
         });
     }
 
 
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        KLog.d("onPause");
-        if(mMediaPlayer != null)
-            mMediaPlayer.pause();
-    }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        KLog.d("onDestroy");
-        if(mMediaPlayer != null)
-            mMediaPlayer.stop();
-    }
 
+
+    List<WallpagerBean> adBeanList;
+    private void setViewPager(){
+
+        //根据数据,我们是可以知道我们要返回多少页的,所以我们就创建多少个碎片
+
+        //根据来源不同查询数据
+        adBeanList =  MyApplication.getDbManager().queryDifferCome(fromWhere);
+
+        for(int position = 0; position < adBeanList.size(); position++){
+            WallpagerBean wallpagerBean = adBeanList.get(position);
+            vpFragments.add(VPFragment.getInstance(wallpagerBean));
+        }
+        //给viewpager设置适配器
+        VpAdapter adapter = new VpAdapter(getSupportFragmentManager());
+        verticalviewpager.setAdapter(adapter);
+        verticalviewpager.setOffscreenPageLimit(0);
+        verticalviewpager.setCurrentItem(mPosition);
+
+    }
 
 
     @Override
     public void showData(AdBean adBean) {
 
-        KLog.d("大图的url：" + adBean.getImg_url());
-        //根据数据,我们是可以知道我们要返回多少页的,所以我们就创建多少个碎片
-        List<WallpagerBean> adBeanList =  MyApplication.getDbManager().queryWallpagerBeanList();
-//        vpFragments.clear();
-        for(int position = 0; position < adBeanList.size(); position++){
-            vpFragments.add(VPFragment.getInstance(adBeanList.get(position)));
-        }
-        //给viewpager设置适配器
-        VpAdapter adapter = new VpAdapter(getSupportFragmentManager());
-        verticalviewpager.setAdapter(adapter);
-        verticalviewpager.setCurrentItem(mPosition);
-//        adapter.notifyDataSetChanged();
-    }
+     }
+
 
     @Override
     public void showDynamicData(List<WallpagerBean> adBeanList) {
-        //根据数据,我们是可以知道我们要返回多少页的,所以我们就创建多少个碎片
-        for(int position = 0; position < adBeanList.size(); position++){
-            vpFragments.add(VPFragment.getInstance(adBeanList.get(position)));
-        }
-        //给viewpager设置适配器
-        verticalviewpager.setAdapter(new VpAdapter(getSupportFragmentManager()));
-        //给viewpager设置索引
-        verticalviewpager.setCurrentItem(mPosition);
+
 
     }
 
+    @Override
+    public void showReportData() {
+
+    }
+
+    @Override
+    public void showRecordData() {
+
+    }
 
 
     /** ------ viewPager的PagerAdapter适配器 开始 ------ */
@@ -216,6 +213,12 @@ public class DetailActivityNew extends BaseActivity<DetailPresenter>
         @Override
         public int getCount() {
             return vpFragments.size();
+        }
+
+        /** 销毁 */
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+//            super.destroyItem(container, position, object);
         }
     }
 

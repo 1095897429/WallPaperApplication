@@ -15,10 +15,16 @@ public interface DetailContract {
         void showData(AdBean adBean);
         void showDynamicData(List<WallpagerBean> list);
 
+        void showReportData();
+        void showRecordData();
+
     }
 
     interface Presenter<T> extends BaseContract.BasePresenter<T>{
         void getData(String wallpaperId);
         void getDynamicData();
+
+        void getReportData(String wallpaperId,String type);
+        void getRecordData(String wallpaperId,String type);
     }
 }

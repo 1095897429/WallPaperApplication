@@ -50,6 +50,7 @@ public class RecomendAdapter extends BaseMultiItemQuickAdapter<MulAdBean,BaseVie
                     Glide.with(mContext)
                             .load(adBean.getThumb_img_url())
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .placeholder(R.mipmap.default_loading)
                             .centerCrop()
                             .crossFade()
                             .transform(new GlideRoundTransform(mContext,5))
@@ -61,7 +62,6 @@ public class RecomendAdapter extends BaseMultiItemQuickAdapter<MulAdBean,BaseVie
 
 
                 //头像
-
                 Glide.with(mContext)
                         .load("http://pjb68wj3e.bkt.clouddn.com/jmCTgYg96Nh_2u4HfI_UJXIks_lvOGsR.jpg?imageView2/1/w/162/h/216")
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -125,10 +125,7 @@ public class RecomendAdapter extends BaseMultiItemQuickAdapter<MulAdBean,BaseVie
                     }
                 }
 
-
-
-
-                    //设置点击
+                //设置点击
                 holder.addOnClickListener(R.id.icon_love);
                 break;
 

@@ -11,6 +11,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.ApiAdBean;
+import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
+import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.receiver.NetBroadcastReceiver;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.socks.library.KLog;
@@ -18,13 +22,15 @@ import com.trello.rxlifecycle2.components.support.RxFragment;
 import com.umeng.analytics.MobclickAgent;
 
 
+import java.util.List;
+
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
 
 /**
  * 备注：基类的Fragment
- *       1.懒加载 -- 在状态可见 + 控件初始化完成
+ *       1.懒加载 -- 在状态可见 + 控件初始化完成（看下面的setUserVisibleHint方法）
  */
 public abstract class BaseFragment<T extends BaseContract.BasePresenter>
         extends RxFragment implements BaseContract.BaseView {
@@ -39,18 +45,19 @@ public abstract class BaseFragment<T extends BaseContract.BasePresenter>
 
 
 
-    /** 当fragment 结合 viewpager使用时候 这个方法会调用*/
+    /** 简介1：当fragment 结合 viewpager使用时候 这个方法会调用*/
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-//        KLog.d("setUserVisibleHint");
-        if(getUserVisibleHint()){
+        if(getUserVisibleHint()){ // 相当于onResume()方法
             isVisible = true;
             onVisible();
-        }else{
+        }else{    // 相当于onpause()方法
             isVisible = false;
         }
     }
+
+
 
 
     @Override
@@ -155,6 +162,43 @@ public abstract class BaseFragment<T extends BaseContract.BasePresenter>
     public void complete() {
 
     }
+
+
+    /** ---------------- 公共方法  ------------------  */
+
+    protected void insertToSql(final List<MulAdBean> recommendList, final String fromWhere){
+        //TODO 线程加入到数据库中 -- 先删除，后添加
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                WallpagerBean wallpagerBean;
+                AdBean adBean ;
+                ApiAdBean apiAdBean;
+                for (MulAdBean bean: recommendList) {
+                    if(bean.getItemType() == MulAdBean.TYPE_ONE){
+                        adBean = bean.adBean;
+                        wallpagerBean = new WallpagerBean();
+                        wallpagerBean.setFromWhere(fromWhere);
+                        wallpagerBean.setType(adBean.getType());
+                        wallpagerBean.setMovie_url(adBean.getMovie_url());
+                        wallpagerBean.setWallpager_id(adBean.getId());
+                        wallpagerBean.setNickname(adBean.getNickname());
+                        wallpagerBean.setTitle(adBean.getTitle());
+                        wallpagerBean.setHead_img(adBean.getHead_img());
+                        wallpagerBean.setThumb_img_url(adBean.getThumb_img_url());
+                        MyApplication.getDbManager().insertWallpagerBean(wallpagerBean);
+                    }else if(bean.getItemType() == MulAdBean.TYPE_TWO){
+                        apiAdBean = bean.apiAdBean;
+                        wallpagerBean = new WallpagerBean();
+                        wallpagerBean.setFromWhere(fromWhere);
+                        wallpagerBean.setType(apiAdBean.getType());
+                        MyApplication.getDbManager().insertWallpagerBean(wallpagerBean);
+                    }
+                }
+            }
+        }).start();
+    }
+
 
 
 

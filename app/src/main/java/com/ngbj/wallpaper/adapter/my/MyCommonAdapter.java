@@ -9,15 +9,16 @@ import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.utils.widget.GlideCircleTransform;
 import com.ngbj.wallpaper.utils.widget.GlideRoundTransform;
 
 import java.util.List;
 
-public class MyCommonAdapter extends BaseQuickAdapter<AdBean,BaseViewHolder> {
+public class MyCommonAdapter extends BaseQuickAdapter<MulAdBean,BaseViewHolder> {
 
 
-    public MyCommonAdapter(List<AdBean> data) {
+    public MyCommonAdapter(List<MulAdBean> data) {
         super(R.layout.recommand_item,data);
     }
 
@@ -25,7 +26,9 @@ public class MyCommonAdapter extends BaseQuickAdapter<AdBean,BaseViewHolder> {
 
     /** 只是更新 屏幕上所有能看见的数据  */
     @Override
-    protected void convert(BaseViewHolder holder, AdBean adBean) {
+    protected void convert(BaseViewHolder holder, MulAdBean mulAdBean) {
+
+        AdBean adBean = mulAdBean.adBean;
         //背景
         if(!TextUtils.isEmpty(adBean.getThumb_img_url())){
 

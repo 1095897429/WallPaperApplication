@@ -4,6 +4,10 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+
+
+
+
     <ImageView
         android:id="@+id/imageView"
         android:src="@mipmap/detail_image"
@@ -12,10 +16,35 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <FrameLayout
+        android:id="@+id/video_part"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <SurfaceView
+            android:id="@+id/surfaceview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+
+        <ImageView
+            android:id="@+id/video_image"
+            android:src="@mipmap/detail_image"
+            android:scaleType="centerCrop"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+
+    </FrameLayout>
+
+
+
     <RelativeLayout
         android:id="@+id/part1"
         android:background="@color/bg"
         android:layout_width="match_parent"
+        android:visibility="gone"
         android:padding="10dp"
         android:layout_height="50dp">
 
@@ -64,6 +93,7 @@
     <android.support.constraint.ConstraintLayout
         android:id="@+id/part2"
         android:background="@color/bg"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_alignParentBottom="true"
         android:paddingLeft="12dp"

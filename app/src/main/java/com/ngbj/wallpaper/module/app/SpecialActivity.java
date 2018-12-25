@@ -14,10 +14,12 @@ import android.widget.RelativeLayout;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
+import com.ngbj.wallpaper.base.BaesLogicActivity;
 import com.ngbj.wallpaper.base.BaseActivity;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.BannerDetailBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
+import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.mvp.contract.app.SpecialContract;
 import com.ngbj.wallpaper.mvp.presenter.app.LoginPresenter;
 import com.ngbj.wallpaper.mvp.presenter.app.SpecialPresenter;
@@ -34,7 +36,7 @@ import butterknife.OnClick;
  * 专题详情页
  * 1.没有加载更多
  */
-public class SpecialActivity extends BaseActivity<SpecialPresenter>
+public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
             implements SpecialContract.View {
 
 
@@ -50,9 +52,7 @@ public class SpecialActivity extends BaseActivity<SpecialPresenter>
     RelativeLayout headBack;
 
 
-    RecomendAdapter mRecomendAdapter;
-    GridLayoutManager gridLayoutManager;
-    List<MulAdBean> recommendList = new ArrayList<>();
+
 
     private View headView;
     private ImageView imageView;
@@ -75,13 +75,30 @@ public class SpecialActivity extends BaseActivity<SpecialPresenter>
     int scrollY;
     @Override
     protected void initEvent() {
+
+        //点击事件
+        recomendAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+
+                MulAdBean mulAdBean = recommendList.get(position);
+                if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
+                    KLog.d("tag -- 广告");
+                    WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+                }else{
+                    KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
+                    DetailActivityNew.openActivity(mContext,position,mulAdBean.adBean.getId(),AppConstant.SPECIAL);
+                }
+            }
+        });
+
         //设置滑动事件
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 scrollY += dy;
-                KLog.d("scrollY:" + scrollY);
+//                KLog.d("scrollY:" + scrollY);
                 if(scrollY > mImageViewHeight){
                     headBack.setVisibility(View.VISIBLE);
 
@@ -92,14 +109,6 @@ public class SpecialActivity extends BaseActivity<SpecialPresenter>
 
                 }else
                     headBack.setVisibility(View.INVISIBLE);
-            }
-        });
-
-        //item点击事件
-        mRecomendAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                DetailActivityNew.openActivity(mContext,position,recommendList.get(position).adBean.getId());
             }
         });
 
@@ -146,10 +155,10 @@ public class SpecialActivity extends BaseActivity<SpecialPresenter>
     }
 
     private void initRecommandRecycleView() {
-        mRecomendAdapter = new RecomendAdapter(recommendList);
+        recomendAdapter = new RecomendAdapter(recommendList);
         gridLayoutManager = new GridLayoutManager(this,2);
         //设置占据的列数 -- 根据实体中的类型
-        mRecomendAdapter.setSpanSizeLookup(new BaseQuickAdapter.SpanSizeLookup() {
+        recomendAdapter.setSpanSizeLookup(new BaseQuickAdapter.SpanSizeLookup() {
             @Override
             public int getSpanSize(GridLayoutManager gridLayoutManager, int position) {
                 return recommendList.get(position).getItemType();
@@ -158,11 +167,11 @@ public class SpecialActivity extends BaseActivity<SpecialPresenter>
         //设置布局管理器
         mRecyclerView.setLayoutManager(gridLayoutManager);
         //设置Adapter
-        mRecyclerView.setAdapter(mRecomendAdapter);
+        mRecyclerView.setAdapter(recomendAdapter);
         //一行代码开启动画 默认CUSTOM动画
-        mRecomendAdapter.openLoadAnimation(BaseQuickAdapter.SCALEIN);
+        recomendAdapter.openLoadAnimation(BaseQuickAdapter.SCALEIN);
         //设置头布局
-        mRecomendAdapter.addHeaderView(headView);
+        recomendAdapter.addHeaderView(headView);
 
     }
 
@@ -170,15 +179,17 @@ public class SpecialActivity extends BaseActivity<SpecialPresenter>
     @Override
     public void showRecommendData(BannerDetailBean bannerDetailBean,List<MulAdBean> recommendList) {
         this.recommendList = recommendList;
-        mRecomendAdapter.setNewData(recommendList);
+        recomendAdapter.setNewData(recommendList);
         KLog.d("size: " + recommendList.size());
+        insertToSql(1,recommendList,AppConstant.SPECIAL);
     }
 
 
     @Override
     public void showMoreRecommendData(List<MulAdBean> recommendList) {
-        mRecomendAdapter.loadMoreComplete();
-        mRecomendAdapter.addData(recommendList);
+        recomendAdapter.loadMoreComplete();
+        recomendAdapter.addData(recommendList);
+        insertToSql(2,recommendList,AppConstant.SPECIAL);
     }
 
     @OnClick(R.id.move_top)

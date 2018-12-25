@@ -11,10 +11,14 @@ public interface VpContract {
     interface Presenter<T> extends BaseContract.BasePresenter<T>{
         void getReportData(String wallpaperId,String type);
         void getRecordData(String wallpaperId,String type);
+
+        void getData(String wallpaperId);
     }
 
     interface View extends BaseContract.BaseView{
         void showReportData();
         void showRecordData();
+
+        void showData(AdBean adBean);
     }
 }

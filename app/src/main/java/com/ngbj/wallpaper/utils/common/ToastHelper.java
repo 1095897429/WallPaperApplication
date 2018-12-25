@@ -20,7 +20,6 @@ public class ToastHelper {
 
         }else
             mToast.setText(msg);
-//        mToast.setView(mView);
         mToast.show();
 
     }

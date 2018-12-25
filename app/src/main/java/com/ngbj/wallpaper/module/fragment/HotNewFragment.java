@@ -15,7 +15,10 @@ import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.InterestBean;
 import com.ngbj.wallpaper.bean.entityBean.LoginBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
+import com.ngbj.wallpaper.constant.AppConstant;
+import com.ngbj.wallpaper.module.app.DetailActivity;
 import com.ngbj.wallpaper.module.app.DetailActivityNew;
+import com.ngbj.wallpaper.module.app.WebViewActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.CategoryContract;
 import com.ngbj.wallpaper.mvp.contract.fragment.MyContract;
 import com.ngbj.wallpaper.mvp.presenter.fragment.CategoryPresenter;
@@ -100,6 +103,30 @@ public class HotNewFragment extends BaseRefreshFragment<CategoryPresenter,MulAdB
         mRecomendAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+
+                MulAdBean mulAdBean = mList.get(position);
+                if(mulAdBean.getItemType() == MulAdBean.TYPE_ONE){
+
+                    if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
+                        KLog.d("tag -- 广告");
+                        WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+                    }else{
+                        KLog.d("tag -- 正常",mList.get(position).adBean.getTitle());
+
+
+                        String from = "";
+                        if(order.equals("1")){//最热
+                            from = AppConstant.HOT;
+                        }else if(order.equals("0")){
+                            from = AppConstant.NEW;
+                        }
+
+                        DetailActivity.openActivity(mContext,position,mulAdBean.adBean.getId(),from);
+                    }
+
+                }else {
+                    KLog.d("tag -- 广告",mList.get(position).apiAdBean.getName());
+                }
             }
         });
     }
@@ -127,12 +154,25 @@ public class HotNewFragment extends BaseRefreshFragment<CategoryPresenter,MulAdB
         complete();
         mList.addAll(recommendList);
         mRecomendAdapter.setNewData(mList);
+
+        if(order.equals("1")){//最热
+            insertToSql(recommendList,AppConstant.HOT);
+        }else if(order.equals("0")){
+            insertToSql(recommendList,AppConstant.NEW);
+        }
+
     }
 
     @Override
     public void showMoreRecommendData(List<MulAdBean> recommendList) {
         mRecomendAdapter.loadMoreComplete();
         mRecomendAdapter.addData(recommendList);
+
+        if(order.equals("1")){//最热
+            insertToSql(recommendList,AppConstant.HOT);
+        }else if(order.equals("0")){
+            insertToSql(recommendList,AppConstant.NEW);
+        }
     }
 
     @Override

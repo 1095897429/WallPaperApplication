@@ -34,7 +34,8 @@ public class  SettingActivity extends BaseActivity{
 
     @OnClick(R.id.logout)
     public void Logout(){
-        MyApplication.getInstance().exitApp();
+          LoginActivity.openActivity(this);
+//        MyApplication.getInstance().exitApp();
     }
 
 }

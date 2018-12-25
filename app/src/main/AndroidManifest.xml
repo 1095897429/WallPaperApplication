@@ -7,7 +7,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <!-- 壁纸权限 -->
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
@@ -20,7 +21,24 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE"></uses-permission>
 
+    <!-- webview选择框权限 -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW" />
 
+    <!-- 定位权限 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="com.android.launcher.permission.READ_SETTINGS" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- 这个权限用于获取wifi的获取权限，wifi信息会用来进行网络定位-->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 
 
     <application
@@ -30,11 +48,28 @@
         android:name=".base.MyApplication"
         android:roundIcon="@mipmap/icon"
         android:supportsRtl="true"
+        android:resizeableActivity="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
 
-        <!-- value的值填写你在友盟后台申请的应用Appkey -->
+
+        <!-- 小米全面屏竖屏绘制到耳朵区 -->
+        <meta-data android:name="notch.config"
+            android:value="portrait"></meta-data>
+
+        <!-- 小米全面屏填充全面屏屏幕底部 -->
+        <meta-data android:name="android.max_aspect"
+            android:value="2.2"></meta-data>
+
+
+        <!-- 友盟后台申请的应用Appkey -->
         <meta-data android:value="5bea861cb465f54c850001be" android:name="UMENG_APPKEY"/>
+
+        <!--百度定位申请的应用Appkey -->
+        <meta-data
+            android:name="com.baidu.lbsapi.API_KEY"
+            android:value="ayUcDL2bZnbVrYzuRkyywo48MoLhz4Az" />
 
 
 
@@ -72,11 +107,13 @@
 
         </activity>
 
-
-        <activity android:name=".module.app.SplashActivity"
-            android:screenOrientation="portrait">
+        <activity android:name=".module.app.WebViewActivity">
 
         </activity>
+
+
+
+
 
         <activity android:name=".module.app.GalleryActivity"
             android:theme="@style/NoTitleFullscreen"
@@ -84,14 +121,17 @@
 
         </activity>
 
-
-
-
-        <activity android:name=".module.app.HomeActivity">
+        <activity android:name=".module.app.SplashActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+        </activity>
+
+
+        <activity android:name=".module.app.HomeActivity">
 
         </activity>
 
@@ -145,6 +185,62 @@
         </activity>
 
 
+        <!-- 新浪 -->
+        <activity
+            android:name="com.umeng.socialize.media.WBShareCallBackActivity"
+            android:configChanges="keyboardHidden|orientation"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:exported="false"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity android:name="com.sina.weibo.sdk.web.WeiboSdkWebActivity"
+            android:configChanges="keyboardHidden|orientation"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize">
+        </activity>
+
+        <activity
+            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen"
+            android:launchMode="singleTask"
+            android:name="com.sina.weibo.sdk.share.WbShareTransActivity">
+            <intent-filter>
+                <action android:name="com.sina.weibo.sdk.action.ACTION_SDK_REQ_ACTIVITY" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+        </activity>
+
+        <!-- QQ -->
+        <activity
+            android:name="com.tencent.tauth.AuthActivity"
+            android:launchMode="singleTask"
+            android:noHistory="true" >
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tencent1107983871" />
+            </intent-filter>
+
+        </activity>
+
+        <activity
+            android:name="com.tencent.connect.common.AssistActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:configChanges="orientation|keyboardHidden|screenSize"/>
+
+        <!-- 微信 -->
+        <activity
+            android:name=".wxapi.WXEntryActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+
+
+
+
         <!-- 配置实时网络Receiver -->
         <receiver android:name=".receiver.NetBroadcastReceiver">
             <intent-filter>
@@ -152,6 +248,12 @@
             </intent-filter>
         </receiver>
 
+
+        <!-- 百度定位壁纸Service -->
+        <service
+            android:name="com.baidu.location.f"
+            android:enabled="true"
+            android:process=":remote"></service>
 
 
 

@@ -13,6 +13,6 @@ public interface SplashContract {
     }
 
     interface Presenter<T> extends BaseContract.BasePresenter<T>{
-        void initUserInfo();
+        void initUserInfo(String province,String city);
     }
 }

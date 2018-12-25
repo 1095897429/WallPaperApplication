@@ -7,6 +7,7 @@ import com.ngbj.wallpaper.base.BaseObjectSubscriber;
 import com.ngbj.wallpaper.base.RxPresenter;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.LoginBean;
+import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.mvp.contract.fragment.MyContract;
 import com.ngbj.wallpaper.network.helper.OkHttpHelper;
@@ -37,7 +38,10 @@ public class MyPresenter extends RxPresenter<MyContract.View>
                 .subscribeWith(new BaseListSubscriber<AdBean>(mView) {
                     @Override
                     public void onSuccess(List<AdBean> list) {
-                        mView.showUploadHistory(list);
+
+                        List<MulAdBean> mulAdBeanList = getMulAdBeanData(list);
+
+                        mView.showUploadHistory(mulAdBeanList);
                     }
                 }));
     }
@@ -80,7 +84,10 @@ public class MyPresenter extends RxPresenter<MyContract.View>
                     @Override
                     public void onSuccess(List<AdBean> list) {
                         KLog.d("result: " + list.size());
-                        mView.showRecord(list);
+
+                        List<MulAdBean> mulAdBeanList = getMulAdBeanData(list);
+
+                        mView.showRecord(mulAdBeanList);
                     }
                 }));
     }

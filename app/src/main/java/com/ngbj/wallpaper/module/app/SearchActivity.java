@@ -22,6 +22,7 @@ import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.app.History_Search_Adapter;
 import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
+import com.ngbj.wallpaper.base.BaesLogicActivity;
 import com.ngbj.wallpaper.base.BaseActivity;
 import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
@@ -48,7 +49,7 @@ import butterknife.OnClick;
  * 搜索关键字 + 首页导航 + 热搜 -- 共用一个界面
  */
 
-public class SearchActivity extends BaseActivity<SearchPresenter>
+public class SearchActivity extends BaesLogicActivity<SearchPresenter>
             implements SearchContract.View,SwipeRefreshLayout.OnRefreshListener {
 
 
@@ -144,6 +145,22 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
 
     @Override
     protected void initEvent() {
+
+        //点击事件
+        recomendAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+
+                MulAdBean mulAdBean = recommendList.get(position);
+                if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
+                    KLog.d("tag -- 广告");
+                    WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+                }else{
+                    KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
+                    DetailActivityNew.openActivity(mContext,position,mulAdBean.adBean.getId(),AppConstant.SEARCH);
+                }
+            }
+        });
 
         //热搜的点击
         tagFlowLayout.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
@@ -295,7 +312,7 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
     /** 搜索内容 */
     private void searchContent(int fromW,String content){
 
-        keyWord = "动态壁纸";
+        keyWord = "美女";
         fromWhere = fromW;
 
         /** 点击热搜，走首页热搜的逻辑  */
@@ -317,9 +334,6 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
 
 
     /** -----------------------  搜索列表页 -----------------------*/
-    GridLayoutManager gridLayoutManager;
-    RecomendAdapter recomendAdapter;
-    List<MulAdBean> recommendList = new ArrayList<>();
 
     private void initRecycleView() {
         recomendAdapter = new RecomendAdapter(recommendList);
@@ -349,17 +363,7 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
 
         //设置空布局
         recomendAdapter.setEmptyView(R.layout.commom_empty);
-        //设置自定义加载布局
-//        recomendAdapter.setLoadMoreView(new CustomLoadMoreView());
 
-        //点击事件
-        recomendAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-
-                DetailActivityNew.openActivity(mContext,position,recommendList.get(position).adBean.getId());
-            }
-        });
     }
 
 
@@ -404,13 +408,19 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
     public void showKeySearchData(List<MulAdBean> list) {
         recommendList = list;
         recomendAdapter.setNewData(list);
+
+        insertToSql(1,recommendList,AppConstant.SEARCH);
     }
+
+
 
     @Override
     public void showMoreKeySearchData(List<MulAdBean> list) {
 
         recomendAdapter.loadMoreComplete();
         recomendAdapter.addData(list);
+
+        insertToSql(2,list,AppConstant.SEARCH);
     }
 
 
@@ -419,6 +429,7 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
     public void showNavigationData(List<MulAdBean> list) {
         recommendList = list;
         recomendAdapter.setNewData(list);
+        insertToSql(1,recommendList,AppConstant.SEARCH);
     }
 
     @Override
@@ -426,13 +437,15 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
 
         recomendAdapter.loadMoreComplete();
         recomendAdapter.addData(list);
-    }
+        insertToSql(2,list,AppConstant.SEARCH);
+}
 
     /** -- 根据热搜词搜索壁纸 -- */
     @Override
     public void showHotSearchData(List<MulAdBean> list) {
         recommendList = list;
         recomendAdapter.setNewData(list);
+        insertToSql(1,list,AppConstant.SEARCH);
     }
 
     @Override
@@ -440,6 +453,7 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
 
         recomendAdapter.loadMoreComplete();//本次数据加载结束并且还有下页数据
         recomendAdapter.addData(list);
+        insertToSql(2,list,AppConstant.SEARCH);
     }
 
     @Override
@@ -464,13 +478,6 @@ public class SearchActivity extends BaseActivity<SearchPresenter>
     protected void initRefreshLayout(){
         if(null != mRefresh){
             mRefresh.setColorSchemeResources(R.color.colorPrimary);
-//            mRefresh.post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    mRefresh.setRefreshing(true);
-//                    toDiffFunc();
-//                }
-//            });
             mRefresh.setOnRefreshListener(this);
         }
     }

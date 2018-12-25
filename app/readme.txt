@@ -303,6 +303,11 @@
     1.纯净版数据优化 -- 在head中新增两个字段，将首页请求广告的请求两个字段去掉 -- ok
     2.浏览器酷站导航不用翻页 -- ok
         1.TODO 新增 -- xml替换 -- onCreate初始化控件 --  initCoolRecyclerView  -- 新增adapter -- 隐藏getAdData2,换成getAdData2_2 -- 其他的fragment照样 -- ok
+        2.TODO 默认浏览器 -- xml添加 -- 布局/类添加 --
+        3.TODO 酷站不翻页
+        4.TODO 推送
+        5.TODO 不强制更新 --
+        6.TODO html定位 -- setting设置 -- setWebChromeClient --
 3.接口
     1.获取用户下载，分享，收藏壁纸 -- ok
     2.用户上传壁纸历史 -- ok
@@ -313,20 +318,97 @@
 5.布局构建
     1.布局刚开始的加载中，加载失败 -- 利用emptyView布局在设置 --ok
 
-6.展示动态壁纸
-    1.
+
 
 产品分享：功能上的，一些关注喜好的话，app会类推和他相关的内容，比如我的想法是点击喜好的壁纸，在开辟一个发现模块，类似于喜好这款壁纸的人都在看什么等等，显示一些喜好明星的一些视频，新闻啥的。可以吸引用户
 
 
 2018.12.20
-1.喜好接口逻辑
-2.沉淀式状态栏
+1.喜好接口逻辑 -- ok
+
+2.透明状态栏效果 -- https://www.jianshu.com/p/afa921d8ed24 -- no
+    标志位：
+    5.0(API 21)以上:
+     1.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS  +  FLAG_TRANSLUCENT_STATUS 同步设置-- 在API >= 21,系统支持给状态栏着色 --
+    4.4(API 19)以上:
+     1.系统不支持给状态栏着色，可通过(透明状态栏 + 透明背景颜色) 实现
+        1.将系统状态栏设置为透明 -- DecorView会占用状态栏的高度，会是整体内容上移一段距离
+        2.设置对应的背景颜色
+     低版本：
+      1.在API 19一下系统不支持沉浸式状态栏
+
+3.签名的方式 -- https://www.cnblogs.com/gao-chun/p/4891275.html -- ok
+    1.965e9af1dc4a5f91c6a1b6360b99c660 应用签名 -- ok
 
 
+4.greendao的异常 Expected unique result, but count was 3 -- ok
+
+5.展示动态壁纸
+    1.设置动态的路径 -- ok
+    2.给surfaceView设置图片 --
+    3.设置动态壁纸 -- https://blog.csdn.net/lmj623565791/article/details/72170299
+    4.下载壁纸 -- RxVolley
+        0.RxVolley下载 -- unexpect response code 206 -- no
+        1.下载路径 -- /sdcard/emlute/0/bianselong/wallpapers -- java.io.IOException: No such file or directory -- 一般逻辑是检查创建 -- ok
+        2.原生下载到指定位置 -- ok
+        3.通过网络设置动态壁纸 -- ok
+
+6.加载视频时设置背景图片 --
+
+2018.12.21
+1.明细中收藏 ，如何改变首页的收藏
+2.释放mediaplay资源 -- https://blog.csdn.net/sdfdzx/article/details/60144834 --
+3.优化UI整体样式 --
+4.优化整体逻辑(搜索 + 专题 )Activity:
+    1.统一了壁纸Item的点击事件 -- super.initEvent --  ok
+    2.获取数据后，封装数据库 -- 专题页中type 为空？ --
+
+5.优化整体逻辑(搜索 + 专题 )Fragment:
+    1.统一了壁纸Item的点击事件 --
+    2.获取数据后，封装数据库 --
+
+6.原生webview -- ok
+
+产品分享：添加用户反馈模式，利用语音录制上传 ，要和用户体验
 
 
+2018.12.23
+1.viewpager 和 fragment 加载一个界面 -- 去掉预加载 -- ok
 
+2.首页获取数据 -- 在获取数据时，将数据封装成mulBean，存入数据库中(type)
+3.每个地方的跳转到详情页
+    1.后台返回的是19条数据，其中最后一条数据是api广告 ，加入 -- ok
+    2.跳转 -- ok
+    3.专题页没有type -- ok
+
+
+2018.12.24
+1.微信第三方登录
+    1.友盟sdk下载 -- 手动ok
+    2.登录
+        1.QQ --
+        2.
+2.fragment切换时，mediaplay不起作用了 -- ok
+3.重构初始化接口 -- 利用手机自带定位，获取经纬度，调用百度地图地址 -- https://blog.csdn.net/wn1245343496/article/details/69229951 --
+  取消收藏接口 -- ok
+
+
+2018.12.25
+1.百度基础定位sdk
+    1.发布版的sha1 + 注册 + 权限 + 配置-- ok
+
+2.明细加载数据库的数据，当明细获取请求数据后，如何更新显示的数据源
+    1.获取数据源 -- 进来判断是否需要发送更新请求(根据类型 + 是否有值) -- 刚进来 + 切换 --  ok
+    2.获取数据后 -- 请求成功后 ，更新数据库数据 + 取出数据从数据库中 + 更新界面 -- ok
+    3.先设置默认的图片 -- 当请求完成后，播放视频 ，让缩略图渐变消失 -- ok
+3.浏览器打包 -- 蜜桃 -- ok
+4.视频资源加载完后才能播放
+    0.确保在 onPrepared 方法调用之后
+    1.长按按钮
+    2.壁纸item ,广告item都会有wallpaperId,api广告是没有的 -- ok
+    3.默认加载为缩略图 -- ok
+5.微信登录
+    1.后台修改了gender返回的类型，让其返回int
 
 
 

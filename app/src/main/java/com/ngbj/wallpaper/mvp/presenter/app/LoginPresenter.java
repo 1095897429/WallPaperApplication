@@ -14,6 +14,7 @@ import com.ngbj.wallpaper.network.helper.RetrofitHelper;
 import com.socks.library.KLog;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -25,6 +26,25 @@ import okhttp3.RequestBody;
  */
 public class LoginPresenter extends RxPresenter<LoginContract.View>
                 implements LoginContract.Presenter<LoginContract.View> {
+
+    /** 第三方登录 */
+    @Override
+    public void getThridData(Map<String, Object> map) {
+
+        RequestBody requestBody = OkHttpHelper.getRequestBody(map);
+
+        addSubscribe(RetrofitHelper.getApiService()
+                .thirdPlatLogin(requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseObjectSubscriber<LoginBean>(mView) {
+                    @Override
+                    public void onSuccess(LoginBean loginBean) {
+                        mView.showThridData(loginBean);
+                    }
+                }));
+    }
+
     @SuppressLint("CheckResult")
     @Override
     public void getVerCodeData(String phone) {
@@ -68,5 +88,7 @@ public class LoginPresenter extends RxPresenter<LoginContract.View>
                     }
                 }));
     }
+
+
 
 }

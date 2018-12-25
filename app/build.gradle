@@ -2,22 +2,46 @@ apply plugin: 'com.android.application'
 apply plugin: 'org.greenrobot.greendao'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'key0'
+            keyPassword '123456'
+            storePassword '123456'
+            storeFile file('/Users/niaogebiji/wallpaper.jks')
+        }
+    }
     compileSdkVersion 26
     defaultConfig {
         applicationId "com.ngbj.wallpaper"
-        minSdkVersion 16
+        minSdkVersion 17
         targetSdkVersion 26
         versionCode 1
         versionName "1.0.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+
+        ndk {
+            //设置支持的SO库架构
+            abiFilters 'armeabi', 'x86'//, 'armeabi-v7a', 'x86_64', 'arm64-v8a'
+        }
+
+        multiDexEnabled true
+
+        packagingOptions {
+            exclude 'META-INF/rxjava.properties'
+        }
+
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
+        }
+        debug {
+            signingConfig signingConfigs.config
         }
     }
-
     //指定生成DaoMaster DaoSession Dao位置
     greendao {
         schemaVersion 1
@@ -25,10 +49,16 @@ android {
         targetGenDir 'src/main/java'
     }
 
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:26.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
     testImplementation 'junit:junit:4.12'
@@ -37,59 +67,87 @@ dependencies {
 
     //design
     implementation 'com.android.support:design:26.0.0'
+
     //cardView
     implementation 'com.android.support:cardview-v7:26.0.0'
+
     //Klog
     implementation 'com.github.zhaokaiqiang.klog:library:1.6.0'
+
     //qiniu
     implementation 'com.qiniu:qiniu-android-sdk:7.3.+'
+
     //butterknife
     implementation 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+
     //easypermissions
     implementation 'pub.devrel:easypermissions:1.0.1'
+
     //happy-dns
     implementation 'com.qiniu:happy-dns:0.2.13'
+
     //async
     implementation 'com.loopj.android:android-async-http:1.4.9'
+
     //gson
     implementation 'com.google.code.gson:gson:2.8.1'
+
     //glide
     implementation 'com.github.bumptech.glide:glide:3.7.0'
+
     //配合glide一起使用，圆形头像，毛玻璃效果
     implementation 'jp.wasabeef:glide-transformations:2.0.1'
 
     /*友盟统计需要的最新版本组件化基础库和统计SDK*/
-    implementation 'com.umeng.sdk:common:1.5.0'
-    implementation 'com.umeng.sdk:analytics:7.5.0'
+//    implementation 'com.umeng.sdk:common:1.5.0'
+//    implementation 'com.umeng.sdk:analytics:7.5.0'
+
     //retrofit
     implementation 'com.squareup.okhttp3:okhttp:3.7.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.7.0'
     implementation 'com.squareup.retrofit2:retrofit:2.2.0'
     implementation 'com.jakewharton.retrofit:retrofit2-rxjava2-adapter:1.0.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.2.0'
+
     //rxjava2
     implementation 'io.reactivex.rxjava2:rxjava:2.0.8'
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
+
     //rxlifecycle
     implementation 'com.trello.rxlifecycle2:rxlifecycle:2.0.1'
     implementation 'com.trello.rxlifecycle2:rxlifecycle-components:2.0.1'
+
     //BaseRecyclerViewAdapterHelper
     implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.16'
+
     //banner
     implementation 'com.youth.banner:banner:1.4.10'
 
     //verticalviewPager
-    implementation 'com.github.castorflex.verticalviewpager:library:19.0.1'
+//    implementation 'com.github.castorflex.verticalviewpager:library:19.0.1'
 
     //FlycoTabLayout_Lib
     implementation 'com.flyco.tablayout:FlycoTabLayout_Lib:2.1.2@aar'
+
     //flowlayout
     implementation 'com.hyman:flowlayout-lib:1.1.2'
+
     //greendao
     implementation 'org.greenrobot:greendao:3.0.1'
+
     //eventBus
     implementation 'org.greenrobot:eventbus:3.1.1'
+
     //leakcanary
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
+
+    //RxVolley
+    implementation 'com.kymjs.rxvolley:rxvolley:1.1.4'
+    implementation 'com.kymjs.rxvolley:okhttp3:1.1.4'
+
+    implementation 'com.android.support:multidex:1.0.3'
+
+    //filedownloader
+    implementation 'com.liulishuo.filedownloader:library:1.3.0'
 }

@@ -201,11 +201,11 @@ public class DBManager {
     }
 
     /** 查询一条壁纸记录 */
-    public WallpagerBean queryWallpagerBean(String categoryId) {
+    public WallpagerBean queryWallpagerBean(String wallpaperId) {
         DaoMaster daoMaster = new DaoMaster(getReadableDatabase());
         DaoSession daoSession = daoMaster.newSession();
         WallpagerBeanDao userDao = daoSession.getWallpagerBeanDao();
-        WallpagerBean wallpagerBean = userDao.queryBuilder().where(WallpagerBeanDao.Properties.Wallpager_id.eq(categoryId)).unique();
+        WallpagerBean wallpagerBean = userDao.queryBuilder().where(WallpagerBeanDao.Properties.Wallpager_id.eq(wallpaperId)).unique();
         return wallpagerBean;
     }
 
@@ -231,6 +231,29 @@ public class DBManager {
     }
 
     /** ========================= 壁纸数据  结束================================================== */
+
+
+
+    /** 根据条件查询壁纸记录 */
+    public List<WallpagerBean> queryDifferCome(String fromWhere) {
+        DaoMaster daoMaster = new DaoMaster(getReadableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        WallpagerBeanDao userDao = daoSession.getWallpagerBeanDao();
+        List<WallpagerBean> wallpagerBeanList = userDao.queryBuilder().where(WallpagerBeanDao.Properties.FromWhere.eq(fromWhere)).list();
+        return wallpagerBeanList;
+    }
+
+
+    /** 根据条件查询一条壁纸记录 */
+    public WallpagerBean queryWallpager(String wallpaperId,String fromWhere) {
+        DaoMaster daoMaster = new DaoMaster(getReadableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        WallpagerBeanDao userDao = daoSession.getWallpagerBeanDao();
+        WallpagerBean wallpagerBean = userDao.queryBuilder()
+                .where(WallpagerBeanDao.Properties.Wallpager_id.eq(wallpaperId),
+                        WallpagerBeanDao.Properties.FromWhere.eq(fromWhere)).unique();
+        return wallpagerBean;
+    }
 
 
 }

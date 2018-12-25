@@ -12,6 +12,9 @@ public interface IndexContract {
     interface Presenter<T> extends BaseContract.BasePresenter<T>{
         void getAdData(int page);
         void getMoreRecommendData(int page);
+
+        void getRecordData(String wallpaperId, String type);
+        void getDeleteCollection(String wallpaperId);
     }
 
     interface View extends BaseContract.BaseView{
@@ -22,5 +25,8 @@ public interface IndexContract {
                         List<IndexBean.Navigation> coolList);
         void showRecommendData(List<MulAdBean> recommendList);
         void showMoreRecommendData(List<MulAdBean> recommendList);
+
+        void showRecordData();
+        void showDeleteCollection();
     }
 }

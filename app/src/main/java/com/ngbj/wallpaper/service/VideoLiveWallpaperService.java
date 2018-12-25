@@ -12,16 +12,22 @@ import android.media.MediaPlayer;
 import android.service.wallpaper.WallpaperService;
 import android.view.SurfaceHolder;
 
+import com.ngbj.wallpaper.base.MyApplication;
+import com.ngbj.wallpaper.utils.common.SDCardHelper;
+import com.ngbj.wallpaper.utils.common.SPHelper;
 import com.socks.library.KLog;
 
 import java.io.IOException;
 
+/***
+ * 实现动态壁纸的 Service
+ */
 public class VideoLiveWallpaperService extends WallpaperService {
     public Engine onCreateEngine() {
         return new VideoEngine();
     }
 
-    public static final String VIDEO_PARAMS_CONTROL_ACTION = "com.zhy.my_wallpaper";
+    public static final String VIDEO_PARAMS_CONTROL_ACTION = "com.zl.my_wallpaper";
     public static final String KEY_ACTION = "action";
     public static final int ACTION_VOICE_SILENCE = 110;
     public static final int ACTION_VOICE_NORMAL = 111;
@@ -38,6 +44,7 @@ public class VideoLiveWallpaperService extends WallpaperService {
         context.sendBroadcast(intent);
     }
 
+    /** 跳转到系统设置壁纸界面 */
     public static void setToWallPaper(Context context) {
         final Intent intent = new Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
         intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
@@ -105,10 +112,14 @@ public class VideoLiveWallpaperService extends WallpaperService {
             mMediaPlayer = new MediaPlayer();
             mMediaPlayer.setSurface(holder.getSurface());
             try {
-                AssetManager assetMg = getApplicationContext().getAssets();
-                AssetFileDescriptor fileDescriptor = assetMg.openFd("test.mp4");
-                mMediaPlayer.setDataSource(fileDescriptor.getFileDescriptor(),
-                        fileDescriptor.getStartOffset(), fileDescriptor.getLength());
+//                AssetManager assetMg = getApplicationContext().getAssets();
+//                AssetFileDescriptor fileDescriptor = assetMg.openFd("test.mp4");
+//                mMediaPlayer.setDataSource(fileDescriptor.getFileDescriptor(),
+//                        fileDescriptor.getStartOffset(), fileDescriptor.getLength());
+
+                //本地的视频  需要在手机SD卡根目录添加一个 fl1234.mp4 视频
+                String path = (String) SPHelper.get(MyApplication.getInstance(),"video","");
+                mMediaPlayer.setDataSource(path);
                 mMediaPlayer.setLooping(true);
                 mMediaPlayer.setVolume(0, 0);
                 mMediaPlayer.prepare();

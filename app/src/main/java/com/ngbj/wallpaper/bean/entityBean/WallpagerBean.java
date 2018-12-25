@@ -1,20 +1,15 @@
 package com.ngbj.wallpaper.bean.entityBean;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Generated;
-import org.greenrobot.greendao.annotation.ToOne;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
- * 壁纸实体
+ * 壁纸实体 -- 首页
  */
 @Entity
 public class WallpagerBean  implements Serializable {
@@ -36,11 +31,16 @@ public class WallpagerBean  implements Serializable {
     private String category_name;
     private String img_url;//图片地址
 
-    @Generated(hash = 1221811270)
+    //标注来源
+    private String fromWhere;
+
+
+
+    @Generated(hash = 706505153)
     public WallpagerBean(Long id, String type, String title, String movie_url,
             String wallpager_id, String nickname, String head_img,
             String thumb_img_url, String is_collected, String category_id,
-            String category_name, String img_url) {
+            String category_name, String img_url, String fromWhere) {
         this.id = id;
         this.type = type;
         this.title = title;
@@ -53,11 +53,14 @@ public class WallpagerBean  implements Serializable {
         this.category_id = category_id;
         this.category_name = category_name;
         this.img_url = img_url;
+        this.fromWhere = fromWhere;
     }
 
     @Generated(hash = 785783416)
     public WallpagerBean() {
     }
+
+
 
     public Long getId() {
         return id;
@@ -148,5 +151,11 @@ public class WallpagerBean  implements Serializable {
         this.is_collected = is_collected;
     }
 
+    public String getFromWhere() {
+        return fromWhere;
+    }
 
+    public void setFromWhere(String fromWhere) {
+        this.fromWhere = fromWhere;
+    }
 }

@@ -1,6 +1,7 @@
 package com.ngbj.wallpaper.base;
 
 
+import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
@@ -8,11 +9,16 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.View;
 
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
+import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.receiver.NetBroadcastReceiver;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.socks.library.KLog;
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity;
 import com.umeng.analytics.MobclickAgent;
+
+import java.util.List;
 
 import butterknife.ButterKnife;
 
@@ -27,6 +33,7 @@ public abstract class BaseActivity<T extends BaseContract.BasePresenter>
         extends RxAppCompatActivity implements BaseContract.BaseView,NetBroadcastReceiver.NetChangeListener{
 
     protected T mPresenter;
+    protected Context mContext;
 
 
     @Override
@@ -35,6 +42,7 @@ public abstract class BaseActivity<T extends BaseContract.BasePresenter>
         super.onCreate(savedInstanceState);
         setContentView(getLayoutId());
         ButterKnife.bind(this);
+        mContext = this;
         initPresenter();
         initInject();
         initData();
@@ -99,6 +107,7 @@ public abstract class BaseActivity<T extends BaseContract.BasePresenter>
 
     /** ---------------- 抽象的构造方法  ------------------  */
     protected abstract int getLayoutId();
+
 
     /** ---------------- 实现的方法 开始 ------------------  */
 

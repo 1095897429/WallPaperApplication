@@ -117,7 +117,11 @@ public interface ApiService {
     Flowable<HttpResponse<List<AdBean>>> uploadHistory(@Query("access-token") String accessToken,
                                                        @Body RequestBody requestBody);//用户上传壁纸历史
 
+    @POST("user/thirdPlatLogin")
+    Flowable<HttpResponse<LoginBean>> thirdPlatLogin(@Body RequestBody requestBody);//第三方登录
 
+    @POST("history/deleteCollection")
+    Flowable<HttpResponse<String>> deleteCollection(@Body RequestBody requestBody);//取消收藏
 
 
 

@@ -62,8 +62,9 @@ public class RxPresenter<T extends BaseContract.BaseView>
             MulAdBean mulAdBean;
             for (int i = 0; i < recommendList.size(); i++) {
                 adBean = recommendList.get(i);
-                if (adBean.getType().equals("3")) {//广告
+                if (adBean.getType().equals("3")) {//占据两行广告
                     apiAdBean = new ApiAdBean();
+                    apiAdBean.setType(adBean.getType());
                     apiAdBean.setName(adBean.getTitle());
                     mulAdBean = new MulAdBean(MulAdBean.TYPE_TWO, MulAdBean.AD_SPAN_SIZE, apiAdBean);
                 } else {//正常

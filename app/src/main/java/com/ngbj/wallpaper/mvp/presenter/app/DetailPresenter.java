@@ -10,8 +10,10 @@ import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.bean.greenBeanDao.DBManager;
 import com.ngbj.wallpaper.mvp.contract.app.DetailContract;
+import com.ngbj.wallpaper.network.helper.OkHttpHelper;
 import com.ngbj.wallpaper.network.helper.RetrofitHelper;
 import com.ngbj.wallpaper.utils.common.AppHelper;
+import com.ngbj.wallpaper.utils.common.SPHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +31,54 @@ public class DetailPresenter extends RxPresenter<DetailContract.View>
                 implements DetailContract.Presenter<DetailContract.View> {
 
 
+    /** 记录用户举报 1色情低俗 2侵犯版权 3其他*/
+    @Override
+    public void getReportData(String wallpaperId, String type) {
+
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("wallpaperId",wallpaperId);
+        hashMap.put("type",type);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
+
+
+        addSubscribe(RetrofitHelper.getApiService()
+                .report(requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+                    @Override
+                    public void onSuccess(String string) {
+                        mView.showReportData();
+                    }
+                }));
+    }
+
+
+    /** 记录用户下载 1下载 2收藏 3分享 */
+    @Override
+    public void getRecordData(String wallpaperId, String type) {
+
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("wallpaperId",wallpaperId);
+        hashMap.put("type",type);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
+
+
+        addSubscribe(RetrofitHelper.getApiService()
+                .record(requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+                    @Override
+                    public void onSuccess(String string) {
+                        mView.showRecordData();
+                    }
+                }));
+    }
+
+
+
+    /** 壁纸明细 */
     @SuppressLint("CheckResult")
     @Override
     public void getData(final String wallpaperId) {
@@ -52,10 +102,7 @@ public class DetailPresenter extends RxPresenter<DetailContract.View>
                 .subscribeWith(new BaseObjectSubscriber<AdBean>(mView) {
                     @Override
                     public void onSuccess(AdBean item) {
-                        //TODO 通过id在数据库中拿到对应的Bean
-                        WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpagerBean(wallpaperId);
-                        wallpagerBean.setImg_url(item.getImg_url());
-                        MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
+
                         mView.showData(item);
                     }
                 }));

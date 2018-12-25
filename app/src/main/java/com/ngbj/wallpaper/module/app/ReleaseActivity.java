@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.ngbj.wallpaper.R;
+import com.ngbj.wallpaper.base.BaesLogicActivity;
 import com.ngbj.wallpaper.base.BaseActivity;
 import com.ngbj.wallpaper.bean.entityBean.InterestBean;
 import com.ngbj.wallpaper.bean.entityBean.UploadTagBean;

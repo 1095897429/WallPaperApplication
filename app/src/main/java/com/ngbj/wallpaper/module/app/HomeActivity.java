@@ -2,6 +2,8 @@ package com.ngbj.wallpaper.module.app;
 
 
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.view.KeyEvent;
@@ -11,6 +13,7 @@ import android.widget.Toast;
 
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.base.BaseActivity;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.module.fragment.CategoryFragment;
 import com.ngbj.wallpaper.module.fragment.IndexFragment;
 import com.ngbj.wallpaper.module.fragment.MyFragment;
@@ -39,6 +42,13 @@ public class HomeActivity extends BaseActivity<HomePresenter>
     CategoryFragment categoryFragment;
     MyFragment myFragment;
     Fragment currentFragment;
+
+
+    public static void openActivity(Context context){
+        Intent intent = new Intent(context,HomeActivity.class);
+        context.startActivity(intent);
+    }
+
 
 
     @Override
@@ -124,7 +134,7 @@ public class HomeActivity extends BaseActivity<HomePresenter>
     public void exit() {
         currentTime = System.currentTimeMillis();
         if ((currentTime - mExitTime) > 2000) {
-            ToastHelper.customToastView(this,"再按一次退出");
+            ToastHelper.customToastView(MyApplication.getInstance(),"再按一次退出");
             mExitTime = currentTime;
         } else {
             mPresenter.getSearchHistory();

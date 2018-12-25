@@ -14,7 +14,7 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:src="@mipmap/detail_image"
+        android:src="@mipmap/default_loading"
         android:scaleType="centerCrop"
         android:layout_width="162dp"
         android:layout_height="216dp" />

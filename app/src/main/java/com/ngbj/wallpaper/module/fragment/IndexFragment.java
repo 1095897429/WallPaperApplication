@@ -14,7 +14,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -25,16 +24,18 @@ import com.ngbj.wallpaper.adapter.index.IndexCoolAdapter;
 import com.ngbj.wallpaper.adapter.index.IndexCoolGridAdapter;
 import com.ngbj.wallpaper.adapter.index.Index_HotSearch_Adapter;
 import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
+import com.ngbj.wallpaper.base.BaesLogicFragment;
 import com.ngbj.wallpaper.base.BaseFragment;
 import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.IndexBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
-import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.constant.AppConstant;
+import com.ngbj.wallpaper.module.app.DetailActivity;
 import com.ngbj.wallpaper.module.app.DetailActivityNew;
 import com.ngbj.wallpaper.module.app.SearchActivity;
 import com.ngbj.wallpaper.module.app.SpecialActivity;
+import com.ngbj.wallpaper.module.app.WebViewActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.IndexContract;
 import com.ngbj.wallpaper.mvp.presenter.fragment.IndexPresenter;
 import com.ngbj.wallpaper.receiver.NetBroadcastReceiver;
@@ -53,7 +54,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.OnClick;
 
-public class IndexFragment extends BaseFragment<IndexPresenter>
+public class IndexFragment extends BaesLogicFragment<IndexPresenter>
                 implements IndexContract.View{
 
 
@@ -86,6 +87,8 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
 
     IndexBean.Navigation mNavigation;//记录酷站的实体
     IndexBean.HotSearch mHotSearch;//记录热搜的实体
+
+    AdBean wallpaperBean;
 
 
     /** 通过这种形式获取Fragment */
@@ -120,6 +123,7 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
 
     @Override
     protected void initEvent() {
+        super.initEvent();
 
         //第一次网络加载失败点击事件
         emptyView.setOnLayoutClickListener(new View.OnClickListener() {
@@ -141,15 +145,20 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
 
                     MulAdBean mulAdBean = recommendList.get(position);
                     if(mulAdBean.getItemType() == MulAdBean.TYPE_ONE){
-                        KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
-                        DetailActivityNew.openActivity(mContext,position,mulAdBean.adBean.getId());
+
+                        if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
+                            KLog.d("tag -- 广告");
+                            WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+                        }else{
+                            KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
+                            DetailActivity.openActivity(mContext,position,mulAdBean.adBean.getId(),AppConstant.INDEX);
+                        }
+
                     }else {
                         KLog.d("tag -- 广告",recommendList.get(position).apiAdBean.getName());
                     }
                 }else
                     ToastHelper.customToastView(mContext,"网络异常，请先连接网络");
-
-
             }
         });
 
@@ -158,21 +167,25 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
 
-                AdBean adBean = recommendList.get(position).adBean;
-//                KLog.d("点击的position为: " + position);
-//                KLog.d("点击之前的 tag",adBean.getIs_collected());
-                if("0".equals(adBean.getIs_collected())){
-                    adBean.setIs_collected("1");
+                mAdBean = recommendList.get(position).adBean;
+
+                if("0".equals(mAdBean.getIs_collected())){
+                    mAdBean.setIs_collected("1");
                     ToastHelper.customToastView(getActivity(),"收藏成功");
+                    mPresenter.getRecordData(mAdBean.getId(),"2");
                 }else{
-                    adBean.setIs_collected("0");
+                    mAdBean.setIs_collected("0");
                     ToastHelper.customToastView(getActivity(),"取消收藏");
+                    mPresenter.getDeleteCollection(mAdBean.getId());
                 }
-//                KLog.d("点击之后的 tag",adBean.getIs_collected());
                 //全局刷新
                 recomendAdapter.notifyDataSetChanged();
+
+
             }
         });
+
+
 
         //更多
         more_recommend.setOnClickListener(new View.OnClickListener() {
@@ -302,32 +315,33 @@ public class IndexFragment extends BaseFragment<IndexPresenter>
         recomendAdapter.setNewData(recommendList);
 
         MyApplication.getDbManager().deleteAllWallpagerBean();
+        insertToSql(recommendList,AppConstant.INDEX);
 
-        //TODO 线程加入到数据库中 -- 先删除，后添加
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                WallpagerBean wallpagerBean;
-                AdBean adBean ;
-                for (MulAdBean bean: recommendList) {
-                    if(bean.getItemType() == MulAdBean.TYPE_ONE){
-                        adBean = bean.adBean;
-                        wallpagerBean = new WallpagerBean();
-                        wallpagerBean.setWallpager_id(adBean.getId());
-                        wallpagerBean.setNickname(adBean.getNickname());
-                        wallpagerBean.setTitle(adBean.getTitle());
-                        wallpagerBean.setThumb_img_url(adBean.getThumb_img_url());
-                        MyApplication.getDbManager().insertWallpagerBean(wallpagerBean);
-                    }
-                }
-            }
-        }).start();
     }
+
 
     @Override
     public void showMoreRecommendData(List<MulAdBean> recommendList) {
         recomendAdapter.loadMoreComplete();
         recomendAdapter.addData(recommendList);
+
+        insertToSql(recommendList,AppConstant.INDEX);
+    }
+
+
+
+
+
+    /** 用户喜好 */
+    @Override
+    public void showRecordData() {
+
+    }
+
+    /** 取消收藏 */
+    @Override
+    public void showDeleteCollection() {
+        KLog.d("what the fucking thing");
     }
 
     /** 设置 酷站数据 -- GridView数据 */

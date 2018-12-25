@@ -21,6 +21,7 @@ import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.module.app.CategoryNewHotActivity;
 import com.ngbj.wallpaper.module.app.DetailActivityNew;
 import com.ngbj.wallpaper.module.app.SearchActivity;
+import com.ngbj.wallpaper.module.app.WebViewActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.CategoryContract;
 import com.ngbj.wallpaper.mvp.presenter.fragment.CategoryPresenter;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
@@ -141,13 +142,23 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
         recomendAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+
                 MulAdBean mulAdBean = recommendList.get(position);
                 if(mulAdBean.getItemType() == MulAdBean.TYPE_ONE){
-                    KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
+
+                    if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
+                        KLog.d("tag -- 广告");
+                        WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+                    }else{
+                        KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
+                        DetailActivityNew.openActivity(mContext,position,mulAdBean.adBean.getId(),AppConstant.CATEGORY);
+                    }
+
                 }else {
                     KLog.d("tag -- 广告",recommendList.get(position).apiAdBean.getName());
                 }
-                DetailActivityNew.openActivity(mContext,position,mulAdBean.adBean.getId());
+
+
             }
         });
 
@@ -219,12 +230,16 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
     public void showRecommendData(List<MulAdBean> list) {
         recommendList.addAll(list);
         recomendAdapter.setNewData(recommendList);
+
+        insertToSql(recommendList,AppConstant.CATEGORY);
     }
 
     @Override
     public void showMoreRecommendData(List<MulAdBean> recommendList) {
         recomendAdapter.loadMoreComplete();
         recomendAdapter.addData(recommendList);
+
+        insertToSql(recommendList,AppConstant.CATEGORY);
     }
 
     @Override

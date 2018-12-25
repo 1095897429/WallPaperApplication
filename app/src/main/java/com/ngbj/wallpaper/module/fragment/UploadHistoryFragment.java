@@ -13,6 +13,7 @@ import com.ngbj.wallpaper.adapter.my.MyCommonAdapter;
 import com.ngbj.wallpaper.base.BaseRefreshFragment;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.LoginBean;
+import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.module.app.DetailActivityNew;
 import com.ngbj.wallpaper.mvp.contract.fragment.MyContract;
@@ -25,7 +26,7 @@ import java.util.List;
 /***
  * 我界面中第一个创作Fragment
  */
-public class UploadHistoryFragment extends BaseRefreshFragment<MyPresenter,AdBean>
+public class UploadHistoryFragment extends BaseRefreshFragment<MyPresenter,MulAdBean>
         implements MyContract.View{
 
 
@@ -72,8 +73,8 @@ public class UploadHistoryFragment extends BaseRefreshFragment<MyPresenter,AdBea
         myCommonAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                KLog.d("选择的--- ：" + mList.get(position).getTitle());
-                DetailActivityNew.openActivity(mContext,position,mList.get(position).getId());
+                KLog.d("选择的--- ：" + mList.get(position).adBean.getTitle());
+                DetailActivityNew.openActivity(mContext,position,mList.get(position).adBean.getId(),AppConstant.MY_1);
             }
         });
     }
@@ -92,11 +93,13 @@ public class UploadHistoryFragment extends BaseRefreshFragment<MyPresenter,AdBea
 
 
     @Override
-    public void showUploadHistory(List<AdBean> list) {
+    public void showUploadHistory(List<MulAdBean> list) {
         KLog.d("list: " + list.size());
         complete();
         mList.addAll(list);
         myCommonAdapter.setNewData(mList);
+
+        insertToSql(mList,AppConstant.MY_1);
     }
 
 
@@ -106,28 +109,15 @@ public class UploadHistoryFragment extends BaseRefreshFragment<MyPresenter,AdBea
     }
 
     @Override
-    public void showRecord(List<AdBean> list) {
+    public void showRecord(List<MulAdBean> list) {
         complete();
         mList.addAll(list);
         myCommonAdapter.setNewData(mList);
+
+        insertToSql(mList,AppConstant.MY_1);
     }
 
 
-    /** 隐藏加载进度框 */
-//    @Override
-//    public void complete() {
-//
-//        if(mRefresh != null)
-//            mRefresh.setRefreshing(false);
-//
-//        if(mIsRefreshing){
-//            if(mList != null && !mList.isEmpty()){
-//                mList.clear();
-//                KLog.d("刷新成功");
-//            }
-//        }
-//        mIsRefreshing = false;
-//    }
 
 
 }

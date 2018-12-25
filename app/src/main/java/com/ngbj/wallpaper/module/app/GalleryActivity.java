@@ -93,8 +93,15 @@ public class GalleryActivity extends BaseActivity<DetailPresenter>
 
     }
 
+    @Override
+    public void showReportData() {
 
+    }
 
+    @Override
+    public void showRecordData() {
+
+    }
 
 
 }

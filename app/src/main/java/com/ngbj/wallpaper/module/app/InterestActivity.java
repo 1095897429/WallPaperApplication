@@ -1,6 +1,8 @@
 package com.ngbj.wallpaper.module.app;
 
+import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -12,9 +14,11 @@ import com.ngbj.wallpaper.adapter.app.Interest_Adapter;
 import com.ngbj.wallpaper.base.BaseActivity;
 import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.InterestBean;
+import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.mvp.contract.app.InterestContract;
 import com.ngbj.wallpaper.mvp.presenter.app.InterestPresenter;
 import com.ngbj.wallpaper.utils.common.AppHelper;
+import com.ngbj.wallpaper.utils.common.SPHelper;
 import com.socks.library.KLog;
 
 import java.net.URLDecoder;
@@ -44,6 +48,12 @@ public class InterestActivity extends BaseActivity<InterestPresenter>
     Interest_Adapter interestAdapter;
     List<String> selectList = new ArrayList<>();//集合存储选择中的兴趣ID
 
+
+    public static void openActivity(Context context){
+        Intent intent = new Intent(context,InterestActivity.class);
+        context.startActivity(intent);
+    }
+
     @Override
     protected int getLayoutId() {
         return R.layout.activity_interest;
@@ -57,6 +67,8 @@ public class InterestActivity extends BaseActivity<InterestPresenter>
 
     @Override
     protected void initData() {
+        //刚进来就认为不是第一次进来
+        SPHelper.put(this,AppConstant.ISFRISTCOME,false);
         initRecycleView();
         mPresenter.getInterestData();
     }
@@ -115,32 +127,12 @@ public class InterestActivity extends BaseActivity<InterestPresenter>
     @OnClick(R.id.interest_done)
     public void InterestDone(){
         //TODO TEST
-        selectList.add("1");
+//        selectList.add("1");
         KLog.d("选中的数量:" + selectList.size());
-        Gson gson = new Gson();
-        String jsonStringlist = gson.toJson(selectList);
-        KLog.d("转为" + jsonStringlist);
-
-        Object object = gson.fromJson(jsonStringlist,Object.class);
-        KLog.d("object:" + object.toString());
-
-//        KLog.d("转为" + jsonStringlist);
-
-
-//        HashMap<String,Object> hashMap = new HashMap<>();
-//        hashMap.put("interest",selectList);
-//        hashMap.put("fromPlat", "default");
-//        hashMap.put("appVersion", AppHelper.getPackageName(MyApplication.getInstance()));
-//        hashMap.put("deviceId", AppHelper.getUniquePsuedoID());
-//        hashMap.put("deviceType", "android");
-//        hashMap.put("timestamp", System.currentTimeMillis() + "");
-//        hashMap.put("sign", "");
-//        String strEntity = gson.toJson(hashMap);
-//        KLog.d("转为" + strEntity);
 
         mPresenter.writeInterestData(selectList);
 
-        startActivity(new Intent(InterestActivity.this,HomeActivity.class));
+        HomeActivity.openActivity(this);
         finish();
     }
 

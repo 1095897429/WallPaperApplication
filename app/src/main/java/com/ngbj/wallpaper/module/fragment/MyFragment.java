@@ -33,6 +33,7 @@ import com.ngbj.wallpaper.adapter.my.MyFragmentAdapter;
 import com.ngbj.wallpaper.base.BaseFragment;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.LoginBean;
+import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.bean.entityBean.ShareBean;
 import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.dialog.HeadAlertDialog;
@@ -47,6 +48,7 @@ import com.ngbj.wallpaper.utils.common.Base64;
 import com.ngbj.wallpaper.utils.common.PicPathHelper;
 import com.ngbj.wallpaper.utils.common.SDCardHelper;
 import com.ngbj.wallpaper.utils.common.SPHelper;
+import com.ngbj.wallpaper.utils.common.StatusBarUtil;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.ngbj.wallpaper.utils.widget.GlideCircleTransform;
 import com.socks.library.KLog;
@@ -115,6 +117,8 @@ public class MyFragment extends BaseFragment<MyPresenter>
         setBlur();
         getData();
         initIndicator();
+//        StatusBarUtil.setTranslucentForCoordinatorLayout(getActivity(), 0);
+//        StatusBarUtil.setTranslucentForImageView(getActivity(), 0, iv_blur);
     }
 
     @SuppressLint("NewApi")
@@ -135,9 +139,9 @@ public class MyFragment extends BaseFragment<MyPresenter>
     @SuppressLint("NewApi")
     private void getData() {
         fragments.add(UploadHistoryFragment.getInstance());
-        fragments.add(CreateFragment.getInstance("2"));
-        fragments.add(CreateFragment.getInstance("3"));
-        fragments.add(CreateFragment.getInstance("1"));
+        fragments.add(CreateFragment.getInstance(AppConstant.COLLECTION));
+        fragments.add(CreateFragment.getInstance(AppConstant.SHARE));
+        fragments.add(CreateFragment.getInstance(AppConstant.DOWNLOAD));
         list_Title.add("创作");
         list_Title.add("收藏");
         list_Title.add("分享");
@@ -410,7 +414,7 @@ public class MyFragment extends BaseFragment<MyPresenter>
 
 
     @Override
-    public void showUploadHistory(List<AdBean> list) {
+    public void showUploadHistory(List<MulAdBean> list) {
         KLog.d("这里啥都没做~");
     }
 
@@ -430,7 +434,7 @@ public class MyFragment extends BaseFragment<MyPresenter>
     }
 
     @Override
-    public void showRecord(List<AdBean> list) {
+    public void showRecord(List<MulAdBean> list) {
 
     }
 

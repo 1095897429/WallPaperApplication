@@ -12,8 +12,11 @@ import com.ngbj.wallpaper.mvp.contract.app.SplashContract;
 import com.ngbj.wallpaper.network.helper.OkHttpHelper;
 import com.ngbj.wallpaper.network.helper.RetrofitHelper;
 
+import java.util.HashMap;
+
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.RequestBody;
 
 /***
  * 传入具体的View,继承RxPresenter是为了防止重复写attachView detachView
@@ -23,11 +26,15 @@ public class SplashPresenter extends RxPresenter<SplashContract.View>
 
 
     @Override
-    public void initUserInfo() {
+    public void initUserInfo(String province,String city) {
 
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("province",province);
+        hashMap.put("city",city);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
 
         addSubscribe(RetrofitHelper.getApiService()
-                .initUserInfo(OkHttpHelper.getRequestBody(null))
+                .initUserInfo(requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new BaseObjectSubscriber<InitUserBean>(mView) {

@@ -12,7 +12,10 @@ import com.ngbj.wallpaper.adapter.my.MyCommonAdapter;
 import com.ngbj.wallpaper.base.BaseRefreshFragment;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.LoginBean;
+import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
+import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.module.app.DetailActivityNew;
+import com.ngbj.wallpaper.module.app.WebViewActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.MyContract;
 import com.ngbj.wallpaper.mvp.presenter.fragment.MyPresenter;
 import com.socks.library.KLog;
@@ -22,13 +25,14 @@ import java.util.List;
 /***
  * 创作Fragment
  */
-public class CreateFragment extends BaseRefreshFragment<MyPresenter,AdBean>
+public class CreateFragment extends BaseRefreshFragment<MyPresenter,MulAdBean>
             implements MyContract.View{
 
 
     MyCommonAdapter myCommonAdapter;
     GridLayoutManager gridLayoutManager;
     String mType;
+    String fromWhere = "";//来源
 
 
     public static CreateFragment getInstance(String type){
@@ -69,20 +73,40 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,AdBean>
 
         //一行代码开启动画 默认CUSTOM动画
         myCommonAdapter.openLoadAnimation(BaseQuickAdapter.SCALEIN);
-        //加载更多数据
-        myCommonAdapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
-            @Override
-            public void onLoadMoreRequested() {
-            }
-        },mRecyclerView);
+        myCommonAdapter.bindToRecyclerView(mRecyclerView);
         //设置空布局
         myCommonAdapter.setEmptyView(R.layout.commom_empty);
         //事件
         myCommonAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                KLog.d("选择的--- ：" + mList.get(position).getTitle());
-                DetailActivityNew.openActivity(mContext,position,mList.get(position).getId());
+                KLog.d("选择的--- ：" + mList.get(position).adBean.getTitle());
+
+                MulAdBean mulAdBean = mList.get(position);
+                if(mulAdBean.getItemType() == MulAdBean.TYPE_ONE){
+
+                    if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
+                        KLog.d("tag -- 广告");
+                        WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+                    }else{
+                        KLog.d("tag -- 正常",mList.get(position).adBean.getTitle());
+
+
+                        if(AppConstant.COLLECTION.equals(mType)){
+                            fromWhere = AppConstant.MY_2;
+                        }else if(AppConstant.SHARE.equals(mType)){
+                            fromWhere = AppConstant.MY_3;
+                        }else if(AppConstant.DOWNLOAD.equals(mType)){
+                            fromWhere = AppConstant.MY_4;
+                        }
+
+                        DetailActivityNew.openActivity(mContext,position,mulAdBean.adBean.getId(),fromWhere);
+                    }
+
+                }else {
+                    KLog.d("tag -- 广告",mList.get(position).apiAdBean.getName());
+                }
+
             }
         });
     }
@@ -96,10 +120,12 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,AdBean>
 
 
     @Override
-    public void showUploadHistory(List<AdBean> list) {
+    public void showUploadHistory(List<MulAdBean> list) {
         complete();
         mList.addAll(list);
         myCommonAdapter.setNewData(mList);
+
+        insertToSql(list,AppConstant.MY_2);
     }
 
 
@@ -109,11 +135,21 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,AdBean>
     }
 
     @Override
-    public void showRecord(List<AdBean> list) {
+    public void showRecord(List<MulAdBean> list) {
         complete();
         mList.addAll(list);
         myCommonAdapter.setNewData(mList);
+
+        if(AppConstant.COLLECTION.equals(mType)){
+            insertToSql(list,AppConstant.MY_2);
+        }else if(AppConstant.SHARE.equals(mType)){
+            insertToSql(list,AppConstant.MY_3);
+        }else if(AppConstant.DOWNLOAD.equals(mType)){
+            insertToSql(list,AppConstant.MY_4);
+        }
     }
+
+
 
 
     /** 隐藏加载进度框 */
