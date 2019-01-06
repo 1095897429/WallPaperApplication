@@ -7,9 +7,11 @@ import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.view.View;
 
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.DownBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.receiver.NetBroadcastReceiver;
@@ -18,6 +20,8 @@ import com.socks.library.KLog;
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity;
 import com.umeng.analytics.MobclickAgent;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import butterknife.ButterKnife;
@@ -70,7 +74,8 @@ public abstract class BaseActivity<T extends BaseContract.BasePresenter>
     protected void onDestroy() {
         super.onDestroy();
         if(null != mPresenter)mPresenter.detachView();
-        unregisterReceiver(mNetBroadcastReceiver);//解绑
+        if(null != mNetBroadcastReceiver)
+            unregisterReceiver(mNetBroadcastReceiver);//解绑
         MyApplication.getInstance().removeActivity(this);
     }
 
@@ -114,7 +119,7 @@ public abstract class BaseActivity<T extends BaseContract.BasePresenter>
     private int netType;//网络类型
     private NetBroadcastReceiver mNetBroadcastReceiver;
 
-    /** 注册网咯状态监听广播 */
+    /** 7.0之后静态方式取消 注册网咯状态监听广播 */
     private void initBroadcastRecevier() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             //实例化IntentFilter对象
@@ -144,7 +149,7 @@ public abstract class BaseActivity<T extends BaseContract.BasePresenter>
     public void onChangeListener(int netType) {
         // TODO Auto-generated method stub
         this.netType = netType;
-        KLog.d("netType", "netType:" + netType);
+//        KLog.d("netType", "netType:" + netType);
         if (!isNetConnect()) {
             ToastHelper.customToastView(this,"网络异常，请检查网络，哈哈");
         } else {
@@ -169,4 +174,55 @@ public abstract class BaseActivity<T extends BaseContract.BasePresenter>
     }
 
     /** ---------------- 实现的方法 结束 ------------------  */
+
+    /** ---------------- 查询 下载次数逻辑  ------------------  */
+    SimpleDateFormat mSimpleDateFormat;
+    Date mDate;
+    String mCurrentYear_Month_Day;
+    String mHistoryYear_Month_Day;
+    DownBean mDownBean;
+    int count ;
+
+    //获取下载次数
+    protected int getDownCount(){
+        mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+        mDate = new Date(System.currentTimeMillis());
+        mCurrentYear_Month_Day = mSimpleDateFormat.format(mDate);
+        KLog.d("当前的年月日：" ,mCurrentYear_Month_Day);
+
+        mDownBean =  MyApplication.getDbManager().queryDownBean();
+
+        if(null == mDownBean){//项目第一次启动
+            DownBean downBean = new DownBean();
+            downBean.setCount(0);
+            downBean.setDate(mCurrentYear_Month_Day);
+            MyApplication.getDbManager().insertDownBean(downBean);
+            return  0;
+        }else{
+            mHistoryYear_Month_Day = mDownBean.getDate();
+            KLog.d("历史的年月日：",mHistoryYear_Month_Day);
+
+            if(!TextUtils.isEmpty(mHistoryYear_Month_Day)
+                    && mCurrentYear_Month_Day.compareTo(mHistoryYear_Month_Day) > 0){//第二天 重置下次次数
+                mDownBean.setCount(0);
+                MyApplication.getDbManager().updateDownBean(mDownBean);
+                return 0;
+
+            }else{//当天
+                count = mDownBean.getCount();//获取当日的下载免费次数
+            }
+        }
+
+        return count;
+
+    }
+
+    //查询并修改
+    protected void queryAndUpdate(){
+        DownBean downBean = MyApplication.getDbManager().queryDownBean();
+        downBean.setCount(count + 1);
+        MyApplication.getDbManager().updateDownBean(downBean);
+    }
+
+
 }

@@ -19,8 +19,9 @@ public abstract  class BaseRefreshFragment<T extends BaseContract.BasePresenter,
 
     protected RecyclerView mRecyclerView;
     protected SwipeRefreshLayout mRefresh;
-    protected List<K> mList = new ArrayList<>();
+    protected List<K> recommendList = new ArrayList<>();
     protected boolean mIsRefreshing = false;//第一次或者手动的下拉操作
+    protected int mPage = 1;//当前页数
 
 
     /** 初始化需要的控件,调用父类的懒加载 */
@@ -62,10 +63,11 @@ public abstract  class BaseRefreshFragment<T extends BaseContract.BasePresenter,
 
     }
 
-    /** 下拉重新加载 , mList清空 */
+    /** 下拉重新加载 , mList清空  mPage设为1*/
     @Override
     public void onRefresh() {
         mIsRefreshing = true;
+        mPage = 1;
         lazyAgainLoadData();
     }
 
@@ -79,8 +81,8 @@ public abstract  class BaseRefreshFragment<T extends BaseContract.BasePresenter,
 
 
         if(mIsRefreshing){
-            if(mList != null && !mList.isEmpty()){
-                mList.clear();
+            if(recommendList != null && !recommendList.isEmpty()){
+                recommendList.clear();
                 KLog.d("刷新成功");
             }
         }

@@ -19,6 +19,7 @@ import java.util.Set;
 
 import io.reactivex.Flowable;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.http.Body;
 import retrofit2.http.Field;
 import retrofit2.http.FieldMap;
@@ -40,7 +41,10 @@ public interface ApiService {
 
 
     @POST("wallpaper/categoryList")
-    Flowable<HttpResponse<List<InterestBean>>> categoryList(@Body RequestBody requestBody);//感兴趣的壁纸分类集合
+    Flowable<HttpResponse<List<InterestBean>>> categoryList(@Body RequestBody requestBody);//开始感兴趣的壁纸分类集合
+
+    @POST("wallpaper/categories")
+    Flowable<HttpResponse<List<InterestBean>>> categories(@Body RequestBody requestBody);//分类中兴趣的壁纸分类集合
 
     @POST("user/interestCategory")
     Flowable<HttpResponse<String>> interestCategory(@Body RequestBody requestBody);//用户选择感兴趣的壁纸分类
@@ -61,11 +65,11 @@ public interface ApiService {
     Flowable<HttpResponse<UploadTokenBean>> getUploadToken(@Body RequestBody requestBody);//获取图片上传的token
 
     @POST("user/login")
-    Flowable<HttpResponse<LoginBean>> loginPhone(@Body RequestBody requestBody);//手机登录
+    Flowable<ResponseBody> loginPhone(@Body RequestBody requestBody);//手机登录
 
 
     @POST("mobile-code/sendMobileCode")
-    Flowable<HttpResponse<String>> sendMobileCode(@Body RequestBody requestBody);//验证码
+    Flowable<ResponseBody> sendMobileCode(@Body RequestBody requestBody);//验证码
 
     @POST("wallpaper/search")
     Flowable<HttpResponse<List<AdBean>>> search(@Query("page") int  page,@Body RequestBody requestBody);//搜索壁纸

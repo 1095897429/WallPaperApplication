@@ -2,6 +2,7 @@ package com.ngbj.wallpaper.module.app;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -22,11 +23,14 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.base.BaesLogicActivity;
 import com.ngbj.wallpaper.base.BaseActivity;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.InterestBean;
+import com.ngbj.wallpaper.bean.entityBean.LoginBean;
 import com.ngbj.wallpaper.bean.entityBean.UploadTagBean;
 import com.ngbj.wallpaper.bean.entityBean.UploadTokenBean;
 import com.ngbj.wallpaper.constant.AppConstant;
@@ -36,6 +40,7 @@ import com.ngbj.wallpaper.eventbus.TagPositionEvent;
 import com.ngbj.wallpaper.mvp.contract.app.ReleaseContract;
 import com.ngbj.wallpaper.mvp.presenter.app.ReleasePresenter;
 import com.ngbj.wallpaper.utils.common.PicPathHelper;
+import com.ngbj.wallpaper.utils.common.RegexUtils;
 import com.ngbj.wallpaper.utils.common.SPHelper;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.ngbj.wallpaper.utils.qiniu.Auth;
@@ -88,6 +93,14 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
     List<String> categoryIdList = new ArrayList<>();//上传tagId部分
 
     String token;//上传的token
+    String title;//上传的标题
+
+    public static void openActivity(Context context) {
+        Intent intent = new Intent(context, ReleaseActivity.class);
+        Bundle bundle = new Bundle();
+        intent.putExtras(bundle);
+        context.startActivity(intent);
+    }
 
 
     @Override
@@ -148,8 +161,35 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
     public void Makedone(){
         KLog.d("选中的标签是：" + (tags.isEmpty()?0:tags.size()));
         KLog.d("文本内容：" + upload_text.getText().toString().trim());
-        uploadImg2QiNiu();
+
+        if(checkParams()){
+            uploadImg2QiNiu();
+        }
+
     }
+
+    private boolean checkParams(){
+        title = upload_text.getText().toString().trim();
+        if(TextUtils.isEmpty(title)){
+            Toast.makeText(this,"请填入标题",Toast.LENGTH_SHORT).show();
+            KLog.d("请填入标题");
+            return false;
+        }
+        if(tags.isEmpty()){
+            Toast.makeText(this,"请添加标签",Toast.LENGTH_SHORT).show();
+            KLog.d("请添加标签");
+            return false;
+        }
+
+        if(TextUtils.isEmpty(path)){
+            Toast.makeText(this,"请选择上传图片",Toast.LENGTH_SHORT).show();
+            KLog.d("请选择上传图片");
+            return false;
+        }
+
+        return true;
+    }
+
 
 
     /**  ------------- 七牛云部分 开始 -------------*/
@@ -162,7 +202,8 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
 
     @Override
     public void showUploadWallpaper() {
-
+        Toast.makeText(mContext, "上传成功,请等待审核", Toast.LENGTH_SHORT).show();
+        finish();
     }
 
 
@@ -184,17 +225,21 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
 //                    String thumbPath = "http://" + yuming + key + "?imageView2/1/w/108/h/192";
 //                    KLog.i(TAG, "缩略图的地址: " + thumbPath);
 
-                    String accessToken = (String) SPHelper.get(ReleaseActivity.this,AppConstant.ACCESSTOKEN,"");
-                    if(TextUtils.isEmpty(accessToken)){
-                        accessToken = "7v72FRobjPBvOFD6udGGq2UgRNPANUrv";
-                    }
+//                    String accessToken = (String) SPHelper.get(ReleaseActivity.this,AppConstant.ACCESSTOKEN,"");
+//                    if(TextUtils.isEmpty(accessToken)){
+//                        accessToken = "7v72FRobjPBvOFD6udGGq2UgRNPANUrv";
+//                    }
+
+                    LoginBean bean = MyApplication.getDbManager().queryLoginBean();
+                    String accessToken = bean.getAccess_token();
+
 
                     Map<String,Object> map = new HashMap<>();
 
-                    map.put("title","标题");
+                    map.put("title",title);
                     map.put("imgUrl",headpicPath);
                     map.put("movieUrl","null");
-                    map.put("resolution","标题");
+                    map.put("resolution","");//分辨率
                     map.put("categoryId",categoryIdList);
                     map.put("type","1");//1静态壁纸 2动态壁纸
                     mPresenter.uploadWallpaper(accessToken,map);

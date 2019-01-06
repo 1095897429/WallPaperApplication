@@ -15,12 +15,12 @@
 
         <ImageView
             android:id="@+id/back"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
             android:layout_centerVertical="true"
             android:src="@mipmap/icon_back"
-            android:paddingRight="10dp"
-            android:paddingLeft="12dp"
-            android:layout_width="35dp"
-            android:layout_height="20dp" />
+            android:layout_width="30dp"
+            android:layout_height="30dp" />
 
         <TextView
             android:id="@+id/title"

@@ -3,12 +3,17 @@ package com.ngbj.wallpaper.mvp.presenter.app;
 import android.annotation.SuppressLint;
 
 import com.google.gson.Gson;
+import com.ngbj.wallpaper.base.BaseListSubscriber;
 import com.ngbj.wallpaper.base.BaseObjectSubscriber;
 import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.base.RxPresenter;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.IndexBean;
+import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.bean.greenBeanDao.DBManager;
+import com.ngbj.wallpaper.constant.AppConstant;
+import com.ngbj.wallpaper.dialog.LoadingDialog;
 import com.ngbj.wallpaper.mvp.contract.app.DetailContract;
 import com.ngbj.wallpaper.network.helper.OkHttpHelper;
 import com.ngbj.wallpaper.network.helper.RetrofitHelper;
@@ -29,6 +34,149 @@ import okhttp3.RequestBody;
  */
 public class DetailPresenter extends RxPresenter<DetailContract.View>
                 implements DetailContract.Presenter<DetailContract.View> {
+
+
+    /** 主界面 */
+    @Override
+    public void getIndexRecommendData(int page) {
+        addSubscribe(RetrofitHelper.getApiService()
+                .index(page,OkHttpHelper.getRequestBody(null))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseObjectSubscriber<IndexBean>(mView) {
+                    @Override
+                    public void onSuccess(IndexBean indexBean) {
+
+                        List<AdBean> recommendList = indexBean.getRecommend();
+                        /** 这里转换一下 */
+                        List<MulAdBean> list = getMulAdBeanData(recommendList);
+                         mView.showIndexRecommendData(list);
+
+                    }
+                }));
+    }
+
+
+    /** 分类界面 */
+    @Override
+    public void getMoreRecommendData(final int page, String category, String order) {
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("categoryId",category);
+        hashMap.put("order",order);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
+
+        addSubscribe(RetrofitHelper.getApiService()
+                .wallpagerList(page,requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseListSubscriber<AdBean>(mView) {
+                    @Override
+                    public void onSuccess(List<AdBean> adBeanList) {
+
+                        /** 这里转换一下 */
+                        List<MulAdBean> list = getMulAdBeanData(adBeanList);
+
+                        mView.showMoreRecommendData(list);
+
+                    }
+                }));
+    }
+
+
+
+    /*************************** 搜索 *******************************/
+
+    @Override
+    public void getMoreKeySearchData(int page, String keyWord) {
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("keyWord",keyWord);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
+
+        addSubscribe(RetrofitHelper.getApiService()
+                .search(page,requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseListSubscriber<AdBean>(mView) {
+                    @Override
+                    public void onSuccess(List<AdBean> adBeanList) {
+
+                        /** 这里转换一下 */
+                        List<MulAdBean> list = getMulAdBeanData(adBeanList);
+
+                        mView.showMoreKeySearchData(list);
+
+                    }
+                }));
+    }
+
+    @Override
+    public void getMoreNavigationData(int page, String navigation) {
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("navigationId",navigation);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
+
+
+        addSubscribe(RetrofitHelper.getApiService()
+                .navigationList(page,requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseListSubscriber<AdBean>(mView) {
+                    @Override
+                    public void onSuccess(List<AdBean> adBeanList) {
+
+                        /** 这里转换一下 */
+                        List<MulAdBean> list = getMulAdBeanData(adBeanList);
+
+                        mView.showMoreNavigationData(list);
+
+                    }
+                }));
+    }
+
+    @Override
+    public void getMoreHotSearchData(int page, String hotSearchTag) {
+
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("hotSearchTag",hotSearchTag);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
+
+        addSubscribe(RetrofitHelper.getApiService()
+                .hotSearchList(page,requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseListSubscriber<AdBean>(mView) {
+                    @Override
+                    public void onSuccess(List<AdBean> adBeanList) {
+
+                        /** 这里转换一下 */
+                        List<MulAdBean> list = getMulAdBeanData(adBeanList);
+
+                        mView.showMoreHotSearchData(list);
+                    }
+                }));
+    }
+
+    /**************************** 搜索 ******************************/
+
+    /** 取消收藏 */
+    @Override
+    public void getDeleteCollection(String wallpaperId) {
+
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("wallpaperId",wallpaperId);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
+
+        addSubscribe(RetrofitHelper.getApiService()
+                .deleteCollection(requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+                    @Override
+                    public void onSuccess(String string) {
+                        mView.showDeleteCollection();
+                    }
+                }));
+    }
 
 
     /** 记录用户举报 1色情低俗 2侵犯版权 3其他*/
@@ -77,11 +225,10 @@ public class DetailPresenter extends RxPresenter<DetailContract.View>
     }
 
 
-
     /** 壁纸明细 */
     @SuppressLint("CheckResult")
     @Override
-    public void getData(final String wallpaperId) {
+    public void getDetailData(final String wallpaperId) {
 
         Gson gson = new Gson();
         HashMap<String,Object> hashMap = new HashMap<>();
@@ -103,36 +250,9 @@ public class DetailPresenter extends RxPresenter<DetailContract.View>
                     @Override
                     public void onSuccess(AdBean item) {
 
-                        mView.showData(item);
+                        mView.showDetailData(item);
                     }
                 }));
-    }
-
-    @Override
-    public void getDynamicData() {
-        //TODO 从数据库中获取 2018.12.14
-
-       List<WallpagerBean> list =  MyApplication.getDbManager().queryWallpagerBeanList();
-       if(!list.isEmpty()){
-           mView.showDynamicData(list);
-       }
-    }
-
-
-    public void test(){
-        List<AdBean> list = new ArrayList<>();
-        for (int i = 0; i < 10000; i++) {
-            list.add(new AdBean("1","奇葩说","http://pjb68wj3e.bkt.clouddn.com/icon_20181214145027"));
-        }
-//        list.add(new AdBean("2","奇葩说","http://img.zcool.cn/community/0166c756e1427432f875520f7cc838.jpg"));
-//        list.add(new AdBean("1","猫妖传","http://img.zcool.cn/community/018fdb56e1428632f875520f7b67cb.jpg"));
-//        list.add(new AdBean("吐槽大会","http://img.zcool.cn/community/01c8dc56e1428e6ac72531cbaa5f2c.jpg"));
-//        list.add(new AdBean("开心麻花","http://img.zcool.cn/community/0166c756e1427432f875520f7cc838.jpg"));
-//        list.add(new AdBean("奇葩说","http://img.zcool.cn/community/0166c756e1427432f875520f7cc838.jpg"));
-//        list.add(new AdBean("猫妖传","http://img.zcool.cn/community/0166c756e1427432f875520f7cc838.jpg"));
-//        list.add(new AdBean("吐槽大会","http://img.zcool.cn/community/0166c756e1427432f875520f7cc838.jpg"));
-//        list.add(new AdBean("开心麻花","http://img.zcool.cn/community/0166c756e1427432f875520f7cc838.jpg"));
-//        mView.showDynamicData(list);
     }
 
 }

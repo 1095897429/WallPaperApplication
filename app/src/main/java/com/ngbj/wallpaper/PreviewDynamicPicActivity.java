@@ -57,7 +57,7 @@ public class PreviewDynamicPicActivity extends BaseActivity {
 
     @OnClick(R.id.home_pic)
     public void home_pic() {
-        VideoLiveWallpaperService.setToWallPaper(this);
+//        VideoLiveWallpaperService.setToWallPaper(this);
     }
 
     @OnClick(R.id.dynamic_img)

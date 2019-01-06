@@ -25,14 +25,15 @@ import com.ngbj.wallpaper.adapter.index.IndexCoolGridAdapter;
 import com.ngbj.wallpaper.adapter.index.Index_HotSearch_Adapter;
 import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
 import com.ngbj.wallpaper.base.BaesLogicFragment;
-import com.ngbj.wallpaper.base.BaseFragment;
-import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.DetailParamBean;
 import com.ngbj.wallpaper.bean.entityBean.IndexBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
+import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.constant.AppConstant;
+import com.ngbj.wallpaper.eventbus.LoveEvent;
+import com.ngbj.wallpaper.eventbus.fragment.ChangeFragmentEvent;
 import com.ngbj.wallpaper.module.app.DetailActivity;
-import com.ngbj.wallpaper.module.app.DetailActivityNew;
 import com.ngbj.wallpaper.module.app.SearchActivity;
 import com.ngbj.wallpaper.module.app.SpecialActivity;
 import com.ngbj.wallpaper.module.app.WebViewActivity;
@@ -47,6 +48,9 @@ import com.youth.banner.Banner;
 import com.youth.banner.BannerConfig;
 import com.youth.banner.listener.OnBannerListener;
 import com.youth.banner.loader.ImageLoader;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,13 +86,12 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
 
     GridLayoutManager gridLayoutManager;
     RecomendAdapter recomendAdapter;
-    List<MulAdBean> recommendList = new ArrayList<>();
-    int page = 1;//默认为第一页
+    List<MulAdBean> recommendList = new ArrayList<>();//界面临时数据
+    ArrayList<WallpagerBean> temps = new ArrayList<>();//传递给明细界面的数据
+    int mPage = 1;//默认为第一页
 
     IndexBean.Navigation mNavigation;//记录酷站的实体
     IndexBean.HotSearch mHotSearch;//记录热搜的实体
-
-    AdBean wallpaperBean;
 
 
     /** 通过这种形式获取Fragment */
@@ -96,12 +99,6 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
         return new IndexFragment();
     }
 
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        addHeadView();
-    }
 
     @Override
     protected int getLayoutId() {
@@ -118,18 +115,17 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
     protected void initData() {
         initRecommandRecycleView();
         initRecycleView();
-        mPresenter.getAdData(page);
+        mPresenter.getAdData(mPage);
     }
 
     @Override
     protected void initEvent() {
-        super.initEvent();
 
         //第一次网络加载失败点击事件
         emptyView.setOnLayoutClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mPresenter.getAdData(page);
+                mPresenter.getAdData(mPage);
                 emptyView.setType(EmptyView.LOADING);
             }
         });
@@ -147,15 +143,21 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
                     if(mulAdBean.getItemType() == MulAdBean.TYPE_ONE){
 
                         if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
-                            KLog.d("tag -- 广告");
                             WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
                         }else{
-                            KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
-                            DetailActivity.openActivity(mContext,position,mulAdBean.adBean.getId(),AppConstant.INDEX);
+                            DetailParamBean bean = new DetailParamBean();
+                            bean.setPage(mPage);
+                            bean.setPosition(position);
+                            bean.setWallpagerId(mulAdBean.adBean.getId());
+                            bean.setFromWhere(AppConstant.INDEX);
+
+                            DetailActivity.openActivity(mContext,bean,temps);
+
+
                         }
 
                     }else {
-                        KLog.d("tag -- 广告",recommendList.get(position).apiAdBean.getName());
+                        KLog.d("tag -- api广告",recommendList.get(position).apiAdBean.getName());
                     }
                 }else
                     ToastHelper.customToastView(mContext,"网络异常，请先连接网络");
@@ -167,18 +169,20 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
 
-                mAdBean = recommendList.get(position).adBean;
+                AdBean mAdBean = recommendList.get(position).adBean;
 
                 if("0".equals(mAdBean.getIs_collected())){
                     mAdBean.setIs_collected("1");
                     ToastHelper.customToastView(getActivity(),"收藏成功");
                     mPresenter.getRecordData(mAdBean.getId(),"2");
+                    updateLove(position,true);
                 }else{
                     mAdBean.setIs_collected("0");
                     ToastHelper.customToastView(getActivity(),"取消收藏");
                     mPresenter.getDeleteCollection(mAdBean.getId());
+                    updateLove(position,false);
                 }
-                //全局刷新
+                //刷新全部可见item
                 recomendAdapter.notifyDataSetChanged();
 
 
@@ -191,7 +195,7 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
         more_recommend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                KLog.d("to do next");
+               EventBus.getDefault().post(new ChangeFragmentEvent());
             }
         });
 
@@ -210,11 +214,8 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
             @Override
             public void OnBannerClick(int position) {
                 IndexBean.Banner banner = myBannerList.get(position);
-                Intent intent = new Intent(getActivity(),SpecialActivity.class);
-                Bundle bundle = new Bundle();
-                bundle.putString("bannerId",banner.getId());
-                intent.putExtras(bundle);
-                startActivity(intent);
+                SpecialActivity.openActivity(getActivity(),banner.getId(),
+                        banner.getImg_url(),banner.getTitle());
             }
         });
 
@@ -265,12 +266,17 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
         recomendAdapter.setOnLoadMoreListener(new BaseQuickAdapter.RequestLoadMoreListener() {
             @Override
             public void onLoadMoreRequested() {
-                ++page;
-                mPresenter.getMoreRecommendData(page);
+                ++mPage;
+                mPresenter.getMoreRecommendData(mPage);
             }
         },mRecommandRecyclerView);
         //设置头布局
         recomendAdapter.addHeaderView(headView);
+        //不让其自动滑动到顶部
+        mRecommandRecyclerView.setFocusableInTouchMode(false);
+        mRecommandRecyclerView.setFocusable(false);
+//        mRecommandRecyclerView.setHasFixedSize(true);
+
     }
 
 
@@ -284,6 +290,8 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
         hot_search_recycleView.setAdapter(indexHotSearchAdapter);
         //一行代码开启动画 默认CUSTOM动画
         indexHotSearchAdapter.openLoadAnimation(BaseQuickAdapter.SCALEIN);
+
+
     }
 
 
@@ -313,11 +321,12 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
 
         this.recommendList = recommendList;
         recomendAdapter.setNewData(recommendList);
-
-        MyApplication.getDbManager().deleteAllWallpagerBean();
-        insertToSql(recommendList,AppConstant.INDEX);
+        /** 构建临时变量  */
+        temps.addAll(transformDataToWallpaper(recommendList));
 
     }
+
+
 
 
     @Override
@@ -325,7 +334,7 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
         recomendAdapter.loadMoreComplete();
         recomendAdapter.addData(recommendList);
 
-        insertToSql(recommendList,AppConstant.INDEX);
+        temps.addAll(transformDataToWallpaper(recommendList));
     }
 
 
@@ -432,4 +441,55 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
         if(recomendAdapter.isLoadMoreEnable())
             recomendAdapter.loadMoreFail();
     }
+
+    /** =================== EventBus  开始 =================== */
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        addHeadView();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe
+    public void onLoveEvent(LoveEvent event){
+        boolean isLove = event.isLove();
+        boolean isReset = event.isReset();
+        int page = event.getPage();
+        if(!isReset){ //不需要更新全体数据
+            MulAdBean mulAdBean= recommendList.get(event.getPosition());
+            mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
+            temps.get(event.getPosition()).setIs_collected(isLove ? "1" : "0");
+        }else{
+            mPage = page;
+            temps.addAll(transformDataToWallpaper(event.getMulAdBeanList()));
+            recomendAdapter.addData(event.getMulAdBeanList());
+        }
+
+        recomendAdapter.notifyDataSetChanged();
+    }
+
+    /** 主界面喜好修改 temps修改 */
+    private void updateLove(int position,boolean isLove) {
+
+        MulAdBean mulAdBean= recommendList.get(position);
+        if(isLove){
+            mulAdBean.adBean.setIs_collected("1");
+            temps.get(position).setIs_collected("1");
+        }else{
+            mulAdBean.adBean.setIs_collected("0");
+            temps.get(position).setIs_collected("0");
+        }
+
+        recomendAdapter.notifyDataSetChanged();
+    }
+
+
+    /** =================== EventBus  结束 =================== */
 }

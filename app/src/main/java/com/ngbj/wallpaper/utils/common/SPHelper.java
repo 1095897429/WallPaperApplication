@@ -2,6 +2,10 @@ package com.ngbj.wallpaper.utils.common;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
+
+import com.google.gson.Gson;
+import com.ngbj.wallpaper.bean.entityBean.LoginBean;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -79,7 +83,7 @@ public class SPHelper {
     }
 
     /**
-     * 清除所有数据
+     * 清除所有数据 clear
      */
     public static void clear(Context context) {
         SharedPreferences sp = context.getSharedPreferences(FILE_NAME,
@@ -150,4 +154,9 @@ public class SPHelper {
             editor.commit();
         }
     }
+
+
+
+
+
 }

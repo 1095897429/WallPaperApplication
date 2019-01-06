@@ -1,8 +1,17 @@
 package com.ngbj.wallpaper.module.app;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.WindowManager;
 
@@ -16,16 +25,16 @@ import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.InitUserBean;
 import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.mvp.contract.app.SplashContract;
-import com.ngbj.wallpaper.mvp.presenter.app.SearchPresenter;
 import com.ngbj.wallpaper.mvp.presenter.app.SplashPresenter;
+import com.ngbj.wallpaper.utils.common.AppHelper;
 import com.ngbj.wallpaper.utils.common.SPHelper;
+import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.socks.library.KLog;
 
-import java.util.List;
-import java.util.Locale;
 
 /***
  * 闪屏界面
+ * 1.新增权限访问 -- 如果拒绝，传递默认值
  */
 public class SplashActivity extends BaseActivity<SplashPresenter>
                 implements SplashContract.View {
@@ -47,14 +56,42 @@ public class SplashActivity extends BaseActivity<SplashPresenter>
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 
-        initLocationOption();
+        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},1);
+        }else {
+            initLocationOption();
+        }
+
 
         //解决下载完成后点击 安装还是完成的bug
         if(!isTaskRoot()){
             finish();
             return;
         }
+
     }
+
+
+    //权限请求的返回
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode){
+
+            case 1:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    initLocationOption();
+                }else {
+//                    ToastHelper.customToastView(this,"地理位置权限拒绝，请先开启权限");
+                    mPresenter.initUserInfo( mProvince, mCity);
+                }
+
+                break;
+            default:
+                break;
+        }
+    }
+
 
     @Override
     protected void initData() {
@@ -62,6 +99,9 @@ public class SplashActivity extends BaseActivity<SplashPresenter>
 
 
     }
+
+
+
 
     @Override
     public void showInitUserInfo(InitUserBean initUserBean) {
@@ -71,10 +111,13 @@ public class SplashActivity extends BaseActivity<SplashPresenter>
             @Override
             public void run() {
                 boolean isFristCome = (boolean) SPHelper.get(SplashActivity.this,AppConstant.ISFRISTCOME,true);
-                if(isFristCome){
-                    InterestActivity.openActivity(MyApplication.getInstance());
-                }else
-                    HomeActivity.openActivity(MyApplication.getInstance());
+
+                InterestActivity.openActivity(SplashActivity.this);
+
+//               if(isFristCome){
+//                    InterestActivity.openActivity(SplashActivity.this);
+//                }else
+//                    HomeActivity.openActivity(SplashActivity.this);
 
                 finish();
             }
@@ -149,12 +192,14 @@ public class SplashActivity extends BaseActivity<SplashPresenter>
             String coorType = location.getCoorType();
             //获取定位类型、定位错误返回码，具体信息可参照类参考中BDLocation类中的说明
             int errorCode = location.getLocType();
-            String add = location.getAddrStr();
             String city = location.getCity();//市
             String province = location.getProvince();//省
-            mProvince = province;
-            mCity = city;
-            Log.d("tag",mProvince + mCity);
+
+            if(!TextUtils.isEmpty(province)){
+                mProvince = province;
+                mCity = city;
+                Log.d("tag",mProvince + mCity);
+            }
 
             mPresenter.initUserInfo( mProvince, mCity);
 

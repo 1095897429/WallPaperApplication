@@ -10,12 +10,17 @@
         android:layout_height="wrap_content"
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
-        <ImageView
+
+
+        <com.ngbj.wallpaper.utils.widget.RoundImageView
             android:id="@+id/imageView"
-            android:src="@mipmap/interest_img"
             android:scaleType="centerCrop"
+            android:src="@mipmap/interest_img"
             android:layout_width="53dp"
             android:layout_height="53dp" />
+
+
+
 
         <ImageView
             android:id="@+id/icon_love"

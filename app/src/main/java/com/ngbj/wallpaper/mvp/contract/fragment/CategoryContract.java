@@ -15,7 +15,11 @@ public interface CategoryContract {
 
         void getRecommendData(int page,String category,String order);//默认
         void getMoreRecommendData(int page,String category,String order);//更多
-        void getInterestData();//分类
+        void getCategories();//分类
+
+
+        void getRecordData(String wallpaperId, String type);
+        void getDeleteCollection(String wallpaperId);
 
     }
 
@@ -27,6 +31,9 @@ public interface CategoryContract {
         void showEndView();
         void showRecommendData(List<MulAdBean> recommendList);
         void showMoreRecommendData(List<MulAdBean> recommendList);
-        void showInterestData(List<InterestBean> interestBeanList);
+        void showCategories(List<InterestBean> interestBeanList);
+
+        void showRecordData();
+        void showDeleteCollection();
     }
 }

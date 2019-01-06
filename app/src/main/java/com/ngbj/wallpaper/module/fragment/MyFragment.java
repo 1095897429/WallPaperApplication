@@ -12,8 +12,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -21,6 +23,7 @@ import android.support.v4.content.FileProvider;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -31,6 +34,7 @@ import com.google.gson.Gson;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.my.MyFragmentAdapter;
 import com.ngbj.wallpaper.base.BaseFragment;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.LoginBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
@@ -39,6 +43,9 @@ import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.dialog.HeadAlertDialog;
 import com.ngbj.wallpaper.dialog.ReportAlertDialog;
 import com.ngbj.wallpaper.dialog.ShareAlertDialog;
+import com.ngbj.wallpaper.eventbus.LoveEvent;
+import com.ngbj.wallpaper.eventbus.activity.LoginSuccessEvent;
+import com.ngbj.wallpaper.module.app.LoginActivity;
 import com.ngbj.wallpaper.module.app.ReleaseActivity;
 import com.ngbj.wallpaper.module.app.SettingActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.MyContract;
@@ -51,7 +58,11 @@ import com.ngbj.wallpaper.utils.common.SPHelper;
 import com.ngbj.wallpaper.utils.common.StatusBarUtil;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.ngbj.wallpaper.utils.widget.GlideCircleTransform;
+import com.ngbj.wallpaper.utils.widget.GlideRoundTransform;
 import com.socks.library.KLog;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -91,6 +102,10 @@ public class MyFragment extends BaseFragment<MyPresenter>
     ImageView default_head;
 
 
+    @BindView(R.id.name)
+    TextView name;
+
+
     String headUrl = "";
 
     MyFragmentAdapter pagerAdapter;
@@ -117,22 +132,42 @@ public class MyFragment extends BaseFragment<MyPresenter>
         setBlur();
         getData();
         initIndicator();
-//        StatusBarUtil.setTranslucentForCoordinatorLayout(getActivity(), 0);
-//        StatusBarUtil.setTranslucentForImageView(getActivity(), 0, iv_blur);
+
     }
 
     @SuppressLint("NewApi")
     private void setBlur() {
-        if(!TextUtils.isEmpty(headUrl)){
+
+        LoginBean bean = MyApplication.getDbManager().queryLoginBean();
+
+        if(null != bean){
+
+            String headImg = bean.getHead_img();
+            if(!TextUtils.isEmpty(headImg)){
+                Glide.with(this)
+                        .load(headImg)
+                        .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                        .into(default_head);
+            }
+
+
+            if(!TextUtils.isEmpty(headImg)){
+                Glide.with(this)
+                        .load(headImg)
+                        .bitmapTransform(new BlurTransformation(getActivity(), 25), new CenterCrop(getActivity()))
+                        .into(iv_blur);
+            }
+
+
+            String nickName = bean.getNickname();
+            name.setText(nickName);
+        }else{//默认
             Glide.with(this)
-                    .load(headUrl)
+                    .load(R.mipmap.default_head)
                     .bitmapTransform(new BlurTransformation(getActivity(), 25), new CenterCrop(getActivity()))
                     .into(iv_blur);
-        }else
-          Glide.with(this)
-                .load(R.mipmap.default_head)
-                .bitmapTransform(new BlurTransformation(getActivity(), 25), new CenterCrop(getActivity()))
-                .into(iv_blur);
+
+        }
     }
 
     /** 填充vp的数据源 */
@@ -192,7 +227,15 @@ public class MyFragment extends BaseFragment<MyPresenter>
 
     @OnClick(R.id.upload_fl)
     public void UploadFl(){
-        startActivity(new Intent(getActivity(),ReleaseActivity.class));
+
+
+        LoginBean bean = MyApplication.getDbManager().queryLoginBean();
+        if(null != bean) {
+            ReleaseActivity.openActivity(getActivity());
+        }else
+            LoginActivity.openActivity(getActivity());
+
+
     }
 
 
@@ -213,6 +256,12 @@ public class MyFragment extends BaseFragment<MyPresenter>
     @OnClick(R.id.default_head)
     public void DefaultHead(){
 
+        LoginBean bean = MyApplication.getDbManager().queryLoginBean();
+        if(null == bean) {
+            LoginActivity.openActivity(getActivity());
+            return;
+        }
+
         List<String> temps = new ArrayList<>();
         temps.add("拍照");
         temps.add("手机相册");
@@ -228,11 +277,11 @@ public class MyFragment extends BaseFragment<MyPresenter>
                     case 0:
                         KLog.d("拍照");
                         if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA)
-                                != PackageManager.PERMISSION_GRANTED){
-                            ActivityCompat.requestPermissions(getActivity(),new String[]{Manifest.permission.CAMERA},1);
-                        }else {
-                            openTakePhoto();
-                        }
+                            != PackageManager.PERMISSION_GRANTED){
+                        ActivityCompat.requestPermissions(getActivity(),new String[]{Manifest.permission.CAMERA},1);
+                    }else {
+                        openTakePhoto();
+                    }
                         break;
                     case 1:
                         KLog.d("手机相册");
@@ -364,10 +413,10 @@ public class MyFragment extends BaseFragment<MyPresenter>
 
 
     private void uploadHeadImg()  {
-        String accessToken = (String) SPHelper.get(mContext,AppConstant.ACCESSTOKEN,"");
-        if(TextUtils.isEmpty(accessToken)){
-            accessToken = "7v72FRobjPBvOFD6udGGq2UgRNPANUrv";
-        }
+
+        LoginBean bean = MyApplication.getDbManager().queryLoginBean();
+        String accessToken = bean.getAccess_token();
+
         File editFile = getOutputEditImageFile();
         KLog.d("path : " + editFile.getAbsolutePath());
 
@@ -423,20 +472,70 @@ public class MyFragment extends BaseFragment<MyPresenter>
     public void showUploadHeadData(LoginBean loginBean) {
         Glide.with(mContext)
                 .load(loginBean.getHead_img())
-                .placeholder(R.mipmap.default_head)
                 .transform(new GlideCircleTransform(mContext))
                 .into(default_head);
 
-        Glide.with(this)
+        Glide.with(mContext)
                 .load(loginBean.getHead_img())
                 .bitmapTransform(new BlurTransformation(getActivity(), 25), new CenterCrop(getActivity()))
                 .into(iv_blur);
+
+       MyApplication.getDbManager().updateLoginBean(loginBean);
     }
 
     @Override
     public void showRecord(List<MulAdBean> list) {
 
     }
+
+    @Override
+    public void showRecordData() {
+
+    }
+
+    @Override
+    public void showDeleteCollection() {
+
+    }
+
+    /** =================== EventBus  开始 =================== */
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe
+    public void onLoginSuccessEvent(LoginSuccessEvent event){
+        String headImg = event.getLoginBean().getHead_img();
+        if(!TextUtils.isEmpty(headImg)){
+            Glide.with(this)
+                    .load(headImg)
+                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                    .into(default_head);
+        }
+
+
+        if(!TextUtils.isEmpty(headImg)){
+            Glide.with(this)
+                    .load(headImg)
+                    .bitmapTransform(new BlurTransformation(getActivity(), 25), new CenterCrop(getActivity()))
+                    .into(iv_blur);
+        }
+
+    }
+
+
+
+
+    /** =================== EventBus  结束 =================== */
 
 
 }

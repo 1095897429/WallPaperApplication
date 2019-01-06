@@ -6,6 +6,7 @@ import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Generated;
 
 import java.io.Serializable;
+import java.util.List;
 
 
 /**
@@ -27,13 +28,12 @@ public class WallpagerBean  implements Serializable {
     private String is_collected;//0未收藏   1已收藏
 
     //由于greendao中用原始数据
-    private String category_id;
-    private String category_name;
+    private String category_id;//分类信息1
+    private String category_name;//分类信息2
     private String img_url;//图片地址
 
     //标注来源
     private String fromWhere;
-
 
 
     @Generated(hash = 706505153)
@@ -59,7 +59,6 @@ public class WallpagerBean  implements Serializable {
     @Generated(hash = 785783416)
     public WallpagerBean() {
     }
-
 
 
     public Long getId() {

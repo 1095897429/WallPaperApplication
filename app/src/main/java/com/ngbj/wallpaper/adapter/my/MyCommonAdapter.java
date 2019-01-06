@@ -8,6 +8,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.ngbj.wallpaper.R;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.utils.widget.GlideCircleTransform;
@@ -56,15 +57,21 @@ public class MyCommonAdapter extends BaseQuickAdapter<MulAdBean,BaseViewHolder> 
                         mContext.getResources().getColor(R.color.item_bottom_color)))
                 .into((ImageView) holder.getView(R.id.author_icon));
 
-//        if(!TextUtils.isEmpty(adBean.getHead_img())){
-//            Glide.with(mContext)
-//                    .load(adBean.getHead_img())
-//                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-//                    .centerCrop()
-//                    .crossFade()
-//                    .into((ImageView) holder.getView(R.id.author_icon));
-//        }else
-//            holder.setImageResource(R.id.author_icon,R.mipmap.author_icon);
+
+        //圆形头像
+        if (!TextUtils.isEmpty(adBean.getHead_img())) {
+
+            Glide.with(MyApplication.getInstance())
+                    .load(adBean.getHead_img())
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .centerCrop()
+                    .crossFade()
+                    .transform(new GlideCircleTransform(mContext))
+                    .into((ImageView) holder.getView(R.id.author_icon));
+        } else {
+            holder.setImageResource(R.id.author_icon,R.mipmap.author_head);
+        }
+
 
         //喜爱
         if("0".equals(adBean.getIs_collected())){

@@ -1,31 +1,39 @@
 package com.ngbj.wallpaper.module.fragment;
 
 
-import android.content.Intent;
+import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.HorizontalScrollView;
 import android.widget.RelativeLayout;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.ngbj.wallpaper.R;
+import com.ngbj.wallpaper.adapter.category.CategoryNewAdapter;
 import com.ngbj.wallpaper.adapter.category.Category_Top_Adapter;
 import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
-import com.ngbj.wallpaper.base.BaseFragment;
+import com.ngbj.wallpaper.base.BaesLogicFragment;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.InterestBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
+import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.constant.AppConstant;
+import com.ngbj.wallpaper.eventbus.LoveCatogoryEvent;
 import com.ngbj.wallpaper.module.app.CategoryNewHotActivity;
-import com.ngbj.wallpaper.module.app.DetailActivityNew;
 import com.ngbj.wallpaper.module.app.SearchActivity;
-import com.ngbj.wallpaper.module.app.WebViewActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.CategoryContract;
 import com.ngbj.wallpaper.mvp.presenter.fragment.CategoryPresenter;
-import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.socks.library.KLog;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,13 +41,19 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.OnClick;
 
-public class CategoryFragment extends BaseFragment<CategoryPresenter>
+public class CategoryFragment extends BaesLogicFragment<CategoryPresenter>
                 implements CategoryContract.View{
+
+    @BindView(R.id.view_pager)
+    ViewPager mViewPager;
 
 
     @BindView(R.id.move_top)
     RelativeLayout moveTop;
 
+
+    @BindView(R.id.horizontalScrollView1)
+    HorizontalScrollView mHorizontalScrollView;
 
     @BindView(R.id.top_recyclerView)
     RecyclerView  top_recyclerView;
@@ -54,7 +68,8 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
 
     GridLayoutManager gridLayoutManager;
     RecomendAdapter recomendAdapter;
-    List<MulAdBean> recommendList = new ArrayList<>();
+    List<MulAdBean> recommendList = new ArrayList<>();//界面临时数据
+
     int page = 1;
     String category = "0";//分类的id 推荐为0
     String order = "0";// 排序 0最新 1最热
@@ -78,9 +93,7 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
     @Override
     protected void initData() {
         initTopRecycleView();
-        initRecommandRecycleView();
-        mPresenter.getInterestData();
-        mPresenter.getRecommendData(page,category,order);
+        mPresenter.getCategories();
     }
 
 
@@ -90,7 +103,7 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
         //设置布局管理器
         top_recyclerView.setLayoutManager(layoutManager);
         //设置Adapter
-        categoryTopAdapter = new Category_Top_Adapter(interestBeanList);
+        categoryTopAdapter = new Category_Top_Adapter(interestBeanList,0);
         top_recyclerView.setAdapter(categoryTopAdapter);
         //一行代码开启动画 默认CUSTOM动画
         categoryTopAdapter.openLoadAnimation(BaseQuickAdapter.SCALEIN);
@@ -135,68 +148,19 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
                 keyword = interestBeanList.get(position).getName();
                 category = interestBeanList.get(position).getId();
                 CategoryNewHotActivity.openActivity(mContext,category,keyword);
-            }
-        });
 
-        //壁纸Item点击
-        recomendAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-
-                MulAdBean mulAdBean = recommendList.get(position);
-                if(mulAdBean.getItemType() == MulAdBean.TYPE_ONE){
-
-                    if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
-                        KLog.d("tag -- 广告");
-                        WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
-                    }else{
-                        KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
-                        DetailActivityNew.openActivity(mContext,position,mulAdBean.adBean.getId(),AppConstant.CATEGORY);
-                    }
-
-                }else {
-                    KLog.d("tag -- 广告",recommendList.get(position).apiAdBean.getName());
+                for (InterestBean bean: interestBeanList) {
+                    bean.setSelect(false);
                 }
+                interestBeanList.get(position).setSelect(true);
+                categoryTopAdapter.notifyDataSetChanged();
+                top_recyclerView.smoothScrollToPosition(position);
 
+                mViewPager.setCurrentItem(position);
 
             }
         });
 
-        //壁纸喜好
-        recomendAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
-            @Override
-            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-
-                AdBean adBean = recommendList.get(position).adBean;
-                if("0".equals(adBean.getIs_collected())){
-                    adBean.setIs_collected("1");
-                    ToastHelper.customToastView(getActivity(),"收藏成功");
-                }else{
-                    adBean.setIs_collected("0");
-                    ToastHelper.customToastView(getActivity(),"取消收藏");
-                }
-                //全局刷新
-                recomendAdapter.notifyDataSetChanged();
-            }
-        });
-
-
-        //滑动监听
-        recommandRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                //做处理
-                if(gridLayoutManager != null){
-                    //当前条目索引 -- 根据索引做显示隐藏判断
-                    int position = gridLayoutManager.findFirstVisibleItemPosition();
-                    if(position > 6){//此postion检测是每一行作为一个position
-                        moveTop.setVisibility(View.VISIBLE);
-                    }else{
-                        moveTop.setVisibility(View.GONE);
-                    }
-                }
-            }
-        });
     }
 
 
@@ -231,20 +195,118 @@ public class CategoryFragment extends BaseFragment<CategoryPresenter>
         recommendList.addAll(list);
         recomendAdapter.setNewData(recommendList);
 
-        insertToSql(recommendList,AppConstant.CATEGORY);
     }
 
     @Override
-    public void showMoreRecommendData(List<MulAdBean> recommendList) {
+    public void showMoreRecommendData(List<MulAdBean> list) {
         recomendAdapter.loadMoreComplete();
-        recomendAdapter.addData(recommendList);
+        recomendAdapter.addData(list);
 
-        insertToSql(recommendList,AppConstant.CATEGORY);
     }
 
+
     @Override
-    public void showInterestData(List<InterestBean> list) {
+    public void showCategories(List<InterestBean> list) {
+        list.get(0).setSelect(true);//默认第一个选中
         interestBeanList.addAll(list);
         categoryTopAdapter.setNewData(interestBeanList);
+
+        //TODO 添加分类Fragment
+        setFragmentData();
+
+//        final LinearLayout layout = new LinearLayout(getActivity());
+//
+//        //添加子View
+//        for (int i = 0; i < list.size(); i++) {
+//            Button btn = new Button(getActivity());
+//            btn.setId(i);
+//            btn.setText(list.get(i).getName());
+//            layout.addView(btn);
+//            viewList.add(btn);
+//        }
+//
+//        mHorizontalScrollView.addView(layout);
+//
+//        //开启动画效果
+//        mHorizontalScrollView.setSmoothScrollingEnabled(true);
+
+
     }
+
+    private List<Fragment> fragments = new ArrayList<>();
+    CategoryNewAdapter mCategoryNewAdapter;
+    //初始化偏移量
+    private int offset = 0;
+    private int scrollViewWidth = 0;
+    /** 填充vp的数据源 */
+    @SuppressLint("NewApi")
+    private void setFragmentData() {
+        for (int i = 0; i < interestBeanList.size(); i++) {
+            category = interestBeanList.get(i).getId();
+            fragments.add(NewFragment.getInstance(category,"0"));//0最新
+        }
+
+        mCategoryNewAdapter = new CategoryNewAdapter(getChildFragmentManager(),fragments);
+        mViewPager.setAdapter(mCategoryNewAdapter);
+        mViewPager.setOffscreenPageLimit(interestBeanList.size());
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                KLog.d("position :" + position);
+                for (InterestBean bean: interestBeanList) {
+                    bean.setSelect(false);
+                }
+                interestBeanList.get(position).setSelect(true);
+                categoryTopAdapter.notifyDataSetChanged();
+                top_recyclerView.smoothScrollToPosition(position);
+
+//                int color = Color.rgb(233, 63, 33); // #E94221
+//                for (int i = 0; i < viewList.size(); i++) {
+//                    Button btn = (Button) viewList.get(i);
+//                    btn.setBackgroundColor(Color.GRAY);
+//                }
+//
+//                final Button button = (Button) viewList.get(position);
+//                button.setBackgroundColor(Color.parseColor("#4c000000"));
+//
+//                scrollViewWidth = mHorizontalScrollView.getWidth();
+//                if((scrollViewWidth + offset) < button.getRight()){
+//                    mHorizontalScrollView.smoothScrollBy(button.getRight() - (scrollViewWidth + offset),0);
+//                    offset += button.getRight() - (scrollViewWidth + offset);
+//                }
+//
+//                if (offset > button.getLeft()) {//需要向左移动
+//                    mHorizontalScrollView.smoothScrollBy(button.getLeft() - offset, 0);
+//                    offset += button.getLeft() - offset;
+//                }
+
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+    }
+
+
+
+    /** 用户喜好 */
+    @Override
+    public void showRecordData() {
+
+    }
+
+    /** 取消收藏 */
+    @Override
+    public void showDeleteCollection() {
+        KLog.d("what the fucking thing");
+    }
+
+
+
 }

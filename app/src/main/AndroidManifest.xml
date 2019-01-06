@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <!-- SDK所需要权限 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!-- 壁纸权限 -->
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
@@ -27,7 +29,6 @@
 
     <!-- 定位权限 -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="com.android.launcher.permission.READ_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -41,6 +42,8 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 
 
+
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/icon"
@@ -48,8 +51,8 @@
         android:name=".base.MyApplication"
         android:roundIcon="@mipmap/icon"
         android:supportsRtl="true"
+        android:excludeFromRecents="true"
         android:resizeableActivity="true"
-        android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
 
@@ -90,9 +93,6 @@
         </activity>
 
 
-        <activity android:name=".module.app.DetailActivityNew"
-            android:screenOrientation="portrait">
-        </activity>
 
         <activity android:name=".module.app.DetailActivity"
             android:screenOrientation="portrait">
@@ -115,11 +115,6 @@
 
 
 
-        <activity android:name=".module.app.GalleryActivity"
-            android:theme="@style/NoTitleFullscreen"
-            android:screenOrientation="portrait">
-
-        </activity>
 
         <activity android:name=".module.app.SplashActivity"
             android:screenOrientation="portrait">
@@ -131,7 +126,8 @@
         </activity>
 
 
-        <activity android:name=".module.app.HomeActivity">
+        <activity android:name=".module.app.HomeActivity"
+            android:launchMode="singleTask">
 
         </activity>
 
@@ -180,6 +176,11 @@
 
 
         <activity android:name=".module.app.CategoryNewHotActivity"
+            android:screenOrientation="portrait">
+
+        </activity>
+
+        <activity android:name=".module.app.AboutActivity"
             android:screenOrientation="portrait">
 
         </activity>
@@ -238,7 +239,11 @@
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
 
+        <!--广告展示Activity -->
 
+        <activity android:name="com.sigmob.sdk.base.common.AdActivity"
+            android:theme="@style/AppTheme"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
 
 
         <!-- 配置实时网络Receiver -->

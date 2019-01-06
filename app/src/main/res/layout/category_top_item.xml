@@ -1,20 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_marginLeft="10dp"
-    android:background="@mipmap/category_top_bg"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/title_bg"
+        android:src="@mipmap/category_top_bg"
+        android:layout_width="80dp"
+        android:layout_height="44dp" />
+
+    <View
+        android:background="@drawable/top_bg"
+        android:layout_width="80dp"
+        android:layout_height="44dp">
+
+    </View>
 
     <TextView
         android:id="@+id/title"
         android:text="奇葩说说"
         android:textSize="14sp"
         android:padding="12dp"
+        android:layout_gravity="center"
         android:textColor="@color/white"
         android:gravity="center"
         android:layout_width="wrap_content"
         android:layout_height="44dp" />
 
-</LinearLayout>
+</FrameLayout>

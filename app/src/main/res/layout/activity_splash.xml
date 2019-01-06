@@ -6,7 +6,7 @@
 
     <ImageView
         android:id="@+id/splash_pic"
-        android:src="@mipmap/splashpic"
+        android:src="@mipmap/splash"
         android:scaleType="centerCrop"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

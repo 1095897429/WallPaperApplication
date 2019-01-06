@@ -3,6 +3,9 @@ package com.ngbj.wallpaper.base;
 
 import com.google.gson.JsonParseException;
 import com.ngbj.wallpaper.bean.entityBean.HttpResponse;
+import com.ngbj.wallpaper.dialog.LoadingDialog;
+import com.ngbj.wallpaper.module.app.DetailActivity;
+import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.socks.library.KLog;
 
 import org.json.JSONException;
@@ -25,6 +28,7 @@ public abstract class BaseObjectSubscriber<T>
 
     private BaseContract.BaseView mView;
 
+
     /** 通过构造方法注入*/
     public BaseObjectSubscriber(BaseContract.BaseView mView){
         this.mView = mView;
@@ -35,16 +39,20 @@ public abstract class BaseObjectSubscriber<T>
         super.onStart();
         // 判断网络
         KLog.d("显示对话框");
+
     }
 
 
     @Override
     public void onNext(HttpResponse<T> response) {
+
         if(response.getCode() == 200){
+            mView.complete();
             if(response.getData() != null){
                 onSuccess(response.getData());
             }
         }else{
+            mView.showError(response.getMessage());
             onFailure(response.getCode(),response.getMessage());
         }
     }

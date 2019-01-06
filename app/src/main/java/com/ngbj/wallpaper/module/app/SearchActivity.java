@@ -3,6 +3,7 @@ package com.ngbj.wallpaper.module.app;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
@@ -26,18 +27,26 @@ import com.ngbj.wallpaper.base.BaesLogicActivity;
 import com.ngbj.wallpaper.base.BaseActivity;
 import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.DetailParamBean;
 import com.ngbj.wallpaper.bean.entityBean.HistoryBean;
 import com.ngbj.wallpaper.bean.entityBean.IndexBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
+import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.constant.AppConstant;
+import com.ngbj.wallpaper.eventbus.LoveEvent;
+import com.ngbj.wallpaper.eventbus.LoveSearchEvent;
 import com.ngbj.wallpaper.mvp.contract.app.SearchContract;
 import com.ngbj.wallpaper.mvp.presenter.app.SearchPresenter;
 import com.ngbj.wallpaper.utils.common.StringUtils;
+import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.ngbj.wallpaper.utils.widget.EditTextWithDel;
 import com.socks.library.KLog;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,6 +91,10 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     History_Search_Adapter historySearchAdapter;
     List<HistoryBean> historyList = new ArrayList<>();
     List<IndexBean.HotSearch> hotWords = new ArrayList<>();
+    ArrayList<WallpagerBean> temps = new ArrayList<>();//传递给明细界面的数据
+//    ArrayList<WallpagerBean> HotTemps = new ArrayList<>();//传递给明细界面的数据
+//    ArrayList<WallpagerBean> NavigationTemps = new ArrayList<>();//传递给明细界面的数据
+//    ArrayList<WallpagerBean> SearchKeyTemps = new ArrayList<>();//传递给明细界面的数据
     List<AdBean> ads = new ArrayList<>();
 
     Context mContext;
@@ -157,8 +170,54 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
                     WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
                 }else{
                     KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
-                    DetailActivityNew.openActivity(mContext,position,mulAdBean.adBean.getId(),AppConstant.SEARCH);
+
+                    DetailParamBean bean = new DetailParamBean();
+                    bean.setPage(page);
+                    bean.setPosition(position);
+                    bean.setWallpagerId(mulAdBean.adBean.getId());
+                    bean.setFromWhere(AppConstant.SEARCH);
+                    bean.setSearchType(fromWhere);
+                    bean.setKeyWord(keyWord);
+                    bean.setNavigation(navigationId);
+                    bean.setHotSearchTag(hotSearchTag);
+
+                    DetailActivity.openActivity(mContext,bean,temps);
+
+//                    if(fromWhere == AppConstant.FROMINDEX_NAVICATION){
+//                        DetailActivity.openActivity(mContext,bean,NavigationTemps);
+//                    }else if(fromWhere == AppConstant.FROMINDEX_HOTSEACHER){
+//                        DetailActivity.openActivity(mContext,bean,HotTemps);
+//                    }else
+//                        DetailActivity.openActivity(mContext,bean,SearchKeyTemps);
+
+
+
                 }
+            }
+        });
+
+        //壁纸喜好
+        recomendAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
+            @Override
+            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+
+               AdBean mAdBean = recommendList.get(position).adBean;
+
+                if("0".equals(mAdBean.getIs_collected())){
+                    mAdBean.setIs_collected("1");
+                    ToastHelper.customToastView(SearchActivity.this,"收藏成功");
+                    mPresenter.getRecordData(mAdBean.getId(),"2");
+                    updateLove(position,true);
+                }else{
+                    mAdBean.setIs_collected("0");
+                    ToastHelper.customToastView(SearchActivity.this,"取消收藏");
+                    mPresenter.getDeleteCollection(mAdBean.getId());
+                    updateLove(position,false);
+                }
+                //刷新全部可见item
+                recomendAdapter.notifyDataSetChanged();
+
+
             }
         });
 
@@ -312,7 +371,8 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     /** 搜索内容 */
     private void searchContent(int fromW,String content){
 
-        keyWord = "美女";
+//        content = "动态";
+        keyWord = content;
         fromWhere = fromW;
 
         /** 点击热搜，走首页热搜的逻辑  */
@@ -372,6 +432,8 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     public void showRecommendData(List<MulAdBean> recommendList) {
         this.recommendList = recommendList;
         recomendAdapter.setNewData(recommendList);
+
+        temps.addAll(transformDataToWallpaper(recommendList));
     }
 
 
@@ -409,18 +471,26 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
         recommendList = list;
         recomendAdapter.setNewData(list);
 
-        insertToSql(1,recommendList,AppConstant.SEARCH);
+//        SearchKeyTemps.clear();
+//        SearchKeyTemps.addAll(transformDataToWallpaper(list));
+
+        temps.clear();
+        temps.addAll(transformDataToWallpaper(list));
+
     }
 
 
 
     @Override
     public void showMoreKeySearchData(List<MulAdBean> list) {
-
+//        recommendList= list;
         recomendAdapter.loadMoreComplete();
         recomendAdapter.addData(list);
 
-        insertToSql(2,list,AppConstant.SEARCH);
+
+//        SearchKeyTemps.addAll(transformDataToWallpaper(list));
+
+        temps.addAll(transformDataToWallpaper(list));
     }
 
 
@@ -429,7 +499,13 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     public void showNavigationData(List<MulAdBean> list) {
         recommendList = list;
         recomendAdapter.setNewData(list);
-        insertToSql(1,recommendList,AppConstant.SEARCH);
+//        insertToSql(1,recommendList,AppConstant.SEARCH);
+
+//        NavigationTemps.clear();
+//        NavigationTemps.addAll(transformDataToWallpaper(list));
+
+        temps.clear();
+        temps.addAll(transformDataToWallpaper(list));
     }
 
     @Override
@@ -437,7 +513,10 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
 
         recomendAdapter.loadMoreComplete();
         recomendAdapter.addData(list);
-        insertToSql(2,list,AppConstant.SEARCH);
+
+//        NavigationTemps.addAll(transformDataToWallpaper(list));
+
+        temps.addAll(transformDataToWallpaper(list));
 }
 
     /** -- 根据热搜词搜索壁纸 -- */
@@ -445,7 +524,12 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     public void showHotSearchData(List<MulAdBean> list) {
         recommendList = list;
         recomendAdapter.setNewData(list);
-        insertToSql(1,list,AppConstant.SEARCH);
+
+//        HotTemps.clear();
+//        HotTemps.addAll(transformDataToWallpaper(list));
+
+        temps.clear();
+        temps.addAll(transformDataToWallpaper(list));
     }
 
     @Override
@@ -453,7 +537,11 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
 
         recomendAdapter.loadMoreComplete();//本次数据加载结束并且还有下页数据
         recomendAdapter.addData(list);
-        insertToSql(2,list,AppConstant.SEARCH);
+
+
+//        HotTemps.addAll(transformDataToWallpaper(list));
+
+        temps.addAll(transformDataToWallpaper(list));
     }
 
     @Override
@@ -464,6 +552,17 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
         initAds(ads);
     }
 
+    /** 用户喜好 */
+    @Override
+    public void showRecordData() {
+
+    }
+
+    /** 取消收藏 */
+    @Override
+    public void showDeleteCollection() {
+        KLog.d("what the fucking thing");
+    }
 
     @Override
     public void showEndView() {
@@ -504,5 +603,67 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
         }
         mIsRefreshing = false;
     }
+
+
+    /** =================== EventBus  开始 =================== */
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe
+    public void onLoveSearchEvent(LoveSearchEvent event){
+        boolean isLove = event.isLove();
+        boolean isReset = event.isReset();
+        if(!isReset){ //不需要更新全体数据
+            MulAdBean mulAdBean= recommendList.get(event.getPosition());
+            mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
+            temps.get(event.getPosition()).setIs_collected(isLove ? "1" : "0");
+        }else{
+            page = event.getPage();
+            recomendAdapter.addData(event.getMulAdBeanList());
+        }
+
+        recomendAdapter.notifyDataSetChanged();
+    }
+
+    /** 主界面喜好修改 */
+    private void updateLove(int position,boolean isLove) {
+
+        MulAdBean mulAdBean= recommendList.get(position);
+        if(isLove){
+            mulAdBean.adBean.setIs_collected("1");
+            temps.get(position).setIs_collected("1");
+        }else{
+            mulAdBean.adBean.setIs_collected("0");
+            temps.get(position).setIs_collected("0");
+        }
+
+
+        recomendAdapter.notifyDataSetChanged();
+
+//        List<WallpagerBean> wallpagerBeanList = MyApplication.getDbManager().queryDifferWPId(mulAdBean.adBean.getId());
+//        for (WallpagerBean wallpagerBean: wallpagerBeanList) {
+//            if(isLove){
+//                wallpagerBean.setIs_collected("1");
+//            }else
+//                wallpagerBean.setIs_collected("0");
+//
+//            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
+//        }
+
+    }
+
+
+    /** =================== EventBus  结束 =================== */
+
 
 }

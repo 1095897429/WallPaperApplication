@@ -2,11 +2,15 @@ package com.ngbj.wallpaper.base;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.SharedPreferences;
 import android.support.multidex.MultiDex;
 
 import com.liulishuo.filedownloader.FileDownloader;
 import com.ngbj.wallpaper.bean.greenBeanDao.DBManager;
+import com.ngbj.wallpaper.utils.common.SPHelper;
 import com.ngbj.wallpaper.utils.common.StringUtils;
+import com.sigmob.windad.WindAdOptions;
+import com.sigmob.windad.WindAds;
 import com.squareup.leakcanary.LeakCanary;
 import com.umeng.commonsdk.UMConfigure;
 import com.umeng.socialize.PlatformConfig;
@@ -59,6 +63,8 @@ public class MyApplication extends Application {
         dbManager = DBManager.getInstance(this);
     }
 
+
+
     public static DBManager getDbManager() {
         return dbManager;
     }
@@ -79,6 +85,7 @@ public class MyApplication extends Application {
 
     //退出
     public void exitApp(){
+
         for (Activity activity: mActivities) {
             activity.finish();
         }

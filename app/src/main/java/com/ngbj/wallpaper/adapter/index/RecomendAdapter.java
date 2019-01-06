@@ -8,6 +8,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.chad.library.adapter.base.BaseMultiItemQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.ngbj.wallpaper.R;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.ApiAdBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
@@ -40,12 +41,6 @@ public class RecomendAdapter extends BaseMultiItemQuickAdapter<MulAdBean,BaseVie
 
                 //背景
                 if(!TextUtils.isEmpty(adBean.getThumb_img_url())){
-//                    Glide.with(mContext)
-//                            .load(adBean.getThumb_img_url())
-//                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-//                            .centerCrop()
-//                            .crossFade()
-//                            .into((ImageView) holder.getView(R.id.imageView));
 
                     Glide.with(mContext)
                             .load(adBean.getThumb_img_url())
@@ -53,7 +48,7 @@ public class RecomendAdapter extends BaseMultiItemQuickAdapter<MulAdBean,BaseVie
                             .placeholder(R.mipmap.default_loading)
                             .centerCrop()
                             .crossFade()
-                            .transform(new GlideRoundTransform(mContext,5))
+                            .transform(new GlideRoundTransform(mContext,8))
                             .into((ImageView) holder.getView(R.id.imageView));
 
                 }else
@@ -61,33 +56,21 @@ public class RecomendAdapter extends BaseMultiItemQuickAdapter<MulAdBean,BaseVie
 
 
 
-                //头像
-                Glide.with(mContext)
-                        .load("http://pjb68wj3e.bkt.clouddn.com/jmCTgYg96Nh_2u4HfI_UJXIks_lvOGsR.jpg?imageView2/1/w/162/h/216")
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .centerCrop()
-                        .crossFade()
-                        .transform(new GlideCircleTransform(mContext,4,
-                                mContext.getResources().getColor(R.color.item_bottom_color)))
-                        .into((ImageView) holder.getView(R.id.author_icon));
+                //圆形头像
+                if (!TextUtils.isEmpty(adBean.getHead_img())) {
 
-//                if(!TextUtils.isEmpty(adBean.getHead_img())){
-////                    Glide.with(mContext)
-////                            .load(adBean.getHead_img())
-////                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-////                            .centerCrop()
-////                            .crossFade()
-////                            .into((ImageView) holder.getView(R.id.author_icon));
-//
-//                    Glide.with(mContext)
-//                            .load(adBean.getHead_img())
-//                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-//                            .centerCrop()
-//                            .crossFade()
-//                            .transform(new GlideCircleTransform(mContext,4,mContext.getResources().getColor(R.color.colorPrimary)))
-//                            .into((ImageView) holder.getView(R.id.author_icon));
-//                }else
-//                    holder.setImageResource(R.id.author_icon,R.mipmap.author_icon);
+                    Glide.with(MyApplication.getInstance())
+                            .load(adBean.getHead_img())
+                            .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                            .centerCrop()
+                            .crossFade()
+                            .transform(new GlideCircleTransform(mContext,4,
+                                   mContext.getResources().getColor(R.color.item_bottom_color)))
+                            .transform(new GlideCircleTransform(mContext))
+                            .into((ImageView) holder.getView(R.id.author_icon));
+                } else {
+                    holder.setImageResource(R.id.author_icon,R.mipmap.author_head);
+                }
 
                 //喜爱
                 if("0".equals(adBean.getIs_collected())){

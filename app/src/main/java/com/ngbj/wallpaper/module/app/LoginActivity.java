@@ -5,15 +5,19 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.text.TextUtils;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.base.BaseActivity;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.LoginBean;
 import com.ngbj.wallpaper.bean.entityBean.VerCodeBean;
 import com.ngbj.wallpaper.constant.AppConstant;
+import com.ngbj.wallpaper.eventbus.activity.LoginSuccessEvent;
 import com.ngbj.wallpaper.mvp.contract.app.LoginContract;
 import com.ngbj.wallpaper.mvp.presenter.app.LoginPresenter;
 import com.ngbj.wallpaper.utils.common.RegexUtils;
@@ -24,6 +28,8 @@ import com.umeng.socialize.UMAuthListener;
 import com.umeng.socialize.UMShareAPI;
 import com.umeng.socialize.UMShareConfig;
 import com.umeng.socialize.bean.SHARE_MEDIA;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +54,12 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
     String codeNum;
 
 
+    @BindView(R.id.get_done)
+    TextView getDone;
+
+
+
+
     public static void openActivity(Context context) {
         Intent intent = new Intent(context, LoginActivity.class);
         Bundle bundle = new Bundle();
@@ -59,6 +71,23 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
     @Override
     protected int getLayoutId() {
         return R.layout.activity_login;
+    }
+
+
+    @Override
+    protected void initData() {
+        mCountDownTimer = new CountDownTimer(60 * 1000,1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                getDone.setText(millisUntilFinished / 1000 + "秒");
+            }
+
+            @Override
+            public void onFinish() {
+                isTimeOver = true;
+                getDone.setText("重新获取验证码");
+            }
+        };
     }
 
     @Override
@@ -73,18 +102,25 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
        finish();
     }
 
+
+
     @OnClick(R.id.get_done)
     public void GetDone(){
         phoneNum = phone.getText().toString().trim();
-        if(checkPhoneNum())
+        if(checkPhoneNum() && isTimeOver){
+            mCountDownTimer.start();
+            isTimeOver = false;
             mPresenter.getVerCodeData(phoneNum);
+        }
+
     }
 
     @OnClick(R.id.login)
     public void Login(){
+        phoneNum = phone.getText().toString().trim();
         codeNum = code.getText().toString().trim();
-        if(checkVertyNum())
-         mPresenter.getLoginData(phoneNum,codeNum);
+        if(checkPhoneNum() && checkVertyNum())
+          mPresenter.getLoginData(phoneNum,codeNum);
     }
 
 
@@ -119,15 +155,17 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
 
     @Override
     public void showVerCodeData() {
-
+        Toast.makeText(this,"发送成功",Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void showLoginData(LoginBean loginBean) {
         KLog.d("access_token: " + loginBean.getAccess_token());
-        SPHelper.put(this,AppConstant.ACCESSTOKEN,loginBean.getAccess_token());//保存token
-        startActivity(new Intent(this,HomeActivity.class));
+        MyApplication.getDbManager().insertLoginBean(loginBean);
+        HomeActivity.openActivity(this);
+        EventBus.getDefault().post(new LoginSuccessEvent(loginBean));
     }
+
 
 
 
@@ -233,12 +271,8 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
                 KLog.d("tag", "onComplete " + "授权完成");
 
                 //sdk是6.4.4的,但是获取值的时候用的是6.2以前的(access_token)才能获取到值,未知原因
-                String uid = map.get("uid");
                 String openid = map.get("openid");//微博没有
                 String unionid = map.get("unionid");//微博没有
-                String access_token = map.get("access_token");
-                String refresh_token = map.get("refresh_token");//微信,qq,微博都没有获取到
-                String expires_in = map.get("expires_in");
                 String name = map.get("name");
                 String gender = map.get("gender");
                 String iconurl = map.get("iconurl");
@@ -276,7 +310,12 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
 
     @Override
     public void showThridData(LoginBean thirdBean) {
+        //跳转到普通登录，保存一些变量
+        showLoginData(thirdBean);
         KLog.d("登录成功后的昵称： " + thirdBean.getNickname());
+
+        HomeActivity.openActivity(LoginActivity.this);
+
     }
 
 
@@ -286,6 +325,13 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
         UMShareAPI.get(this).onActivityResult(requestCode, resultCode, data);
     }
 
+    /** 倒计时  */
+    private CountDownTimer mCountDownTimer;
+    private boolean isTimeOver = true;
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mCountDownTimer = null;
+    }
 }

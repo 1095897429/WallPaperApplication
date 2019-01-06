@@ -1,9 +1,11 @@
 package com.ngbj.wallpaper.utils.common;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.telephony.TelephonyManager;
 
 import com.socks.library.KLog;
 
@@ -75,6 +77,8 @@ public class AppHelper {
         }
         return false;
     }
+
+
 
 
 

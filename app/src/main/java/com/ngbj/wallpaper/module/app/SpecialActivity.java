@@ -6,25 +6,37 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
 import com.ngbj.wallpaper.base.BaesLogicActivity;
 import com.ngbj.wallpaper.base.BaseActivity;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.BannerDetailBean;
+import com.ngbj.wallpaper.bean.entityBean.DetailParamBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
+import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.constant.AppConstant;
+import com.ngbj.wallpaper.eventbus.LoveEvent;
+import com.ngbj.wallpaper.eventbus.fragment.LoveSpecialEvent;
 import com.ngbj.wallpaper.mvp.contract.app.SpecialContract;
 import com.ngbj.wallpaper.mvp.presenter.app.LoginPresenter;
 import com.ngbj.wallpaper.mvp.presenter.app.SpecialPresenter;
 import com.ngbj.wallpaper.utils.common.StringUtils;
+import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.socks.library.KLog;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +51,8 @@ import butterknife.OnClick;
 public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
             implements SpecialContract.View {
 
+
+    ArrayList<WallpagerBean> temps = new ArrayList<>();//传递给明细界面的数据
 
     @BindView(R.id.move_top)
     RelativeLayout moveTop;
@@ -59,8 +73,22 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
     private ImageView back;
 
     String mBannerId;
+    String bannerImageUrl;
+    String bannerTitle;
     Context mContext;
     private int mImageViewHeight;//图片高度
+
+
+    public static void openActivity(Context context,String bannerId,String bannerImageUrl,String bannerTitle) {
+        Intent intent = new Intent(context, SpecialActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putString("bannerId",bannerId);
+        bundle.putString("bannerImageUrl",bannerImageUrl);
+        bundle.putString("bannerTitle",bannerTitle);
+        intent.putExtras(bundle);
+        context.startActivity(intent);
+    }
+
 
     @Override
     protected int getLayoutId() {
@@ -87,10 +115,44 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
                     WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
                 }else{
                     KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
-                    DetailActivityNew.openActivity(mContext,position,mulAdBean.adBean.getId(),AppConstant.SPECIAL);
+
+
+                    DetailParamBean bean = new DetailParamBean();
+                    bean.setPage(1);
+                    bean.setPosition(position);
+                    bean.setWallpagerId(mulAdBean.adBean.getId());
+                    bean.setFromWhere(AppConstant.SPECIAL);
+
+                    DetailActivity.openActivity(mContext,bean,temps);
                 }
             }
         });
+
+        //壁纸喜好
+        recomendAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
+            @Override
+            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+
+                AdBean mAdBean = recommendList.get(position).adBean;
+
+                if("0".equals(mAdBean.getIs_collected())){
+                    mAdBean.setIs_collected("1");
+                    ToastHelper.customToastView(SpecialActivity.this,"收藏成功");
+                    mPresenter.getRecordData(mAdBean.getId(),"2");
+                    updateLove(position,true);
+                }else{
+                    mAdBean.setIs_collected("0");
+                    ToastHelper.customToastView(SpecialActivity.this,"取消收藏");
+                    mPresenter.getDeleteCollection(mAdBean.getId());
+                    updateLove(position,false);
+                }
+                //刷新全部可见item
+                recomendAdapter.notifyDataSetChanged();
+
+
+            }
+        });
+
 
         //设置滑动事件
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -122,11 +184,6 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
         });
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        addHeadView();
-        super.onCreate(savedInstanceState);
-    }
 
     private void addHeadView() {
         headView = LayoutInflater.from(this).inflate(R.layout.specail_head,null);
@@ -150,6 +207,17 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
     protected void initData() {
         mContext = this;
         mBannerId = getIntent().getExtras().getString("bannerId");
+        bannerImageUrl = getIntent().getExtras().getString("bannerImageUrl");
+        bannerTitle = getIntent().getExtras().getString("bannerTitle");
+
+        if(!TextUtils.isEmpty(bannerImageUrl)){
+            //大图
+            Glide.with(MyApplication.getInstance())
+                    .load(bannerImageUrl)
+                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                    .into(imageView);
+        }
+
         initRecommandRecycleView();
         mPresenter.getRecommendData(mBannerId);
     }
@@ -176,21 +244,38 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
     }
 
 
+    /** =================== 接口方法回调  开始 =================== */
+
     @Override
-    public void showRecommendData(BannerDetailBean bannerDetailBean,List<MulAdBean> recommendList) {
-        this.recommendList = recommendList;
+    public void showRecommendData(BannerDetailBean bannerDetailBean,List<MulAdBean> list) {
+        this.recommendList = list;
         recomendAdapter.setNewData(recommendList);
-        KLog.d("size: " + recommendList.size());
-        insertToSql(1,recommendList,AppConstant.SPECIAL);
+        KLog.d("size: " + list.size());
+
+        /** 构建临时变量  */
+        temps.addAll(transformDataToWallpaper(list));
     }
 
 
     @Override
-    public void showMoreRecommendData(List<MulAdBean> recommendList) {
+    public void showMoreRecommendData(List<MulAdBean> list) {
         recomendAdapter.loadMoreComplete();
-        recomendAdapter.addData(recommendList);
-        insertToSql(2,recommendList,AppConstant.SPECIAL);
+        recomendAdapter.addData(list);
+
+        temps.addAll(transformDataToWallpaper(list));
     }
+
+    @Override
+    public void showRecordData() {
+
+    }
+
+    @Override
+    public void showDeleteCollection() {
+
+    }
+
+    /** =================== 接口方法回调  结束 =================== */
 
     @OnClick(R.id.move_top)
     public void MoveTop(){
@@ -201,6 +286,56 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
     public void Back2(){
         finish();
     }
+
+    /** =================== EventBus  开始 =================== */
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        addHeadView();
+        super.onCreate(savedInstanceState);
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe
+    public void onLoveSpecialEvent(LoveSpecialEvent event){
+        boolean isLove = event.isLove();
+        boolean isReset = event.isReset();
+        int page = event.getPage();
+        if(!isReset){ //不需要更新全体数据
+            MulAdBean mulAdBean= recommendList.get(event.getPosition());
+            mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
+            temps.get(event.getPosition()).setIs_collected(isLove ? "1" : "0");
+        }else{
+            temps.addAll(transformDataToWallpaper(event.getMulAdBeanList()));
+            recomendAdapter.addData(event.getMulAdBeanList());
+        }
+
+        recomendAdapter.notifyDataSetChanged();
+    }
+
+    /** 主界面喜好修改 temps修改 */
+    private void updateLove(int position,boolean isLove) {
+
+        MulAdBean mulAdBean= recommendList.get(position);
+        if(isLove){
+            mulAdBean.adBean.setIs_collected("1");
+            temps.get(position).setIs_collected("1");
+        }else{
+            mulAdBean.adBean.setIs_collected("0");
+            temps.get(position).setIs_collected("0");
+        }
+
+        recomendAdapter.notifyDataSetChanged();
+    }
+
+
+    /** =================== EventBus  结束 =================== */
 
 
 

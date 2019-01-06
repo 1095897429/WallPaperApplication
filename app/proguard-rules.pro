@@ -304,3 +304,9 @@ public static final int *;
 -ignorewarnings
 #-libraryjars libs/sdk_HeWeather_Public_Android_V2.0.jar
 -dontwarn interfaces.heweather.com.**
+
+
+# WindAd
+-keep class sun.misc.Unsafe { *; }
+-dontwarn com.sigmob.**
+-keep class com.sigmob.**.**{*;}

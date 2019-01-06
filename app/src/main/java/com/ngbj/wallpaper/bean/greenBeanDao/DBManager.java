@@ -4,7 +4,10 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.DownBean;
 import com.ngbj.wallpaper.bean.entityBean.HistoryBean;
+import com.ngbj.wallpaper.bean.entityBean.LoginBean;
+import com.ngbj.wallpaper.bean.entityBean.TestBean;
 import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 
 import org.greenrobot.greendao.query.QueryBuilder;
@@ -141,7 +144,7 @@ public class DBManager {
         DaoSession daoSession = daoMaster.newSession();
         HistoryBeanDao userDao = daoSession.getHistoryBeanDao();
         QueryBuilder<HistoryBean> qb = userDao.queryBuilder();
-        qb.orderDesc(HistoryBeanDao.Properties.ClickTime);
+        qb.orderDesc(HistoryBeanDao.Properties.ClickTime).limit(5);
         List<HistoryBean> list = qb.list();
         return list;
     }
@@ -233,6 +236,15 @@ public class DBManager {
     /** ========================= 壁纸数据  结束================================================== */
 
 
+    /** 根据条件查询壁纸记录 */
+    public List<WallpagerBean> queryDifferWPId(String wallpaperId) {
+        DaoMaster daoMaster = new DaoMaster(getReadableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        WallpagerBeanDao userDao = daoSession.getWallpagerBeanDao();
+        List<WallpagerBean> wallpagerBeanList = userDao.queryBuilder().where(WallpagerBeanDao.Properties.Wallpager_id.eq(wallpaperId)).list();
+        return wallpagerBeanList;
+    }
+
 
     /** 根据条件查询壁纸记录 */
     public List<WallpagerBean> queryDifferCome(String fromWhere) {
@@ -254,6 +266,130 @@ public class DBManager {
                         WallpagerBeanDao.Properties.FromWhere.eq(fromWhere)).unique();
         return wallpagerBean;
     }
+
+
+
+    /** 根据条件删除所有壁纸记录 */
+    public void deleteWallpagerBeanList(String fromWhere) {
+        List<WallpagerBean> list = queryDifferCome(fromWhere);
+        for (WallpagerBean bean : list) {
+            deleteWallpagerBean(bean);
+        }
+    }
+
+
+    /** ========================= 下载  开始================================================== */
+
+    /** 插入一条下载壁纸记录 */
+    public void insertDownBean(DownBean downBean) {
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        DownBeanDao userDao = daoSession.getDownBeanDao();
+        userDao.insert(downBean);
+    }
+
+    /** 更新一条下载壁纸记录 */
+    public void updateDownBean(DownBean downBean) {
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        DownBeanDao downBeanDao = daoSession.getDownBeanDao();
+        downBeanDao.update(downBean);
+    }
+
+
+    /** 查询一条下载壁纸记录 */
+    public DownBean queryDownBean() {
+        DaoMaster daoMaster = new DaoMaster(getReadableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        DownBeanDao userDao = daoSession.getDownBeanDao();
+        DownBean downBean = userDao.queryBuilder().unique();
+        return downBean;
+    }
+
+    /** ========================= 下载  结束================================================== */
+
+
+
+    /** ========================= 登录  开始================================================== */
+
+    /** 插入一条用户记录 */
+    public void insertLoginBean(LoginBean loginBean) {
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        LoginBeanDao userDao = daoSession.getLoginBeanDao();
+        userDao.insert(loginBean);
+    }
+
+    /** 更新一条用户记录 */
+    public void updateLoginBean(LoginBean loginBean) {
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        LoginBeanDao loginBeanDao = daoSession.getLoginBeanDao();
+        loginBeanDao.update(loginBean);
+    }
+
+
+    /** 查询一条用户记录 */
+    public LoginBean queryLoginBean() {
+        DaoMaster daoMaster = new DaoMaster(getReadableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        LoginBeanDao loginBeanDao  = daoSession.getLoginBeanDao();
+        LoginBean loginBean = loginBeanDao.queryBuilder().unique();
+        return loginBean;
+    }
+
+
+    /** 删除用户记录 */
+    public void deleteAllLoginBean() {
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        LoginBeanDao loginBeanDao = daoSession.getLoginBeanDao();
+        loginBeanDao.deleteAll();
+    }
+
+
+    /** ========================= 登录  结束================================================== */
+
+    /** =========================   开始================================================== */
+
+    /** 插入一条用户记录 */
+    public void insertTestBean(TestBean testBean) {
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        TestBeanDao userDao = daoSession.getTestBeanDao();
+        userDao.insert(testBean);
+    }
+
+//    /** 更新一条用户记录 */
+//    public void updateLoginBean(LoginBean loginBean) {
+//        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+//        DaoSession daoSession = daoMaster.newSession();
+//        LoginBeanDao loginBeanDao = daoSession.getLoginBeanDao();
+//        loginBeanDao.update(loginBean);
+//    }
+
+
+    /** 查询一条用户记录 */
+    public TestBean queryTestBean() {
+        DaoMaster daoMaster = new DaoMaster(getReadableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        TestBeanDao testBeanDao  = daoSession.getTestBeanDao();
+        TestBean testBean = testBeanDao.queryBuilder().unique();
+        return testBean;
+    }
+
+
+//    /** 删除用户记录 */
+    public void deleteAllTestBean() {
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        TestBeanDao loginBeanDao = daoSession.getTestBeanDao();
+        loginBeanDao.deleteAll();
+    }
+
+
+    /** ========================= 登录  结束================================================== */
+
 
 
 }

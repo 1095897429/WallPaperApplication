@@ -38,6 +38,7 @@
                 android:gravity="center|left"
                 android:paddingRight="10dp"
                 android:singleLine="true"
+                android:text="动态"
                 android:background="@null"
                 android:hint="@string/index_search"
                 android:imeOptions="actionSearch"

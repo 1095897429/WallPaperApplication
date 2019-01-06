@@ -29,6 +29,9 @@ public interface SearchContract {
         void showMoreHotSearchData(List<MulAdBean> list);
 
         void showHotWordsAndAd(List<IndexBean.HotSearch> hotWords, List<AdBean> ads);
+
+        void showRecordData();
+        void showDeleteCollection();
     }
 
     interface Presenter<T> extends BaseContract.BasePresenter<T>{
@@ -50,5 +53,8 @@ public interface SearchContract {
         //搜索页
         void getHotWordsAndAd();
 
+        //喜好
+        void getRecordData(String wallpaperId, String type);
+        void getDeleteCollection(String wallpaperId);
     }
 }

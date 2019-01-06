@@ -150,4 +150,6 @@ dependencies {
 
     //filedownloader
     implementation 'com.liulishuo.filedownloader:library:1.3.0'
+    //圆形头像
+    implementation 'de.hdodenhof:circleimageview:2.2.0'
 }

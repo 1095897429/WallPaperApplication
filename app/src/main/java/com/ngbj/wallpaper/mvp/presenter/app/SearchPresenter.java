@@ -29,6 +29,51 @@ import okhttp3.RequestBody;
 public class SearchPresenter extends RxPresenter<SearchContract.View>
                 implements SearchContract.Presenter<SearchContract.View> {
 
+    /** 取消收藏 */
+    @Override
+    public void getDeleteCollection(String wallpaperId) {
+
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("wallpaperId",wallpaperId);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
+
+        addSubscribe(RetrofitHelper.getApiService()
+                .deleteCollection(requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+                    @Override
+                    public void onSuccess(String string) {
+                        mView.showDeleteCollection();
+                    }
+                }));
+    }
+
+
+
+    /** 记录用户下载 1下载 2收藏 3分享 */
+    @Override
+    public void getRecordData(String wallpaperId, String type) {
+
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("wallpaperId",wallpaperId);
+        hashMap.put("type",type);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
+
+        addSubscribe(RetrofitHelper.getApiService()
+                .record(requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+                    @Override
+                    public void onSuccess(String string) {
+                        mView.showRecordData();
+                    }
+                }));
+    }
+
+
+
 
     /** 首页热搜请求壁纸数据 */
     @Override
@@ -57,7 +102,7 @@ public class SearchPresenter extends RxPresenter<SearchContract.View>
                             mView.showMoreHotSearchData(list);
 
 
-                        if(list.isEmpty() || list.size() < AppConstant.PAGESIZE){
+                        if(list.isEmpty() ){
                             mView.showEndView();
                             return;
                         }
@@ -98,7 +143,7 @@ public class SearchPresenter extends RxPresenter<SearchContract.View>
                         }else
                             mView.showMoreNavigationData(list);
 
-                        if(list.isEmpty() || list.size() < AppConstant.PAGESIZE){
+                        if(list.isEmpty()){
                             mView.showEndView();
                             return;
                         }
@@ -139,7 +184,7 @@ public class SearchPresenter extends RxPresenter<SearchContract.View>
                             mView.showMoreKeySearchData(list);
 
 
-                        if(list.isEmpty() || list.size() < AppConstant.PAGESIZE){
+                        if(list.isEmpty()){
                             mView.showEndView();
                             return;
                         }
@@ -177,11 +222,12 @@ public class SearchPresenter extends RxPresenter<SearchContract.View>
 //        MyApplication.getDbManager().deleteAllHistoryBean();
         List<HistoryBean> historyBeanList = MyApplication.getDbManager().queryHistoryList();
         if(historyBeanList.isEmpty()){
-            historyBeanList.add(new HistoryBean("奇葩说"));
-            historyBeanList.add(new HistoryBean("猫妖传"));
-            historyBeanList.add(new HistoryBean("吐槽大会"));
-            historyBeanList.add(new HistoryBean("开心麻花"));
-            MyApplication.getDbManager().insertHistoryList(historyBeanList);//插入
+//            historyBeanList.add(new HistoryBean("奇葩说"));
+//            historyBeanList.add(new HistoryBean("猫妖传"));
+//            historyBeanList.add(new HistoryBean("吐槽大会"));
+//            historyBeanList.add(new HistoryBean("开心麻花"));
+//            MyApplication.getDbManager().insertHistoryList(historyBeanList);//插入
+            return;
         }
 
         mView.showHistoryData(historyBeanList);

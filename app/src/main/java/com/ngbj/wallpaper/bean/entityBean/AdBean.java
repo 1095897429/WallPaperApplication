@@ -3,6 +3,8 @@ package com.ngbj.wallpaper.bean.entityBean;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -12,6 +14,7 @@ import android.os.Parcelable;
  *
  */
 public class AdBean implements Parcelable {
+
     //壁纸
     private String id;//共用
     private String type;//共用
@@ -22,6 +25,7 @@ public class AdBean implements Parcelable {
     private String head_img;
     private String thumb_img_url;//缩略图
     private String is_collected;//0未收藏   1已收藏
+    private List<Category> category;//分类信息
     //列表页广告
     private String link;
     private String img_url;
@@ -29,7 +33,13 @@ public class AdBean implements Parcelable {
     private String end_time;
     private String show_position;
 
+    public List<Category> getCategory() {
+        return category;
+    }
 
+    public void setCategory(List<Category> category) {
+        this.category = category;
+    }
 
     public void setId(String id) {
         this.id = id;
@@ -155,6 +165,7 @@ public class AdBean implements Parcelable {
         this.show_position = show_position;
     }
 
+
     @Override
     public int describeContents() {
         return 0;
@@ -171,6 +182,7 @@ public class AdBean implements Parcelable {
         dest.writeString(this.head_img);
         dest.writeString(this.thumb_img_url);
         dest.writeString(this.is_collected);
+        dest.writeList(this.category);
         dest.writeString(this.link);
         dest.writeString(this.img_url);
         dest.writeString(this.begin_time);
@@ -188,6 +200,8 @@ public class AdBean implements Parcelable {
         this.head_img = in.readString();
         this.thumb_img_url = in.readString();
         this.is_collected = in.readString();
+        this.category = new ArrayList<Category>();
+        in.readList(this.category, Category.class.getClassLoader());
         this.link = in.readString();
         this.img_url = in.readString();
         this.begin_time = in.readString();

@@ -17,6 +17,9 @@ public interface MyContract {
         void getUploadHeadData(String accessToken,String base64Img);
         void getRecord(String type);
 
+        void getRecordData(String wallpaperId, String type);
+        void getDeleteCollection(String wallpaperId);
+
 
     }
 
@@ -26,6 +29,9 @@ public interface MyContract {
         void showUploadHistory(List<MulAdBean> list);
         void showUploadHeadData(LoginBean loginBean);
         void showRecord(List<MulAdBean> list);
+
+        void showRecordData();
+        void showDeleteCollection();
 
     }
 }

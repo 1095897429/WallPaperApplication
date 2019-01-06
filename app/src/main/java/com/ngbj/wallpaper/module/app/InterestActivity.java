@@ -80,13 +80,13 @@ public class InterestActivity extends BaseActivity<InterestPresenter>
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 InterestBean interestBean = interestBeanList.get(position);
-                KLog.d("点击的条目 " + interestBean.getName() + " 兴趣ID " + interestBean.getIs_interested());
+                KLog.d("点击的条目 " + interestBean.getName() + " 兴趣ID " + interestBean.getId());
                 if(interestBean.isSelect()){
                     interestBean.setSelect(false);
-                    selectList.remove(interestBean.getIs_interested());
+                    selectList.remove(interestBean.getId());
                 }else{
                     interestBean.setSelect(true);
-                    selectList.add(interestBean.getIs_interested());
+                    selectList.add(interestBean.getId());
                 }
                 if(!selectList.isEmpty()){
                     for (int i = 0; i < selectList.size(); i++) {
@@ -95,7 +95,7 @@ public class InterestActivity extends BaseActivity<InterestPresenter>
 
                 }
 
-            interestAdapter.notifyDataSetChanged();
+            interestAdapter.notifyItemChanged(position);
             }
         });
     }

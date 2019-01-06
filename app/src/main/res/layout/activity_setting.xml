@@ -13,14 +13,15 @@
         android:paddingRight="10dp"
         android:layout_height="50dp">
 
+
         <ImageView
             android:id="@+id/back"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
             android:layout_centerVertical="true"
             android:src="@mipmap/icon_back"
-            android:paddingRight="10dp"
-            android:paddingLeft="12dp"
-            android:layout_width="35dp"
-            android:layout_height="20dp" />
+            android:layout_width="30dp"
+            android:layout_height="30dp" />
 
         <TextView
             android:id="@+id/down"
@@ -47,8 +48,7 @@
         android:background="#252C59">
 
         <android.support.constraint.ConstraintLayout
-            android:id="@+id/part1"
-
+            android:id="@+id/cache_part"
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:layout_width="match_parent"
@@ -75,8 +75,8 @@
 
 
             <TextView
-                android:id="@+id/delete_text"
-                android:text="373M"
+                android:id="@+id/cache_text"
+                android:text="33M"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent"

@@ -19,7 +19,7 @@
         android:layout_height="wrap_content">
 
 
-        <ImageView
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/icon"
             android:src="@mipmap/icon"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -63,7 +63,7 @@
             app:layout_constraintTop_toBottomOf="@+id/phone"
             android:layout_width="match_parent"
             android:layout_height="1px"
-            android:background="#33306a"></View>
+            android:background="#1affffff"></View>
 
 
         <TextView
@@ -94,7 +94,7 @@
             app:layout_constraintTop_toBottomOf="@+id/code"
             android:layout_width="match_parent"
             android:layout_height="1px"
-            android:background="#33306a"></View>
+            android:background="#1affffff"></View>
 
         <TextView
             android:id="@+id/get_done"

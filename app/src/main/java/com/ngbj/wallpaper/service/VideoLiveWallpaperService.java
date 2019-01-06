@@ -1,5 +1,6 @@
 package com.ngbj.wallpaper.service;
 
+import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -13,6 +14,7 @@ import android.service.wallpaper.WallpaperService;
 import android.view.SurfaceHolder;
 
 import com.ngbj.wallpaper.base.MyApplication;
+import com.ngbj.wallpaper.bean.entityBean.TestBean;
 import com.ngbj.wallpaper.utils.common.SDCardHelper;
 import com.ngbj.wallpaper.utils.common.SPHelper;
 import com.socks.library.KLog;
@@ -23,8 +25,22 @@ import java.io.IOException;
  * 实现动态壁纸的 Service
  */
 public class VideoLiveWallpaperService extends WallpaperService {
+
+    private  Engine mEngine;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        onCreateEngine();
+    }
+
     public Engine onCreateEngine() {
-        return new VideoEngine();
+        KLog.d("VideoLiveWallpaperService","onCreateEngine");
+        mEngine = new VideoEngine();
+//        if(mEngine.isPreview()){
+//
+//        }
+        return mEngine;
     }
 
     public static final String VIDEO_PARAMS_CONTROL_ACTION = "com.zl.my_wallpaper";
@@ -44,12 +60,49 @@ public class VideoLiveWallpaperService extends WallpaperService {
         context.sendBroadcast(intent);
     }
 
-    /** 跳转到系统设置壁纸界面 */
-    public static void setToWallPaper(Context context) {
+    /** 跳转到系统设置壁纸界面 4.1.2之上的版本 请看下面的方法 */
+    static String path;
+    public static void setToWallPaper(Context context,String destinationUri) {
+        path = destinationUri;
         final Intent intent = new Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
         intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
                 new ComponentName(context, VideoLiveWallpaperService.class));
         context.startActivity(intent);
+    }
+
+    /** 测试 1 */
+    public static void startLiveWallpaperPrevivew(Activity activity) {
+        Intent intent;
+        if (android.os.Build.VERSION.SDK_INT < 16) {
+            intent = new Intent(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER);
+        } else {
+            intent = new Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
+            intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
+                    new ComponentName(activity, VideoLiveWallpaperService.class));
+        }
+        activity.startActivityForResult(intent, 100);
+    }
+
+
+
+    /**
+     * 去往某个动态壁纸的预览页面,那里可以设置壁纸
+     *
+     * @param packageName
+     *            动态壁纸的包名
+     * @param classFullName
+     *            动态壁纸service类的类全名
+     */
+    public static void startLiveWallpaperPrevivew(Activity activity, String packageName, String classFullName) {
+        ComponentName componentName = new ComponentName(packageName, classFullName);
+        Intent intent;
+        if (android.os.Build.VERSION.SDK_INT < 16) {
+            intent = new Intent(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER);
+        } else {
+            intent = new Intent("android.service.wallpaper.CHANGE_LIVE_WALLPAPER");
+            intent.putExtra("android.service.wallpaper.extra.LIVE_WALLPAPER_COMPONENT", componentName);
+        }
+        activity.startActivityForResult(intent, 100);
     }
 
 
@@ -63,6 +116,12 @@ public class VideoLiveWallpaperService extends WallpaperService {
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
             KLog.d("VideoEngine#onCreate");
+
+            boolean isPreview = isPreview();
+            if(isPreview){
+                KLog.d("预览的engine");
+            }
+
 
             IntentFilter intentFilter = new IntentFilter(VIDEO_PARAMS_CONTROL_ACTION);
             registerReceiver(mVideoParamsControlReceiver = new BroadcastReceiver() {
@@ -109,6 +168,7 @@ public class VideoLiveWallpaperService extends WallpaperService {
         public void onSurfaceCreated(SurfaceHolder holder) {
             KLog.d("VideoEngine#onSurfaceCreated ");
             super.onSurfaceCreated(holder);
+
             mMediaPlayer = new MediaPlayer();
             mMediaPlayer.setSurface(holder.getSurface());
             try {
@@ -118,8 +178,12 @@ public class VideoLiveWallpaperService extends WallpaperService {
 //                        fileDescriptor.getStartOffset(), fileDescriptor.getLength());
 
                 //本地的视频  需要在手机SD卡根目录添加一个 fl1234.mp4 视频
-                String path = (String) SPHelper.get(MyApplication.getInstance(),"video","");
-                mMediaPlayer.setDataSource(path);
+//                String path = (String) SPHelper.get(MyApplication.getInstance(),"video","");
+                TestBean bean = MyApplication.getDbManager().queryTestBean();
+                KLog.d("path: " ,bean.getUrl());
+                mMediaPlayer.setDataSource(bean.getUrl());
+
+
                 mMediaPlayer.setLooping(true);
                 mMediaPlayer.setVolume(0, 0);
                 mMediaPlayer.prepare();
@@ -141,9 +205,11 @@ public class VideoLiveWallpaperService extends WallpaperService {
         public void onSurfaceDestroyed(SurfaceHolder holder) {
             KLog.d("VideoEngine#onSurfaceDestroyed ");
             super.onSurfaceDestroyed(holder);
+            mMediaPlayer.stop();
             mMediaPlayer.release();
             mMediaPlayer = null;
 
+            VideoLiveWallpaperService.this.stopSelf();
         }
     }
 }

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.ngbj.wallpaper.base.BaseObjectSubscriber;
 import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.base.RxPresenter;
+import com.ngbj.wallpaper.bean.entityBean.HistoryBean;
 import com.ngbj.wallpaper.bean.entityBean.InitUserBean;
 import com.ngbj.wallpaper.mvp.contract.app.HomeContract;
 import com.ngbj.wallpaper.mvp.contract.app.SplashContract;
@@ -31,13 +32,20 @@ public class HomePresenter extends RxPresenter<HomeContract.View>
     @Override
     public void getSearchHistory() {
 
-        //获取关键字集合
-        List<String> stringList = new ArrayList<>();
-        stringList.add("二次元");
-        stringList.add("一次元");
-        stringList.add("三次元");
-        stringList.add("四次元");
+        // test -- 获取关键字集合
+//        List<String> stringList = new ArrayList<>();
+//        stringList.add("二次元");
+//        stringList.add("一次元");
+//        stringList.add("三次元");
+//        stringList.add("四次元");
 //        stringList.add("五次元");
+
+        List<String> stringList = new ArrayList<>();
+        List<HistoryBean> historyBeanList =  MyApplication.getDbManager().queryHistoryLimitList();
+        for (HistoryBean bean : historyBeanList) {
+            stringList.add(bean.getHistoryName());
+        }
+
         HashMap<String,Object> hashMap = new HashMap<>();
         hashMap.put("searchWord",stringList);
 
@@ -49,7 +57,7 @@ public class HomePresenter extends RxPresenter<HomeContract.View>
                 .subscribeWith(new BaseObjectSubscriber<String>(mView) {
                     @Override
                     public void onSuccess(String result) {
-                        mView.showSearchHistory();
+
                     }
                 }));
     }

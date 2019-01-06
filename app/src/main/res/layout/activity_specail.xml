@@ -22,17 +22,28 @@
         android:visibility="invisible"
         android:background="@color/bg"
         android:layout_width="match_parent"
-        android:padding="10dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:paddingRight="10dp"
         android:layout_height="50dp">
+
+        <!--<ImageView-->
+            <!--android:id="@+id/back_2"-->
+            <!--android:layout_centerVertical="true"-->
+            <!--android:src="@mipmap/icon_back"-->
+            <!--android:paddingRight="10dp"-->
+            <!--android:paddingLeft="2dp"-->
+            <!--android:layout_width="25dp"-->
+            <!--android:layout_height="20dp"  />-->
 
         <ImageView
             android:id="@+id/back_2"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
             android:layout_centerVertical="true"
             android:src="@mipmap/icon_back"
-            android:paddingRight="10dp"
-            android:paddingLeft="2dp"
-            android:layout_width="25dp"
-            android:layout_height="20dp"  />
+            android:layout_width="30dp"
+            android:layout_height="30dp" />
 
         <TextView
             android:id="@+id/down"

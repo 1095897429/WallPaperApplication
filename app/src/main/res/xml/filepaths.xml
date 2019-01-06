@@ -9,5 +9,10 @@
         path="."></external-cache-path>
 
     <external-path name="sdcard" path="."/>
+
+
+    <!-- windSDK 这个下载路径不可以修改，SIGTDOWNLOAD -->
+    <external-path name="sigmob_download_path" path="SIGTDOWNLOAD" />
+
 </paths>
 

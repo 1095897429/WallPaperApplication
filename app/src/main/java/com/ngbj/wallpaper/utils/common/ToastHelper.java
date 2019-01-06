@@ -25,4 +25,17 @@ public class ToastHelper {
     }
 
 
+    /**自定义ToastView*/
+    public static void customToastViewLong(Context context,CharSequence msg){
+        if(null == mToast){
+            mToast = Toast.makeText(context,msg,Toast.LENGTH_LONG);
+
+        }else
+            mToast.setText(msg);
+        mToast.show();
+
+    }
+
+
+
 }

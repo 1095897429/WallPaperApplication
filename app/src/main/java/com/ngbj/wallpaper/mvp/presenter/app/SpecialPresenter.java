@@ -26,6 +26,51 @@ public class SpecialPresenter extends RxPresenter<SpecialContract.View>
         implements SpecialContract.Presenter<SpecialContract.View> {
 
 
+    /** 取消收藏 */
+    @Override
+    public void getDeleteCollection(String wallpaperId) {
+
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("wallpaperId",wallpaperId);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
+
+        addSubscribe(RetrofitHelper.getApiService()
+                .deleteCollection(requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+                    @Override
+                    public void onSuccess(String string) {
+                        mView.showDeleteCollection();
+                    }
+                }));
+    }
+
+
+
+    /** 记录用户下载 1下载 2收藏 3分享 */
+    @Override
+    public void getRecordData(String wallpaperId, String type) {
+
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("wallpaperId",wallpaperId);
+        hashMap.put("type",type);
+        RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
+
+        addSubscribe(RetrofitHelper.getApiService()
+                .record(requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+                    @Override
+                    public void onSuccess(String string) {
+                        mView.showRecordData();
+                    }
+                }));
+    }
+
+
+
     @Override
     public void getRecommendData(String bannerId) {
 

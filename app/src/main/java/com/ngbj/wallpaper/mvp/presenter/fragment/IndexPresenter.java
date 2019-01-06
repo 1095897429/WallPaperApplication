@@ -1,33 +1,21 @@
 package com.ngbj.wallpaper.mvp.presenter.fragment;
 
-import com.google.gson.Gson;
 import com.ngbj.wallpaper.base.BaseObjectSubscriber;
-import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.base.RxPresenter;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
-import com.ngbj.wallpaper.bean.entityBean.ApiAdBean;
 import com.ngbj.wallpaper.bean.entityBean.IndexBean;
-import com.ngbj.wallpaper.bean.entityBean.InitUserBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
-import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.mvp.contract.fragment.IndexContract;
 import com.ngbj.wallpaper.network.helper.OkHttpHelper;
 import com.ngbj.wallpaper.network.helper.RetrofitHelper;
-import com.ngbj.wallpaper.utils.common.AppHelper;
-
-import java.io.IOException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.annotation.Nullable;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
-import okhttp3.MediaType;
 import okhttp3.RequestBody;
-import okio.BufferedSink;
 
 public class IndexPresenter extends RxPresenter<IndexContract.View>
         implements IndexContract.Presenter<IndexContract.View> {
@@ -106,7 +94,7 @@ public class IndexPresenter extends RxPresenter<IndexContract.View>
                             mView.showMoreRecommendData(list);
 
 
-                        if(list.isEmpty() || list.size() < AppConstant.PAGESIZE){
+                        if(list.isEmpty()){
                             mView.showEndView();
                             return;
                         }

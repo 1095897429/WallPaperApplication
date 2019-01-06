@@ -14,17 +14,15 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:src="@mipmap/default_loading"
         android:scaleType="centerCrop"
         android:layout_width="162dp"
         android:layout_height="216dp" />
 
     <ImageView
         android:id="@+id/icon_love"
-        android:layout_width="17dp"
-        android:layout_height="17dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginRight="12dp"
+        android:layout_width="41dp"
+        android:layout_height="41dp"
+        android:padding="12dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:src="@mipmap/recommend_unlove"
