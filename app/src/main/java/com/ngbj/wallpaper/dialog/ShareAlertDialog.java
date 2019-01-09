@@ -83,7 +83,7 @@ public class ShareAlertDialog {
 
     private void initRecycleView() {
         mShareAdapter = new ShareAdapter(mShareBeanList);
-        mGridLayoutManager = new GridLayoutManager(mContext,5);
+        mGridLayoutManager = new GridLayoutManager(mContext,4);
         //设置布局管理器
         recyclerView.setLayoutManager(mGridLayoutManager);
         //设置Adapter

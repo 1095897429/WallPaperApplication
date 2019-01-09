@@ -4,12 +4,10 @@
     <color name="colorPrimaryDark">#20254D</color> <!-- 状态栏颜色 -->
     <color name="colorAccent">#1934FF</color> <!-- 默认焦点颜色 -->
 
-    <color name="bottom_color">#20254D</color>
     <color name="white">#ffffffff</color>
     <color name="bg">#20254D</color>
     <color name="transparent">#00000000</color>
     <color name="black">#000000</color>
-    <color name="black_70">#4c000000</color>
 
     <color name="text_color">#AEB0BE</color>
     <color name="line_color">#2f3560</color>

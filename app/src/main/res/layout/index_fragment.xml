@@ -23,16 +23,6 @@
     </com.ngbj.wallpaper.utils.widget.EmptyView>
 
 
-    <!--<View-->
-            <!--android:id="@+id/line_line"-->
-             <!--app:layout_constraintTop_toBottomOf="@+id/search_part"-->
-             <!--android:visibility="gone"-->
-             <!--android:layout_width="match_parent"-->
-             <!--android:layout_height="2px"-->
-             <!--android:background="#bfbfbf"-->
-             <!--android:focusable="true"-->
-             <!--android:focusableInTouchMode="true"/>-->
-
 
     <android.support.v7.widget.RecyclerView
         android:visibility="gone"

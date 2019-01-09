@@ -3,6 +3,7 @@ package com.ngbj.wallpaper.module.app;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -56,7 +57,7 @@ public class SplashActivity extends BaseActivity<SplashPresenter>
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 
-        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION)
+        if (ContextCompat.checkSelfPermission(SplashActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},1);
         }else {
@@ -112,14 +113,19 @@ public class SplashActivity extends BaseActivity<SplashPresenter>
             public void run() {
                 boolean isFristCome = (boolean) SPHelper.get(SplashActivity.this,AppConstant.ISFRISTCOME,true);
 
-                InterestActivity.openActivity(SplashActivity.this);
+//                InterestActivity.openActivity(SplashActivity.this);
 
-//               if(isFristCome){
-//                    InterestActivity.openActivity(SplashActivity.this);
-//                }else
-//                    HomeActivity.openActivity(SplashActivity.this);
+               if(isFristCome){
+                   //不能用静态方法，导致内存泄漏
+                   Intent intent = new Intent(mContext, InterestActivity.class);
+                   mContext.startActivity(intent);
 
-                finish();
+                }else{
+                   Intent intent = new Intent(mContext, HomeActivity.class);
+                   mContext.startActivity(intent);
+               }
+
+               finish();
             }
         },1000);
 

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:padding="8dp"
+    android:orientation="vertical"
+    android:background="@drawable/shape_iosdialog_bg">
+
+    <ImageView
+        android:id="@+id/ad_pic"
+        android:src="@mipmap/dialog_ad"
+        android:scaleType="centerCrop"
+        android:layout_width="match_parent"
+        android:layout_height="164dp" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="10dp" />
+
+    <TextView
+        android:id="@+id/makedone"
+        android:background="@drawable/detail_down_bg"
+        android:layout_marginBottom="15dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:text="看视频解锁下载"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+
+</LinearLayout>

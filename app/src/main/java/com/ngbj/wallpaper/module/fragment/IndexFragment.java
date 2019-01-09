@@ -143,7 +143,22 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
                     if(mulAdBean.getItemType() == MulAdBean.TYPE_ONE){
 
                         if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
-                            WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+//                            WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+
+                            KLog.d("url: ",mulAdBean.adBean.getLink());
+                            //不能用静态方法，导致内存泄漏
+                            Intent intent = new Intent(mContext, WebViewActivity.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putString("loadUrl", mulAdBean.adBean.getLink());
+                            intent.putExtras(bundle);
+                            mContext.startActivity(intent);
+                        }else  if(mulAdBean.adBean.getType().equals(AppConstant.API_AD)){
+                            //不能用静态方法，导致内存泄漏
+                            Intent intent = new Intent(mContext, WebViewActivity.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putString("loadUrl", mulAdBean.apiAdBean.getLink());
+                            intent.putExtras(bundle);
+                            mContext.startActivity(intent);
                         }else{
                             DetailParamBean bean = new DetailParamBean();
                             bean.setPage(mPage);
@@ -151,13 +166,27 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
                             bean.setWallpagerId(mulAdBean.adBean.getId());
                             bean.setFromWhere(AppConstant.INDEX);
 
-                            DetailActivity.openActivity(mContext,bean,temps);
+//                            DetailActivity.openActivity(mContext,bean,temps);
+
+                            //不能用静态方法，导致内存泄漏
+                            Intent intent = new Intent(mContext, DetailActivity.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putSerializable("bean",bean);
+                            bundle.putSerializable("list",temps);
+                            intent.putExtras(bundle);
+                            mContext.startActivity(intent);
 
 
                         }
 
                     }else {
-                        KLog.d("tag -- api广告",recommendList.get(position).apiAdBean.getName());
+                        KLog.d("tag -- api广告",mulAdBean.apiAdBean.getLink());
+                        //不能用静态方法，导致内存泄漏
+                        Intent intent = new Intent(mContext, WebViewActivity.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putString("loadUrl", mulAdBean.apiAdBean.getLink());
+                        intent.putExtras(bundle);
+                        mContext.startActivity(intent);
                     }
                 }else
                     ToastHelper.customToastView(mContext,"网络异常，请先连接网络");
@@ -214,8 +243,28 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
             @Override
             public void OnBannerClick(int position) {
                 IndexBean.Banner banner = myBannerList.get(position);
-                SpecialActivity.openActivity(getActivity(),banner.getId(),
-                        banner.getImg_url(),banner.getTitle());
+
+//                SpecialActivity.openActivity(getActivity(),banner.getId(),
+//                        banner.getImg_url(),banner.getTitle());
+
+                if(banner.getType().equals(AppConstant.API_AD) ||
+                        banner.getType().equals(AppConstant.COMMON_AD)){
+
+                    Intent intent = new Intent(mContext, WebViewActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("loadUrl", banner.getLink());
+                    intent.putExtras(bundle);
+                    mContext.startActivity(intent);
+
+                }else{
+                    Intent intent = new Intent(mContext, SpecialActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("bannerId",banner.getId());
+                    bundle.putString("bannerImageUrl",banner.getImg_url());
+                    bundle.putString("bannerTitle",banner.getTitle());
+                    intent.putExtras(bundle);
+                    mContext.startActivity(intent);
+                }
             }
         });
 
@@ -323,7 +372,6 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
         recomendAdapter.setNewData(recommendList);
         /** 构建临时变量  */
         temps.addAll(transformDataToWallpaper(recommendList));
-
     }
 
 
@@ -370,7 +418,16 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     mNavigation = myCoolList.get(position);
                     KLog.d("选择的cool ：" + mNavigation.getTitle());
-                    chooseActivity(AppConstant.FROMINDEX_NAVICATION);
+
+                    if(mNavigation.getType().equals(AppConstant.COMMON_AD) ||
+                            mNavigation.getType().equals(AppConstant.API_AD)){
+                            Intent intent = new Intent(mContext, WebViewActivity.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putString("loadUrl", mNavigation.getLink());
+                            intent.putExtras(bundle);
+                            mContext.startActivity(intent);
+                    }else
+                        chooseActivity(AppConstant.FROMINDEX_NAVICATION);
                 }
             });
             viewPagerList.add(gridView);
@@ -381,13 +438,27 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
 
     /** 3个 跳转到搜索界面  */
     private void chooseActivity(int type) {
+
+        Intent intent = new Intent(mContext,SearchActivity.class);
+        Bundle bundle = new Bundle();
+
         if(type == AppConstant.FROMINDEX_NAVICATION){
-            SearchActivity.openActivity(mContext,AppConstant.FROMINDEX_NAVICATION,mNavigation.getId(),"");
+            bundle.putInt(AppConstant.FROMWHERE,AppConstant.FROMINDEX_NAVICATION);
+            bundle.putString(AppConstant.NAVICATIONID,mNavigation.getId());
+            bundle.putString(AppConstant.HOTSEARCHTAG,"");
+
         }else if(type == AppConstant.FROMINDEX_HOTSEACHER){
-            SearchActivity.openActivity(mContext,AppConstant.FROMINDEX_HOTSEACHER,"",mHotSearch.getTitle());
+            bundle.putInt(AppConstant.FROMWHERE,AppConstant.FROMINDEX_HOTSEACHER);
+            bundle.putString(AppConstant.NAVICATIONID,"");
+            bundle.putString(AppConstant.HOTSEARCHTAG,mHotSearch.getTitle());
         }else if(type == AppConstant.FROMINDEX_SEACHER){
-            SearchActivity.openActivity(mContext,AppConstant.FROMINDEX_SEACHER,"","");
+            bundle.putInt(AppConstant.FROMWHERE,AppConstant.FROMINDEX_SEACHER);
+            bundle.putString(AppConstant.NAVICATIONID,"");
+            bundle.putString(AppConstant.HOTSEARCHTAG,"");
         }
+
+        intent.putExtras(bundle);
+        mContext.startActivity(intent);
     }
 
 

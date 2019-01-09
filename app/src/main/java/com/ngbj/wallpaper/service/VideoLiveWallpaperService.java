@@ -9,9 +9,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.service.wallpaper.WallpaperService;
+import android.view.Surface;
 import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
 import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.TestBean;
@@ -19,6 +24,7 @@ import com.ngbj.wallpaper.utils.common.SDCardHelper;
 import com.ngbj.wallpaper.utils.common.SPHelper;
 import com.socks.library.KLog;
 
+import java.io.File;
 import java.io.IOException;
 
 /***
@@ -26,21 +32,11 @@ import java.io.IOException;
  */
 public class VideoLiveWallpaperService extends WallpaperService {
 
-    private  Engine mEngine;
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        onCreateEngine();
-    }
 
     public Engine onCreateEngine() {
         KLog.d("VideoLiveWallpaperService","onCreateEngine");
-        mEngine = new VideoEngine();
-//        if(mEngine.isPreview()){
-//
-//        }
-        return mEngine;
+        return new VideoEngine();
     }
 
     public static final String VIDEO_PARAMS_CONTROL_ACTION = "com.zl.my_wallpaper";
@@ -117,30 +113,26 @@ public class VideoLiveWallpaperService extends WallpaperService {
             super.onCreate(surfaceHolder);
             KLog.d("VideoEngine#onCreate");
 
-            boolean isPreview = isPreview();
-            if(isPreview){
-                KLog.d("预览的engine");
-            }
 
-
-            IntentFilter intentFilter = new IntentFilter(VIDEO_PARAMS_CONTROL_ACTION);
-            registerReceiver(mVideoParamsControlReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    KLog.d("onReceive");
-                    int action = intent.getIntExtra(KEY_ACTION, -1);
-
-                    switch (action) {
-                        case ACTION_VOICE_NORMAL:
-                            mMediaPlayer.setVolume(1.0f, 1.0f);
-                            break;
-                        case ACTION_VOICE_SILENCE:
-                            mMediaPlayer.setVolume(0, 0);
-                            break;
-
-                    }
-                }
-            }, intentFilter);
+//
+//            IntentFilter intentFilter = new IntentFilter(VIDEO_PARAMS_CONTROL_ACTION);
+//            registerReceiver(mVideoParamsControlReceiver = new BroadcastReceiver() {
+//                @Override
+//                public void onReceive(Context context, Intent intent) {
+//                    KLog.d("onReceive");
+//                    int action = intent.getIntExtra(KEY_ACTION, -1);
+//
+//                    switch (action) {
+//                        case ACTION_VOICE_NORMAL:
+//                            mMediaPlayer.setVolume(1.0f, 1.0f);
+//                            break;
+//                        case ACTION_VOICE_SILENCE:
+//                            mMediaPlayer.setVolume(0, 0);
+//                            break;
+//
+//                    }
+//                }
+//            }, intentFilter);
 
 
         }
@@ -148,7 +140,7 @@ public class VideoLiveWallpaperService extends WallpaperService {
         @Override
         public void onDestroy() {
             KLog.d("VideoEngine#onDestroy");
-            unregisterReceiver(mVideoParamsControlReceiver);
+//            unregisterReceiver(mVideoParamsControlReceiver);
             super.onDestroy();
 
         }
@@ -168,9 +160,15 @@ public class VideoLiveWallpaperService extends WallpaperService {
         public void onSurfaceCreated(SurfaceHolder holder) {
             KLog.d("VideoEngine#onSurfaceCreated ");
             super.onSurfaceCreated(holder);
-
             mMediaPlayer = new MediaPlayer();
-            mMediaPlayer.setSurface(holder.getSurface());
+
+//            mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+//                @Override
+//                public void onPrepared(MediaPlayer mp) {
+//                    mMediaPlayer.start();
+//                }
+//            });
+
             try {
 //                AssetManager assetMg = getApplicationContext().getAssets();
 //                AssetFileDescriptor fileDescriptor = assetMg.openFd("test.mp4");
@@ -181,9 +179,8 @@ public class VideoLiveWallpaperService extends WallpaperService {
 //                String path = (String) SPHelper.get(MyApplication.getInstance(),"video","");
                 TestBean bean = MyApplication.getDbManager().queryTestBean();
                 KLog.d("path: " ,bean.getUrl());
-                mMediaPlayer.setDataSource(bean.getUrl());
-
-
+                mMediaPlayer.setSurface(holder.getSurface());
+                mMediaPlayer.setDataSource( bean.getUrl());
                 mMediaPlayer.setLooping(true);
                 mMediaPlayer.setVolume(0, 0);
                 mMediaPlayer.prepare();
@@ -205,11 +202,17 @@ public class VideoLiveWallpaperService extends WallpaperService {
         public void onSurfaceDestroyed(SurfaceHolder holder) {
             KLog.d("VideoEngine#onSurfaceDestroyed ");
             super.onSurfaceDestroyed(holder);
-            mMediaPlayer.stop();
-            mMediaPlayer.release();
-            mMediaPlayer = null;
 
-            VideoLiveWallpaperService.this.stopSelf();
+            if(null != mMediaPlayer){
+                mMediaPlayer.stop();
+                mMediaPlayer.release();
+                mMediaPlayer = null;
+
+            }
+
         }
     }
+
+
+
 }

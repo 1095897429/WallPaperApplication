@@ -46,31 +46,22 @@ public class MyCommonAdapter extends BaseQuickAdapter<MulAdBean,BaseViewHolder> 
 
 
 
-        //头像
-
-        Glide.with(mContext)
-                .load("http://pjb68wj3e.bkt.clouddn.com/jmCTgYg96Nh_2u4HfI_UJXIks_lvOGsR.jpg?imageView2/1/w/162/h/216")
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .centerCrop()
-                .crossFade()
-                .transform(new GlideCircleTransform(mContext,4,
-                        mContext.getResources().getColor(R.color.item_bottom_color)))
-                .into((ImageView) holder.getView(R.id.author_icon));
-
-
         //圆形头像
         if (!TextUtils.isEmpty(adBean.getHead_img())) {
 
             Glide.with(MyApplication.getInstance())
                     .load(adBean.getHead_img())
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                     .centerCrop()
                     .crossFade()
+                    .transform(new GlideCircleTransform(mContext,4,
+                            mContext.getResources().getColor(R.color.item_bottom_color)))
                     .transform(new GlideCircleTransform(mContext))
                     .into((ImageView) holder.getView(R.id.author_icon));
         } else {
             holder.setImageResource(R.id.author_icon,R.mipmap.author_head);
         }
+
 
 
         //喜爱

@@ -36,7 +36,8 @@ public class WallpagerBeanDao extends AbstractDao<WallpagerBean, Long> {
         public final static Property Category_id = new Property(9, String.class, "category_id", false, "CATEGORY_ID");
         public final static Property Category_name = new Property(10, String.class, "category_name", false, "CATEGORY_NAME");
         public final static Property Img_url = new Property(11, String.class, "img_url", false, "IMG_URL");
-        public final static Property FromWhere = new Property(12, String.class, "fromWhere", false, "FROM_WHERE");
+        public final static Property Link = new Property(12, String.class, "link", false, "LINK");
+        public final static Property FromWhere = new Property(13, String.class, "fromWhere", false, "FROM_WHERE");
     };
 
 
@@ -64,7 +65,8 @@ public class WallpagerBeanDao extends AbstractDao<WallpagerBean, Long> {
                 "\"CATEGORY_ID\" TEXT," + // 9: category_id
                 "\"CATEGORY_NAME\" TEXT," + // 10: category_name
                 "\"IMG_URL\" TEXT," + // 11: img_url
-                "\"FROM_WHERE\" TEXT);"); // 12: fromWhere
+                "\"LINK\" TEXT," + // 12: link
+                "\"FROM_WHERE\" TEXT);"); // 13: fromWhere
     }
 
     /** Drops the underlying database table. */
@@ -137,9 +139,14 @@ public class WallpagerBeanDao extends AbstractDao<WallpagerBean, Long> {
             stmt.bindString(12, img_url);
         }
  
+        String link = entity.getLink();
+        if (link != null) {
+            stmt.bindString(13, link);
+        }
+ 
         String fromWhere = entity.getFromWhere();
         if (fromWhere != null) {
-            stmt.bindString(13, fromWhere);
+            stmt.bindString(14, fromWhere);
         }
     }
 
@@ -207,9 +214,14 @@ public class WallpagerBeanDao extends AbstractDao<WallpagerBean, Long> {
             stmt.bindString(12, img_url);
         }
  
+        String link = entity.getLink();
+        if (link != null) {
+            stmt.bindString(13, link);
+        }
+ 
         String fromWhere = entity.getFromWhere();
         if (fromWhere != null) {
-            stmt.bindString(13, fromWhere);
+            stmt.bindString(14, fromWhere);
         }
     }
 
@@ -233,7 +245,8 @@ public class WallpagerBeanDao extends AbstractDao<WallpagerBean, Long> {
             cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9), // category_id
             cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10), // category_name
             cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11), // img_url
-            cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12) // fromWhere
+            cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12), // link
+            cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13) // fromWhere
         );
         return entity;
     }
@@ -252,7 +265,8 @@ public class WallpagerBeanDao extends AbstractDao<WallpagerBean, Long> {
         entity.setCategory_id(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
         entity.setCategory_name(cursor.isNull(offset + 10) ? null : cursor.getString(offset + 10));
         entity.setImg_url(cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11));
-        entity.setFromWhere(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
+        entity.setLink(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
+        entity.setFromWhere(cursor.isNull(offset + 13) ? null : cursor.getString(offset + 13));
      }
     
     @Override

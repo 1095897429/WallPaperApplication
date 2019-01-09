@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -70,6 +71,9 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
 
     private View headView;
     private ImageView imageView;
+    private TextView title;
+    private TextView content;
+
     private ImageView back;
 
     String mBannerId;
@@ -79,15 +83,15 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
     private int mImageViewHeight;//图片高度
 
 
-    public static void openActivity(Context context,String bannerId,String bannerImageUrl,String bannerTitle) {
-        Intent intent = new Intent(context, SpecialActivity.class);
-        Bundle bundle = new Bundle();
-        bundle.putString("bannerId",bannerId);
-        bundle.putString("bannerImageUrl",bannerImageUrl);
-        bundle.putString("bannerTitle",bannerTitle);
-        intent.putExtras(bundle);
-        context.startActivity(intent);
-    }
+//    public static void openActivity(Context context,String bannerId,String bannerImageUrl,String bannerTitle) {
+//        Intent intent = new Intent(context, SpecialActivity.class);
+//        Bundle bundle = new Bundle();
+//        bundle.putString("bannerId",bannerId);
+//        bundle.putString("bannerImageUrl",bannerImageUrl);
+//        bundle.putString("bannerTitle",bannerTitle);
+//        intent.putExtras(bundle);
+//        context.startActivity(intent);
+//    }
 
 
     @Override
@@ -112,7 +116,14 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
                 MulAdBean mulAdBean = recommendList.get(position);
                 if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
                     KLog.d("tag -- 广告");
-                    WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+//                    WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+
+                    //不能用静态方法，导致内存泄漏
+                    Intent intent = new Intent(mContext, WebViewActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("loadUrl", "https://www.baidu.com/");
+                    intent.putExtras(bundle);
+                    mContext.startActivity(intent);
                 }else{
                     KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
 
@@ -123,7 +134,15 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
                     bean.setWallpagerId(mulAdBean.adBean.getId());
                     bean.setFromWhere(AppConstant.SPECIAL);
 
-                    DetailActivity.openActivity(mContext,bean,temps);
+//                    DetailActivity.openActivity(mContext,bean,temps);
+
+                    //不能用静态方法，导致内存泄漏
+                    Intent intent = new Intent(mContext, DetailActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("bean",bean);
+                    bundle.putSerializable("list",temps);
+                    intent.putExtras(bundle);
+                    mContext.startActivity(intent);
                 }
             }
         });
@@ -188,6 +207,8 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
     private void addHeadView() {
         headView = LayoutInflater.from(this).inflate(R.layout.specail_head,null);
         imageView = headView.findViewById(R.id.imageView);
+        title = headView.findViewById(R.id.title);
+        content = headView.findViewById(R.id.content);
         back = headView.findViewById(R.id.back);
     }
 
@@ -217,6 +238,9 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
                     .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                     .into(imageView);
         }
+
+        title.setText(bannerTitle);
+
 
         initRecommandRecycleView();
         mPresenter.getRecommendData(mBannerId);

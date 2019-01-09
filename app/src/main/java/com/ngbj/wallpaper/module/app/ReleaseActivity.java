@@ -79,6 +79,8 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
         implements ReleaseContract.View {
 
     private static final String TAG = "ReleaseActivity";
+    private static final String SOLIDHEADPART = "hkoolweqeuiopas";//上传头像固定前面的部分
+    private static final String SOLIDLASTPART = "OKMJhde";//上传头像固定后面的部分
 
     @BindView(R.id.tagflowlayout)
     TagFlowLayout tagFlowLayout;
@@ -95,12 +97,12 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
     String token;//上传的token
     String title;//上传的标题
 
-    public static void openActivity(Context context) {
-        Intent intent = new Intent(context, ReleaseActivity.class);
-        Bundle bundle = new Bundle();
-        intent.putExtras(bundle);
-        context.startActivity(intent);
-    }
+//    public static void openActivity(Context context) {
+//        Intent intent = new Intent(context, ReleaseActivity.class);
+//        Bundle bundle = new Bundle();
+//        intent.putExtras(bundle);
+//        context.startActivity(intent);
+//    }
 
 
     @Override
@@ -209,9 +211,11 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
 
     private void uploadImg2QiNiu() {
         UploadManager uploadManager = new UploadManager();
-        // 设置图片名字
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-        String key = "icon_" + sdf.format(new Date());
+        // 方式一 设置图片名字 20190108110838O
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+//        String key = "icon_" + sdf.format(new Date());
+        //方式二  固定前 + 10位时间戳 +  固定后 + ".png" 如：hkoolweqeuiopas1546926001OKMJhde.jpg
+        String key = SOLIDHEADPART + System.currentTimeMillis()/1000 + SOLIDLASTPART + ".jpg";
         String picPath = getPicFile().toString();
         final String yuming = "pjb68wj3e.bkt.clouddn.com/";
         KLog.d(TAG, "picPath: " + picPath);
@@ -375,7 +379,7 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
         }
         if (Build.VERSION.SDK_INT >= 24){
             imageUri = FileProvider.getUriForFile(this,
-                    "com.ngbj.wallpaper.provider",outputImage);//content://com.ngbj.wallpaper.provider/path/output_image.jpg
+                    "com.ngbj.wallpaper.sigprovider",outputImage);//content://com.ngbj.wallpaper.provider/path/output_image.jpg
         }else {
             imageUri = Uri.fromFile(outputImage);//file:///storage/sdcard/Android/data/com.ngbj.wallpaper/cache/output_image.jpg
         }
@@ -444,7 +448,7 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
 
     /** 记录选中的类型 */
     @Subscribe
-    public void onUploadTagEvent(TagPositionEvent event){
+    public void onTagPositionEvent(TagPositionEvent event){
         Map<Integer,UploadTagBean> hashMap = event.getMap();
 
         temps.clear();

@@ -34,4 +34,9 @@ public class UploadTagBean {
 
     public UploadTagBean() {
     }
+
+    public UploadTagBean(String name, boolean isSelect) {
+        this.name = name;
+        this.isSelect = isSelect;
+    }
 }

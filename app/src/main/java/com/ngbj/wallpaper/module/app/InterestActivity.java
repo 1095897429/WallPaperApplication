@@ -49,10 +49,10 @@ public class InterestActivity extends BaseActivity<InterestPresenter>
     List<String> selectList = new ArrayList<>();//集合存储选择中的兴趣ID
 
 
-    public static void openActivity(Context context){
-        Intent intent = new Intent(context,InterestActivity.class);
-        context.startActivity(intent);
-    }
+//    public static void openActivity(Context context){
+//        Intent intent = new Intent(context,InterestActivity.class);
+//        context.startActivity(intent);
+//    }
 
     @Override
     protected int getLayoutId() {
@@ -132,7 +132,10 @@ public class InterestActivity extends BaseActivity<InterestPresenter>
 
         mPresenter.writeInterestData(selectList);
 
-        HomeActivity.openActivity(this);
+//        HomeActivity.openActivity(this);
+        Intent intent = new Intent(mContext, HomeActivity.class);
+        mContext.startActivity(intent);
+
         finish();
     }
 

@@ -1,5 +1,6 @@
 package com.ngbj.wallpaper.module.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
@@ -94,7 +95,14 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,MulAdBean>
 
                     if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
                         KLog.d("tag -- 广告");
-                        WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+//                        WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+
+                        //不能用静态方法，导致内存泄漏
+                        Intent intent = new Intent(mContext, WebViewActivity.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putString("loadUrl", "https://www.baidu.com/");
+                        intent.putExtras(bundle);
+                        mContext.startActivity(intent);
                     }else{
                         KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
 
@@ -118,7 +126,15 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,MulAdBean>
                         //从不同的集合中获取
                         ArrayList<WallpagerBean> mytemp = mHashMap.get(mType);
 
-                        DetailActivity.openActivity(mContext,bean,mytemp);
+//                        DetailActivity.openActivity(mContext,bean,mytemp);
+
+                        //不能用静态方法，导致内存泄漏
+                        Intent intent = new Intent(mContext, DetailActivity.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putSerializable("bean",bean);
+                        bundle.putSerializable("list",mytemp);
+                        intent.putExtras(bundle);
+                        mContext.startActivity(intent);
 
                     }
 
@@ -211,7 +227,7 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,MulAdBean>
         super.onCreate(savedInstanceState);
         EventBus.getDefault().register(this);
         mType = getArguments().getString("type");
-        KLog.d("类型： " + mType);
+//        KLog.d("类型： " + mType);
     }
 
     @Override

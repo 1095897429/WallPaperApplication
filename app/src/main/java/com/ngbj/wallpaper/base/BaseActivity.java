@@ -205,6 +205,7 @@ public abstract class BaseActivity<T extends BaseContract.BasePresenter>
             if(!TextUtils.isEmpty(mHistoryYear_Month_Day)
                     && mCurrentYear_Month_Day.compareTo(mHistoryYear_Month_Day) > 0){//第二天 重置下次次数
                 mDownBean.setCount(0);
+                mDownBean.setDate(mCurrentYear_Month_Day);
                 MyApplication.getDbManager().updateDownBean(mDownBean);
                 return 0;
 

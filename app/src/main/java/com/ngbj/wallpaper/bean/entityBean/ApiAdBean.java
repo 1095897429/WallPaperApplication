@@ -9,6 +9,25 @@ public class ApiAdBean {
     private String imgUrl;
     private String type;
 
+    private String thumb_img_url;//缩略图
+    private String link;//TODO 新增链接
+
+    public String getThumb_img_url() {
+        return thumb_img_url;
+    }
+
+    public void setThumb_img_url(String thumb_img_url) {
+        this.thumb_img_url = thumb_img_url;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+
     public String getImgUrl() {
         return imgUrl;
     }

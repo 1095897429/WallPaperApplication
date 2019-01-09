@@ -60,12 +60,12 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
 
 
 
-    public static void openActivity(Context context) {
-        Intent intent = new Intent(context, LoginActivity.class);
-        Bundle bundle = new Bundle();
-        intent.putExtras(bundle);
-        context.startActivity(intent);
-    }
+//    public static void openActivity(Context context) {
+//        Intent intent = new Intent(context, LoginActivity.class);
+//        Bundle bundle = new Bundle();
+//        intent.putExtras(bundle);
+//        context.startActivity(intent);
+//    }
 
 
     @Override
@@ -162,7 +162,11 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
     public void showLoginData(LoginBean loginBean) {
         KLog.d("access_token: " + loginBean.getAccess_token());
         MyApplication.getDbManager().insertLoginBean(loginBean);
-        HomeActivity.openActivity(this);
+//        HomeActivity.openActivity(this);
+
+        Intent intent = new Intent(mContext, HomeActivity.class);
+        mContext.startActivity(intent);
+
         EventBus.getDefault().post(new LoginSuccessEvent(loginBean));
     }
 
@@ -314,8 +318,6 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
         showLoginData(thirdBean);
         KLog.d("登录成功后的昵称： " + thirdBean.getNickname());
 
-        HomeActivity.openActivity(LoginActivity.this);
-
     }
 
 
@@ -332,6 +334,7 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        UMShareAPI.get(this).release();//防止内存泄漏
         mCountDownTimer = null;
     }
 }

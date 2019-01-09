@@ -1,21 +1,29 @@
 package com.ngbj.wallpaper.module.app;
 
-import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.view.View;
 import android.widget.TextView;
 
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.base.BaseActivity;
 import com.ngbj.wallpaper.base.MyApplication;
-import com.ngbj.wallpaper.bean.entityBean.LoginBean;
+import com.ngbj.wallpaper.bean.entityBean.UploadTagBean;
 import com.ngbj.wallpaper.constant.AppConstant;
+import com.ngbj.wallpaper.dialog.BottomListAlertDialog;
 import com.ngbj.wallpaper.dialog.IosAlertDialog;
-import com.ngbj.wallpaper.mvp.contract.app.LoginContract;
+import com.ngbj.wallpaper.eventbus.TagListPositionEvent;
 import com.ngbj.wallpaper.mvp.presenter.app.LoginPresenter;
 import com.ngbj.wallpaper.utils.common.SPHelper;
-import com.socks.library.KLog;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import butterknife.BindView;
@@ -28,6 +36,12 @@ public class  SettingActivity extends BaseActivity{
 
     @BindView(R.id.cache_text)
     TextView cacheText;
+
+    @BindView(R.id.root_layout)
+    ConstraintLayout root_layout;//底部布局
+
+    List<UploadTagBean> temps = new ArrayList<>();
+
 
     @Override
     protected int getLayoutId() {
@@ -46,7 +60,9 @@ public class  SettingActivity extends BaseActivity{
 
     @OnClick(R.id.part4)
     public void Part4(){
-       AboutActivity.openActivity(this);
+//       AboutActivity.openActivity(this);
+        Intent intent = new Intent(this,AboutActivity.class);
+        startActivity(intent);
     }
 
 
@@ -64,6 +80,31 @@ public class  SettingActivity extends BaseActivity{
         Random rand = new Random();
         int i = rand.nextInt(10) + 1;//0 - 9 --> 1 - 10
         cacheText.setText(i + "M");
+
+        initGender();
+
+        temps.add(new UploadTagBean("不超过100M",false));
+        temps.add(new UploadTagBean("不超过300M",false));
+        temps.add(new UploadTagBean("不超过500M",false));
+    }
+
+    private void initGender() {
+//        mGenderWindow = new GenderWindow(this,root_layout);
+//        mGenderWindow.setCallBack(new GenderWindow.CallBack() {
+//            @Override
+//            public void sure(int position) {
+//                if(0 == position){
+//                    KLog.d("100M");
+//                }else if(1 == position){
+//                    KLog.d("200M");
+//                }else if(2 == position){
+//                    KLog.d("300M");
+//                }
+//                ToastHelper.customToastView(SettingActivity.this,"设置成功");
+//            }
+//        });
+
+
     }
 
     @OnClick(R.id.logout)
@@ -81,9 +122,18 @@ public class  SettingActivity extends BaseActivity{
         }).setTitle("标题").setMsg("是否退出登录").setCanceledOnTouchOutside(false);
         iosAlertDialog.show();
 
-
-
     }
+
+
+    @OnClick(R.id.part2)
+    public void Part2(){
+        int position = (int) SPHelper.get(this,"clearPosition",0);
+
+        new BottomListAlertDialog(this,temps,position)
+                .builder()
+                .show();
+    }
+
 
 
     @OnClick(R.id.cache_part)
@@ -107,5 +157,36 @@ public class  SettingActivity extends BaseActivity{
         }).setTitle("标题").setMsg("是否清除缓存").setCanceledOnTouchOutside(false);
         iosAlertDialog.show();
     }
+
+
+    /** --------------  底部标签 EventBus 开始-----------------*/
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
+    }
+
+
+    /** 记录选中的类型 */
+    @Subscribe
+    public void onTagListPositionEvent(TagListPositionEvent event){
+        Map<Integer,UploadTagBean> hashMap = event.getMap();
+
+        temps.clear();
+
+        for (UploadTagBean value : hashMap.values()) {
+            temps.add(value);//更新数据源
+        }
+
+    }
+
+
+    /** --------------   底部标签 EventBus 结束 -----------------*/
 
 }

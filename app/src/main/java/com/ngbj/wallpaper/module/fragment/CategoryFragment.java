@@ -2,6 +2,7 @@ package com.ngbj.wallpaper.module.fragment;
 
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -147,7 +148,15 @@ public class CategoryFragment extends BaesLogicFragment<CategoryPresenter>
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 keyword = interestBeanList.get(position).getName();
                 category = interestBeanList.get(position).getId();
-                CategoryNewHotActivity.openActivity(mContext,category,keyword);
+
+//                CategoryNewHotActivity.openActivity(mContext,category,keyword);
+
+                Intent intent = new Intent(mContext,CategoryNewHotActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putString("category",category);
+                bundle.putString("keyword",keyword);
+                intent.putExtras(bundle);
+                mContext.startActivity(intent);
 
                 for (InterestBean bean: interestBeanList) {
                     bean.setSelect(false);
@@ -166,7 +175,16 @@ public class CategoryFragment extends BaesLogicFragment<CategoryPresenter>
 
     @OnClick(R.id.search_part)
     public void SearchPart(){
-        SearchActivity.openActivity(mContext,AppConstant.FROMINDEX_SEACHER,"","");
+//        SearchActivity.openActivity(mContext,AppConstant.FROMINDEX_SEACHER,"","");
+
+        Intent intent = new Intent(mContext,SearchActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putInt(AppConstant.FROMWHERE,AppConstant.FROMINDEX_SEACHER);
+        bundle.putString(AppConstant.NAVICATIONID,"");
+        bundle.putString(AppConstant.HOTSEARCHTAG,"");
+        intent.putExtras(bundle);
+        mContext.startActivity(intent);
+
     }
 
 

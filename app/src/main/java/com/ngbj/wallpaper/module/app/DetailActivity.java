@@ -2,19 +2,29 @@ package com.ngbj.wallpaper.module.app;
 
 import android.annotation.SuppressLint;
 import android.app.WallpaperManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.MediaPlayer;
+import android.net.http.SslError;
+import android.os.Build;
 import android.os.Bundle;
+import android.service.wallpaper.WallpaperService;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.webkit.GeolocationPermissions;
+import android.webkit.SslErrorHandler;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -27,6 +37,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.chad.library.adapter.base.BaseViewHolder;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.detail.Detail_Adapter;
 import com.ngbj.wallpaper.base.BaesLogicActivity;
@@ -55,7 +66,6 @@ import com.ngbj.wallpaper.mvp.contract.app.DetailContract;
 import com.ngbj.wallpaper.mvp.presenter.app.DetailPresenter;
 import com.ngbj.wallpaper.service.VideoLiveWallpaperService;
 import com.ngbj.wallpaper.utils.common.SDCardHelper;
-import com.ngbj.wallpaper.utils.common.SPHelper;
 import com.ngbj.wallpaper.utils.common.ScreenHepler;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.ngbj.wallpaper.utils.downfile.DownManager;
@@ -71,6 +81,7 @@ import com.sigmob.windad.rewardedVideo.WindRewardedVideoAd;
 import com.sigmob.windad.rewardedVideo.WindRewardedVideoAdListener;
 import com.socks.library.KLog;
 import com.umeng.socialize.ShareAction;
+import com.umeng.socialize.UMShareAPI;
 import com.umeng.socialize.UMShareListener;
 import com.umeng.socialize.bean.SHARE_MEDIA;
 import com.umeng.socialize.media.UMImage;
@@ -92,6 +103,8 @@ import butterknife.BindView;
  * 3.预加载把数据返回给来源 -- IndexFragment
  * 4.预加载不把数据返回给来源 -- NewFragment NewHotFragment
  * Time 2018.12.29
+ *
+ * 加上动态的壁纸部分
  */
 
 public class DetailActivity extends BaesLogicActivity<DetailPresenter>
@@ -128,14 +141,14 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
     LoadingDialog dialog;//显示加载框
 
 
-    public static void openActivity(Context context, DetailParamBean bean,ArrayList<WallpagerBean> list) {
-        Intent intent = new Intent(context, DetailActivity.class);
-        Bundle bundle = new Bundle();
-        bundle.putSerializable("bean",bean);
-        bundle.putSerializable("list",list);
-        intent.putExtras(bundle);
-        context.startActivity(intent);
-    }
+//    public static void openActivity(Context context, DetailParamBean bean,ArrayList<WallpagerBean> list) {
+//        Intent intent = new Intent(context, DetailActivity.class);
+//        Bundle bundle = new Bundle();
+//        bundle.putSerializable("bean",bean);
+//        bundle.putSerializable("list",list);
+//        intent.putExtras(bundle);
+//        context.startActivity(intent);
+//    }
 
 
     @Override
@@ -188,16 +201,44 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
         mLayoutManager.scrollToPositionWithOffset(mPosition, 0);
     }
 
+
+    private void toWebView(WebView webView) {
+
+        String loadUrl = mWallpagerBean.getLink();
+//        loadUrl = "http://sle.semzyzh.com:8070/dc/redirect?m=3493894f";
+        setSetting(webView);
+        initClient(webView);
+        initChromeClient(webView);
+        webView.loadUrl(loadUrl);
+    }
+
+
     public void isNeedGetRequest() {
+
+        /** 刚进来的数据 */
+        type = mWallpagerBean.getType();
+        KLog.d("切换的type:  ",type);
+
+        if(type.equals(AppConstant.COMMON_AD) || type.equals(AppConstant.API_AD) ){
+            Log.e(TAG,"嘿嘿😋，我是广告 " + mWallpagerBean.getLink());
+            View itemView = recyclerView.getChildAt(0);
+            final WebView webView = itemView.findViewById(R.id.webview);
+            final RelativeLayout part2 = itemView.findViewById(R.id.part2);
+            part2.setVisibility(View.GONE);
+            webView.setVisibility(View.VISIBLE);
+            toWebView(webView);
+
+            return;
+        }else{
+        }
+
         wallpagerId = mWallpagerBean.getWallpager_id();
         if(null == wallpagerId || "1".equals(wallpagerId)
                 || "2".equals(wallpagerId) || "3".equals(wallpagerId)){
 
-                Log.e(TAG,"嘿嘿😋，我是广告");
-                return;
+
         }else{
-            /** 刚进来的数据 */
-            type = mWallpagerBean.getType();
+
 
             //判断大图路径是否为空
             if (TextUtils.isEmpty(mWallpagerBean.getImg_url())) {
@@ -205,6 +246,11 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                 mPresenter.getDetailData(mWallpagerBean.getWallpager_id());
                 return;
             }
+
+            //更新 事件
+            updateToDesktop(mWallpagerBean.getImg_url(),mWallpagerBean.getCategory_name());
+
+
 
             /** 切换时加载视频 */
             if(type.equals(AppConstant.DYMATIC_WP)){
@@ -252,7 +298,6 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
     private void playVideoTest(View itemView ) {
 
             final ImageView imgAll = itemView.findViewById(R.id.img_all);
-            final ImageView imgThumb = itemView.findViewById(R.id.img_thumb);
             final RelativeLayout topPart = itemView.findViewById(R.id.top_part);//头部
             final ImageView back = itemView.findViewById(R.id.back);//返回
             final ImageView report = itemView.findViewById(R.id.report);//举报
@@ -265,58 +310,11 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
             final ImageView iconPreview = itemView.findViewById(R.id.icon_preview);//预览
             final ImageView deskPreview = itemView.findViewById(R.id.desk_preview);//桌面预览
             final ImageView lockPreview = itemView.findViewById(R.id.lock_preview);//锁屏预览
-            final MediaPlayer[] mediaPlayer = new MediaPlayer[1];
+            final WebView webView = itemView.findViewById(R.id.webview);//webview
+            final RelativeLayout part2 = itemView.findViewById(R.id.part2);//整体布局
+            part2.setVisibility(View.VISIBLE);
+            webView.setVisibility(View.GONE);
 
-
-            if(type.equals(AppConstant.DYMATIC_WP)){
-
-                final VideoView videoView  = itemView.findViewById(R.id.video_view);
-
-                showDialog();
-
-                videoView.setVideoPath(mWallpagerBean.getMovie_url());
-
-                videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                    @Override
-                    public void onPrepared(MediaPlayer mp) {
-                        if(null != dialog){
-                            dialog.dismiss();
-                        }
-                        KLog.d(TAG, "onPrepared 视频资源已准备好~~~~");
-                        ToastHelper.customToastView(DetailActivity.this,"视频资源已准备好~~~~,长按图片即可观看");
-//                        videoView.animate().alpha(1).start();
-                        isPrepareOK = true;
-                    }
-                });
-
-                videoView.setOnInfoListener(new MediaPlayer.OnInfoListener() {
-                    @Override
-                    public boolean onInfo(MediaPlayer mp, int what, int extra) {
-                        KLog.d(TAG,"------ onInfo ------");
-                        mediaPlayer[0] = mp;
-                        mp.setLooping(true);
-                        imgThumb.animate().alpha(0).start();//延时隐藏大图
-                        imgAll.animate().alpha(0).start();//先隐藏缩略图
-                        return false;
-                    }
-                });
-
-                //长按事件
-                imgAll.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        if(type.equals(AppConstant.DYMATIC_WP)){
-                            Log.d(TAG, "长按事件");
-
-//                            videoView.animate().alpha(1).start();
-
-
-                            videoView.start();
-                        }
-                        return true;
-                    }
-                });
-            }
 
             //大图的事件
             imgAll.setOnClickListener(new View.OnClickListener() {
@@ -383,7 +381,17 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                 public void onClick(View v) {
                     String name  = mWallpagerBean.getCategory_name();
                     String category = mWallpagerBean.getCategory_id();
-                    CategoryNewHotActivity.openActivity(mContext,category,name);
+
+//                    CategoryNewHotActivity.openActivity(mContext,category,name);
+
+                    Intent intent = new Intent(mContext,CategoryNewHotActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("category",category);
+                    bundle.putString("keyword",name);
+                    intent.putExtras(bundle);
+                    mContext.startActivity(intent);
+
+
                 }
             });
 
@@ -529,215 +537,6 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
     }
 
 
-
-
-    /** 此方法会在具体的请求数据后加载 -- 界面 */
-    private void playVideo(int position) {
-        View itemView = recyclerView.getChildAt(position);//position == 0
-        final VideoView videoView = itemView.findViewById(R.id.video_view);
-//        final ImageView imgPlay = itemView.findViewById(R.id.img_play);
-        final ImageView imgAll = itemView.findViewById(R.id.img_all);
-        final ImageView imgThumb = itemView.findViewById(R.id.img_thumb);
-        final RelativeLayout topPart = itemView.findViewById(R.id.top_part);//头部
-        final ImageView back = itemView.findViewById(R.id.back);//返回
-        final ImageView report = itemView.findViewById(R.id.report);//举报
-        final LinearLayout down = itemView.findViewById(R.id.down);//下载
-        final ConstraintLayout bottomPart = itemView.findViewById(R.id.bottom_part);//底部
-        final ImageView iconSave = itemView.findViewById(R.id.icon_save);//设值壁纸
-        final TextView tag = itemView.findViewById(R.id.image_tag);//类别
-        final ImageView iconShare = itemView.findViewById(R.id.icon_share);//分享
-        final ImageView iconLove = itemView.findViewById(R.id.icon_love);//喜好
-        final ImageView iconPreview = itemView.findViewById(R.id.icon_preview);//预览
-        final ImageView deskPreview = itemView.findViewById(R.id.desk_preview);//桌面预览
-        final ImageView lockPreview = itemView.findViewById(R.id.lock_preview);//锁屏预览
-        final MediaPlayer[] mediaPlayer = new MediaPlayer[1];
-
-        //part1 设值
-        if(mWallpagerBean.getType().equals(AppConstant.COMMON_WP)){ //静态
-
-
-            //大图
-            Glide.with(MyApplication.getInstance())
-                    .load(mWallpagerBean.getImg_url())
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .centerCrop()
-                    .into(imgAll);
-
-            //分类
-            tag.setText(mWallpagerBean.getCategory_name()== null ? "#卡通动漫#":"#" + mWallpagerBean.getCategory_name() +"#");
-
-        }
-
-
-        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                KLog.d("DetailActivity: ", "onPrepared 视频资源已准备好~~~~");
-                isPrepareOK = true;
-            }
-        });
-
-
-        videoView.setOnInfoListener(new MediaPlayer.OnInfoListener() {
-            @Override
-            public boolean onInfo(MediaPlayer mp, int what, int extra) {
-                mediaPlayer[0] = mp;
-                mp.setLooping(true);
-                imgThumb.animate().alpha(0).setDuration(200).start();//隐藏缩略图
-                return false;
-            }
-        });
-
-
-        //长按事件
-        imgThumb.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Log.d("ddd", "长按事件");
-                videoView.start();
-                return false;
-            }
-        });
-
-        //播放的事件
-//        imgPlay.setOnClickListener(new View.OnClickListener() {
-//            boolean isPlaying = true;
-//
-//            @Override
-//            public void onClick(View v) {
-//                if (videoView.isPlaying()) {
-//                    imgPlay.animate().alpha(1f).start();
-//                    videoView.pause();
-//                    isPlaying = false;
-//                } else {
-//                    imgPlay.animate().alpha(0f).start();
-//                    videoView.start();
-//                    isPlaying = true;
-//                }
-//            }
-//        });
-
-        //大图的事件
-        imgAll.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.e("DetailActivity：", "imgAll onClick");
-
-                if(deskPreview.getVisibility() == View.VISIBLE){
-                    deskPreview.setVisibility(View.GONE);
-                }
-
-                if(lockPreview.getVisibility() == View.VISIBLE){
-                    lockPreview.setVisibility(View.GONE);
-                }
-
-                if (topPart.getVisibility() == View.VISIBLE) {
-                    topPart.setVisibility(View.GONE);
-                } else
-                    topPart.setVisibility(View.VISIBLE);
-
-                if (bottomPart.getVisibility() == View.VISIBLE) {
-                    bottomPart.setVisibility(View.GONE);
-                } else
-                    bottomPart.setVisibility(View.VISIBLE);
-            }
-        });
-
-        //返回的事件
-        back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
-
-
-        //举报的事件
-        report.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showReport();
-            }
-        });
-
-        //下载的事件
-        down.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-
-
-            int count = getDownCount();
-            if(count != 3){
-                downAndRecord();
-                queryAndUpdate();
-                return;
-            }
-
-            showAdDialog();
-
-            }
-        });
-
-
-        //分类的事件
-        tag.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String name  = mWallpagerBean.getCategory_name();
-                String category = mWallpagerBean.getCategory_id();
-                CategoryNewHotActivity.openActivity(mContext,category,name);
-            }
-        });
-
-
-        //壁纸的事件
-        iconSave.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setWallpaper();
-            }
-        });
-
-
-        //分享的事件
-        iconShare.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                shareImage();
-            }
-        });
-
-        //TODO 2018.12.26 壁纸喜好逻辑
-        //喜好的事件
-        iconLove.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if ("0".equals(mWallpagerBean.getIs_collected())) {
-                    mWallpagerBean.setIs_collected("1");
-                    ToastHelper.customToastView(mContext, "收藏成功");
-                    iconLove.setImageResource(R.mipmap.icon_love);
-                    diffRecod("2");
-                    updateLove(true);
-                } else {
-                    mWallpagerBean.setIs_collected("0");
-                    ToastHelper.customToastView(mContext, "取消收藏");
-                    iconLove.setImageResource(R.mipmap.icon_unlove);
-                    mPresenter.getDeleteCollection(mWallpagerBean.getWallpager_id());
-                    updateLove(false);
-                }
-            }
-        });
-
-        //预览的事件
-        iconPreview.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                previewImage(deskPreview,lockPreview,topPart,bottomPart);
-            }
-        });
-    }
-
     private void downAndRecord() {
         diffRecod("1");
         downVideo(0);
@@ -824,8 +623,8 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
         temps.add(new ShareBean(R.mipmap.wechat_share, "微信"));
         temps.add(new ShareBean(R.mipmap.friend_share, "朋友圈"));
         temps.add(new ShareBean(R.mipmap.qq_share, "QQ"));
-        temps.add(new ShareBean(R.mipmap.weibo_share, "微博"));
         temps.add(new ShareBean(R.mipmap.qqkj_share, "QQ空间"));
+//        temps.add(new ShareBean(R.mipmap.weibo_share, "微博"));
 
         ShareAlertDialog shareAlertDialog = new ShareAlertDialog(mContext)
                 .builder()
@@ -849,10 +648,10 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                         KLog.d("QQ");
                         sharePic(SHARE_MEDIA.QQ);
                         break;
+//                    case 3:
+//                        KLog.d("微博");
+//                        break;
                     case 3:
-                        KLog.d("微博");
-                        break;
-                    case 4:
                         KLog.d("QQ空间");
                         sharePic(SHARE_MEDIA.QZONE);
                         break;
@@ -923,13 +722,20 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
             @Override
             public void fun() {
                 if(mType == 1){
-//                    SPHelper.put(DetailActivity.this,"video",destinationUri);
+
+                     MyApplication.getDbManager().deleteAllTestBean();
+
                       TestBean testBean = new TestBean();
                       testBean.setUrl(destinationUri);
                       MyApplication.getDbManager().insertTestBean(testBean);
-//                    String string = (String) SPHelper.get(DetailActivity.this,"video","");
-//                    KLog.d("string:" ,string);
-                     VideoLiveWallpaperService.startLiveWallpaperPrevivew(DetailActivity.this);
+//                     VideoLiveWallpaperService.startLiveWallpaperPrevivew(DetailActivity.this);
+
+                    Intent localIntent = new Intent();
+                    localIntent.setAction(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);//android.service.wallpaper.CHANGE_LIVE_WALLPAPER
+                    localIntent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT
+                            , new ComponentName(DetailActivity.this.getApplicationContext().getPackageName()
+                                    ,VideoLiveWallpaperService.class.getCanonicalName()));
+                    startActivity(localIntent);
                 }
 
                 if(null != dialog)dialog.dismiss();
@@ -945,13 +751,6 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
             if(resultCode == RESULT_OK){
                 KLog.d(TAG,"动态壁纸设置成功");
             }
-
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    MyApplication.getDbManager().deleteAllTestBean();
-                }
-            }).start();
 
         }
     }
@@ -1226,12 +1025,19 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
 
     private void releaseVideo(int index) {
         View itemView = recyclerView.getChildAt(index);
-        final VideoView videoView = itemView.findViewById(R.id.video_view);
         final ImageView imgThumb = itemView.findViewById(R.id.img_thumb);
         final ImageView imgAll = itemView.findViewById(R.id.img_all);
-        videoView.stopPlayback();
+        final WebView webView = itemView.findViewById(R.id.webview);//webview
+        final RelativeLayout part2 = itemView.findViewById(R.id.part2);//整体布局
+        part2.setVisibility(View.VISIBLE);
+        webView.setVisibility(View.GONE);
         imgThumb.animate().alpha(1).start();
         imgAll.animate().alpha(1).start();
+
+        if (webView != null) {
+            webView.stopLoading();
+            webView.destroy();
+        }
     }
 
 
@@ -1293,9 +1099,10 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
             KLog.d("wallpagerId:" + list1.get(i).getWallpager_id());
         }
 
-        insertToSql(mPage,list,fromWhere);
 
-        EventBus.getDefault().post(new LoveSearchEvent(mPosition, mPage,true,list));
+//        EventBus.getDefault().post(new LoveSearchEvent(mPosition, mPage,true,list));
+        //尾加
+        mTemps.addAll(list1);
 
 //        mWallpagerBeanList.addAll(list1);
 //
@@ -1354,10 +1161,10 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
     @Override
     protected void onPause() {
         super.onPause();
-        View itemView = recyclerView.getChildAt(0);
-        final ImageView imgThumb = itemView.findViewById(R.id.img_thumb);
-        imgThumb.animate().alpha(1).start();
-        imgThumb.animate().alpha(1).start();
+//        View itemView = recyclerView.getChildAt(0);
+//        final ImageView imgThumb = itemView.findViewById(R.id.img_thumb);
+//        imgThumb.animate().alpha(1).start();
+//        imgThumb.animate().alpha(1).start();
     }
 
 
@@ -1490,11 +1297,27 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
         }
     }
 
+
+    /**
+     * 加载广告错误回调
+     * WindAdError 激励视频错误内容
+     * placementId 广告位
+     */
     @Override
-    public void onVideoError(WindAdError windAdError, String placementId) {
+    public void onVideoAdLoadError(WindAdError windAdError, String placementId) {
         Toast.makeText(mContext, "激励视频广告错误" + windAdError, Toast.LENGTH_SHORT).show();
         KLog.d( "onVideoError() called with: error = [" + windAdError + "], placementId = [" + placementId + "]");
+    }
 
+    /**
+     * 播放错误回调
+     * WindAdError 激励视频错误内容
+     * placementId 广告位
+     */
+    @Override
+    public void onVideoAdPlayError(WindAdError windAdError, String placementId) {
+        Toast.makeText(mContext, "激励视频广告错误" + windAdError, Toast.LENGTH_SHORT).show();
+        KLog.d( "onVideoError() called with: error = [" + windAdError + "], placementId = [" + placementId + "]");
     }
 
 
@@ -1510,7 +1333,103 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
     @Override
     public void onDestroy() {
         super.onDestroy();
+        UMShareAPI.get(this).release();//防止内存泄漏
         WindRewardedVideoAd.sharedInstance().setWindRewardedVideoAdListener(null);
+        mTemps.clear();//防止内存泄漏
+        mTemps = null;
+    }
+
+
+    /** ------------------------------------ 跳转到广告页  ------------------------------------
+
+
+
+    /**
+     * webview 默认设置
+     */
+
+    WebSettings webSettings;
+
+    private void setSetting(WebView webview) {
+        webSettings = webview.getSettings();
+        webSettings.setJavaScriptEnabled(true);//允许使用js
+        webSettings.setSupportZoom(true); //支持屏幕缩放
+        webSettings.setBuiltInZoomControls(true);
+        //设置是否允许通过 file url 加载的 Javascript 可以访问其他的源(包括http、https等源)
+        webview.getSettings().setAllowUniversalAccessFromFileURLs(false);
+        webSettings.setUseWideViewPort(true); //将图片调整到适合webview的大小
+        webSettings.setLoadWithOverviewMode(true); // 缩放至屏幕的大小
+        webSettings.setSupportZoom(true); //支持缩放，默认为true。是下面那个的前提。
+        webSettings.setBuiltInZoomControls(true); //设置内置的缩放控件。若为false，则该WebView不可缩放
+        webSettings.setDisplayZoomControls(false); //隐藏原生的缩放控件
+        webview.getSettings().setBlockNetworkImage(false); // 解决图片不显示
+        webview.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
+        webSettings.setDomStorageEnabled(true);//设置适应Html5
+
+        //其他细节操作 定位一些设置
+        webSettings.setDatabaseEnabled(true);
+        String dir = getApplicationContext().getDir("database", Context.MODE_PRIVATE).getPath();
+        webSettings.setGeolocationDatabasePath(dir);
+        webSettings.setGeolocationEnabled(true);
+
+
+        webSettings.setAllowFileAccess(true); //设置可以访问文件
+        webSettings.setJavaScriptCanOpenWindowsAutomatically(true); //支持通过JS打开新窗口
+        webSettings.setLoadsImagesAutomatically(true); //支持自动加载图片
+//        webSettings.setDefaultTextEncodingName("utf-8");//设置编码格式
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            //设置当一个安全站点企图加载来自一个不安全站点资源时WebView的行为,
+            // 在这种模式下,WebView将允许一个安全的起源从其他来源加载内容，即使那是不安全的.
+            // 如果app需要安全性比较高，不应该设置此模式
+            webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);//解决app中部分页面非https导致的问题
+        }
 
     }
+
+
+    private void initClient(WebView webView) {
+        //复写shouldOverrideUrlLoading()方法，使得打开网页时不调用系统浏览器， 而是在本WebView中显示
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);//在这里设置对应的操作
+                return false;
+            }
+
+            @Override
+            public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+                handler.proceed();// 接受所有网站的证书
+            }
+
+        });
+    }
+
+
+    private void initChromeClient(WebView webView) {
+        //获取网页进度
+        webView.setWebChromeClient(new WebChromeClient() {
+
+            /** 定位回调 */
+            @Override
+            public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+                callback.invoke(origin, true, false);
+                super.onGeolocationPermissionsShowPrompt(origin, callback);
+            }
+
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                super.onProgressChanged(view, newProgress);
+            }
+
+            //获取网页标题
+            @Override
+            public void onReceivedTitle(WebView view, String title) {
+                super.onReceivedTitle(view, title);
+            }
+
+        });
+    }
+
 }

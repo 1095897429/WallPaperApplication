@@ -3,6 +3,10 @@ package com.ngbj.wallpaper.module.app;
 
 
 import android.Manifest;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.app.job.JobService;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -37,6 +41,7 @@ import com.ngbj.wallpaper.module.fragment.IndexFragment;
 import com.ngbj.wallpaper.module.fragment.MyFragment;
 import com.ngbj.wallpaper.mvp.contract.app.HomeContract;
 import com.ngbj.wallpaper.mvp.presenter.app.HomePresenter;
+import com.ngbj.wallpaper.service.MyJobService;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.sigmob.windad.WindAdOptions;
 import com.sigmob.windad.WindAds;
@@ -70,10 +75,10 @@ public class HomeActivity extends BaseActivity<HomePresenter>
     Fragment currentFragment;
 
 
-    public static void openActivity(Context context){
-        Intent intent = new Intent(context,HomeActivity.class);
-        context.startActivity(intent);
-    }
+//    public static void openActivity(Context context){
+//        Intent intent = new Intent(context,HomeActivity.class);
+//        context.startActivity(intent);
+//    }
 
 
     @Override
@@ -86,7 +91,26 @@ public class HomeActivity extends BaseActivity<HomePresenter>
 
         initIndexFragment();
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            openJobService();
+        } else {
+//            openTwoService();
+        }
+    }
 
+
+    private void openJobService() {
+        JobScheduler jobScheduler;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+            JobInfo.Builder builder = new JobInfo.Builder(1, new ComponentName(this, MyJobService.class));  //指定哪个JobService执行操作
+            builder.setMinimumLatency(JobInfo.DEFAULT_INITIAL_BACKOFF_MILLIS); //执行的最小延迟时间
+            builder.setOverrideDeadline(JobInfo.DEFAULT_INITIAL_BACKOFF_MILLIS);  //执行的最长延时时间
+            builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NOT_ROAMING);  //非漫游网络状态
+            builder.setBackoffCriteria(JobInfo.DEFAULT_INITIAL_BACKOFF_MILLIS, JobInfo.BACKOFF_POLICY_LINEAR);//线性重试方案
+            builder.setRequiresCharging(false); // 未充电状态
+            jobScheduler.schedule(builder.build());
+        }
     }
 
 

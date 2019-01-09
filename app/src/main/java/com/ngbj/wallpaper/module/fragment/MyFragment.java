@@ -76,6 +76,7 @@ import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+import de.hdodenhof.circleimageview.CircleImageView;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.glide.transformations.BlurTransformation;
@@ -99,14 +100,13 @@ public class MyFragment extends BaseFragment<MyPresenter>
     ImageView iv_blur;
 
     @BindView(R.id.default_head)
-    ImageView default_head;
+    CircleImageView default_head;
 
 
     @BindView(R.id.name)
     TextView name;
 
 
-    String headUrl = "";
 
     MyFragmentAdapter pagerAdapter;
     private List<Fragment> fragments = new ArrayList<>();
@@ -156,7 +156,12 @@ public class MyFragment extends BaseFragment<MyPresenter>
                         .load(headImg)
                         .bitmapTransform(new BlurTransformation(getActivity(), 25), new CenterCrop(getActivity()))
                         .into(iv_blur);
-            }
+            }else
+                Glide.with(this)
+                        .load(R.mipmap.default_head)
+                        .bitmapTransform(new BlurTransformation(getActivity(), 25), new CenterCrop(getActivity()))
+                        .into(iv_blur);
+
 
 
             String nickName = bean.getNickname();
@@ -231,10 +236,17 @@ public class MyFragment extends BaseFragment<MyPresenter>
 
         LoginBean bean = MyApplication.getDbManager().queryLoginBean();
         if(null != bean) {
-            ReleaseActivity.openActivity(getActivity());
-        }else
-            LoginActivity.openActivity(getActivity());
-
+//            ReleaseActivity.openActivity(getActivity());
+            Intent intent = new Intent(mContext, ReleaseActivity.class);
+            Bundle bundle = new Bundle();
+            intent.putExtras(bundle);
+            mContext.startActivity(intent);
+        }else{
+            Intent intent = new Intent(mContext, LoginActivity.class);
+            Bundle bundle = new Bundle();
+            intent.putExtras(bundle);
+            mContext.startActivity(intent);
+        }
 
     }
 
@@ -258,7 +270,13 @@ public class MyFragment extends BaseFragment<MyPresenter>
 
         LoginBean bean = MyApplication.getDbManager().queryLoginBean();
         if(null == bean) {
-            LoginActivity.openActivity(getActivity());
+//            LoginActivity.openActivity(getActivity());
+
+            Intent intent = new Intent(mContext, LoginActivity.class);
+            Bundle bundle = new Bundle();
+            intent.putExtras(bundle);
+            mContext.startActivity(intent);
+
             return;
         }
 
@@ -320,7 +338,7 @@ public class MyFragment extends BaseFragment<MyPresenter>
 
         if (Build.VERSION.SDK_INT >= 24){
             imageUri = FileProvider.getUriForFile(getActivity(),
-                    "com.ngbj.wallpaper.provider",outputImage);//content://com.ngbj.wallpaper.provider/path/output_image.jpg
+                    "com.ngbj.wallpaper.sigprovider",outputImage);//content://com.ngbj.wallpaper.provider/path/output_image.jpg
         }else {
             imageUri = Uri.fromFile(outputImage);//file:///storage/sdcard/Android/data/com.ngbj.wallpaper/cache/output_image.jpg
         }
@@ -480,7 +498,9 @@ public class MyFragment extends BaseFragment<MyPresenter>
                 .bitmapTransform(new BlurTransformation(getActivity(), 25), new CenterCrop(getActivity()))
                 .into(iv_blur);
 
-       MyApplication.getDbManager().updateLoginBean(loginBean);
+        LoginBean bean = MyApplication.getDbManager().queryLoginBean();
+        bean.setHead_img(loginBean.getHead_img());
+        MyApplication.getDbManager().updateLoginBean(bean);
     }
 
     @Override
@@ -515,11 +535,14 @@ public class MyFragment extends BaseFragment<MyPresenter>
     @Subscribe
     public void onLoginSuccessEvent(LoginSuccessEvent event){
         String headImg = event.getLoginBean().getHead_img();
+        KLog.d("headImg: " + headImg);
         if(!TextUtils.isEmpty(headImg)){
             Glide.with(this)
                     .load(headImg)
-                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(default_head);
+        }else{
+            default_head.setImageResource(R.mipmap.default_head);
         }
 
 
@@ -528,7 +551,18 @@ public class MyFragment extends BaseFragment<MyPresenter>
                     .load(headImg)
                     .bitmapTransform(new BlurTransformation(getActivity(), 25), new CenterCrop(getActivity()))
                     .into(iv_blur);
+        }else{
+            Glide.with(this)
+                    .load(R.mipmap.default_head)
+                    .bitmapTransform(new BlurTransformation(getActivity(), 25), new CenterCrop(getActivity()))
+                    .into(iv_blur);
+
         }
+
+        if(!TextUtils.isEmpty(event.getLoginBean().getNickname())){
+            name.setText(event.getLoginBean().getNickname());
+        }else
+            name.setText("Mask");
 
     }
 

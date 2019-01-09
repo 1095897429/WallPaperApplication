@@ -218,7 +218,7 @@ public abstract class BaseFragment<T extends BaseContract.BasePresenter>
         ApiAdBean apiAdBean;
         List<WallpagerBean> tempList = new ArrayList<>();
         for (MulAdBean bean: recommendList) {
-            if(bean.getItemType() == MulAdBean.TYPE_ONE){
+            if(bean.getItemType() == MulAdBean.TYPE_ONE){//把广告当成壁纸，也使用id去构建wallpaperId
                 adBean = bean.adBean;
                 wallpagerBean = new WallpagerBean();
                 wallpagerBean.setType(adBean.getType());

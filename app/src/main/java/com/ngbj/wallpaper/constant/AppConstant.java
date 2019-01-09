@@ -27,7 +27,6 @@ public class AppConstant {
     public static String ISFRISTCOME  = "isFristCome";//是否首次登陆
 //    public static String ISLOGIN  = "isLogin";//是否已登陆
     public static String ISCLEARCACHE  = "isClearCache";//是否已清除缓存
-    public static String LOGINBEAN  = "loginBean";//登录对象
 
     public static String FROMWHERE = "fromwhere";//跳转到搜索界面的来源
     public static int FROMINDEX_SEACHER = 0;//首页搜索

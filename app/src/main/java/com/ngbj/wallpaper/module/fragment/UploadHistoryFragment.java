@@ -1,5 +1,6 @@
 package com.ngbj.wallpaper.module.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
@@ -94,7 +95,15 @@ public class UploadHistoryFragment extends BaseRefreshFragment<MyPresenter,MulAd
 
                 //从不同的集合中获取
 
-                DetailActivity.openActivity(mContext,bean,temps);
+//                DetailActivity.openActivity(mContext,bean,temps);
+
+                //不能用静态方法，导致内存泄漏
+                Intent intent = new Intent(mContext, DetailActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("bean",bean);
+                bundle.putSerializable("list",temps);
+                intent.putExtras(bundle);
+                mContext.startActivity(intent);
 
             }
         });

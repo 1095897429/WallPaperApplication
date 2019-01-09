@@ -46,14 +46,14 @@ public class CategoryNewHotActivity extends BaseActivity{
 
     String category = "0";//分类的id 推荐为0
 
-    public static void openActivity(Context context,String category,String keyWord) {
-        Intent intent = new Intent(context,CategoryNewHotActivity.class);
-        Bundle bundle = new Bundle();
-        bundle.putString("category",category);
-        bundle.putString("keyword",keyWord);
-        intent.putExtras(bundle);
-        context.startActivity(intent);
-    }
+//    public static void openActivity(Context context,String category,String keyWord) {
+//        Intent intent = new Intent(context,CategoryNewHotActivity.class);
+//        Bundle bundle = new Bundle();
+//        bundle.putString("category",category);
+//        bundle.putString("keyword",keyWord);
+//        intent.putExtras(bundle);
+//        context.startActivity(intent);
+//    }
 
 
     @Override

@@ -17,14 +17,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.app.History_Search_Adapter;
 import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
 import com.ngbj.wallpaper.base.BaesLogicActivity;
-import com.ngbj.wallpaper.base.BaseActivity;
 import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.DetailParamBean;
@@ -33,7 +35,6 @@ import com.ngbj.wallpaper.bean.entityBean.IndexBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.constant.AppConstant;
-import com.ngbj.wallpaper.eventbus.LoveEvent;
 import com.ngbj.wallpaper.eventbus.LoveSearchEvent;
 import com.ngbj.wallpaper.mvp.contract.app.SearchContract;
 import com.ngbj.wallpaper.mvp.presenter.app.SearchPresenter;
@@ -61,7 +62,8 @@ import butterknife.OnClick;
 public class SearchActivity extends BaesLogicActivity<SearchPresenter>
             implements SearchContract.View,SwipeRefreshLayout.OnRefreshListener {
 
-
+    @BindView(R.id.search_ad)
+    ImageView search_ad;
 
     @BindView(R.id.refresh)
     SwipeRefreshLayout mRefresh;
@@ -103,18 +105,19 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     int fromWhere;
     String navigationId;//导航栏的Id
     String hotSearchTag;//热搜词
+    String loadUrl;//广告的链接
 
     /** type -- 来源  navId -- 酷站id  hotSearchTag -- 热搜词 */
-    public static void openActivity(Context context,int type,String navigationId,
-                                    String hotSearchTag){
-        Intent intent = new Intent(context,SearchActivity.class);
-        Bundle bundle = new Bundle();
-        bundle.putInt(AppConstant.FROMWHERE,type);
-        bundle.putString(AppConstant.NAVICATIONID,navigationId);
-        bundle.putString(AppConstant.HOTSEARCHTAG,hotSearchTag);
-        intent.putExtras(bundle);
-        context.startActivity(intent);
-    }
+//    public static void openActivity(Context context,int type,String navigationId,
+//                                    String hotSearchTag){
+//        Intent intent = new Intent(context,SearchActivity.class);
+//        Bundle bundle = new Bundle();
+//        bundle.putInt(AppConstant.FROMWHERE,type);
+//        bundle.putString(AppConstant.NAVICATIONID,navigationId);
+//        bundle.putString(AppConstant.HOTSEARCHTAG,hotSearchTag);
+//        intent.putExtras(bundle);
+//        context.startActivity(intent);
+//    }
 
     @Override
     protected int getLayoutId() {
@@ -167,7 +170,14 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
                 MulAdBean mulAdBean = recommendList.get(position);
                 if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
                     KLog.d("tag -- 广告");
-                    WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+
+                    //不能用静态方法，导致内存泄漏
+                    Intent intent = new Intent(mContext, WebViewActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("loadUrl", "https://www.baidu.com/");
+                    intent.putExtras(bundle);
+                    mContext.startActivity(intent);
+
                 }else{
                     KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
 
@@ -181,7 +191,16 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
                     bean.setNavigation(navigationId);
                     bean.setHotSearchTag(hotSearchTag);
 
-                    DetailActivity.openActivity(mContext,bean,temps);
+//                    DetailActivity.openActivity(mContext,bean,temps);
+
+                    //不能用静态方法，导致内存泄漏
+                    Intent intent = new Intent(mContext, DetailActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("bean",bean);
+                    bundle.putSerializable("list",temps);
+                    intent.putExtras(bundle);
+                    mContext.startActivity(intent);
+
 
 //                    if(fromWhere == AppConstant.FROMINDEX_NAVICATION){
 //                        DetailActivity.openActivity(mContext,bean,NavigationTemps);
@@ -336,6 +355,17 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     private void initAds(List<AdBean> ads) {
         if(ads.isEmpty()){
             ad_part.setVisibility(View.GONE);
+        }else{
+            AdBean adBean = ads.get(0);
+            loadUrl = adBean.getLink();
+            String imgUrl = adBean.getImg_url();
+            //头像
+            Glide.with(mContext)
+                    .load(imgUrl)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .centerCrop()
+                    .crossFade()
+                    .into(search_ad);
         }
     }
 
@@ -358,7 +388,13 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
 
     @OnClick(R.id.search_ad)
     public void SearchAd(){
-       KLog.d("点击ad");
+//       KLog.d("点击ad");
+        Intent intent = new Intent(mContext, WebViewActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putString("loadUrl", loadUrl);
+        intent.putExtras(bundle);
+        mContext.startActivity(intent);
+
     }
 
 
@@ -460,8 +496,7 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
 
     @OnClick(R.id.ad_part)
     public void AdPart(){
-        //TODO
-        KLog.d("点击广告");
+//        KLog.d("点击广告");
     }
 
 

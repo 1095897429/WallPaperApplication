@@ -21,9 +21,16 @@ android {
 
 
         ndk {
-            //设置支持的SO库架构
-            abiFilters 'armeabi', 'x86'//, 'armeabi-v7a', 'x86_64', 'arm64-v8a'
+            //选择要添加的对应cpu类型的.so库。
+            abiFilters 'armeabi', 'x86','armeabi-v7a', 'arm64-v8a'
+             // 还可以添加 'x86', 'x86_64', 'mips', 'mips64'
         }
+
+         manifestPlaceholders = [
+           JPUSH_PKGNAME: applicationId,
+           JPUSH_APPKEY : "ad85ee625177f3ccad61f7be", //JPush上注册的包名对应的appkey.
+           JPUSH_CHANNEL: "developer-default", //用户渠道统计的渠道名称
+        ]
 
         multiDexEnabled true
 
@@ -68,9 +75,6 @@ dependencies {
     //design
     implementation 'com.android.support:design:26.0.0'
 
-    //cardView
-    implementation 'com.android.support:cardview-v7:26.0.0'
-
     //Klog
     implementation 'com.github.zhaokaiqiang.klog:library:1.6.0'
 
@@ -99,10 +103,6 @@ dependencies {
     //配合glide一起使用，圆形头像，毛玻璃效果
     implementation 'jp.wasabeef:glide-transformations:2.0.1'
 
-    /*友盟统计需要的最新版本组件化基础库和统计SDK*/
-//    implementation 'com.umeng.sdk:common:1.5.0'
-//    implementation 'com.umeng.sdk:analytics:7.5.0'
-
     //retrofit
     implementation 'com.squareup.okhttp3:okhttp:3.7.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.7.0'
@@ -124,9 +124,6 @@ dependencies {
     //banner
     implementation 'com.youth.banner:banner:1.4.10'
 
-    //verticalviewPager
-//    implementation 'com.github.castorflex.verticalviewpager:library:19.0.1'
-
     //FlycoTabLayout_Lib
     implementation 'com.flyco.tablayout:FlycoTabLayout_Lib:2.1.2@aar'
 
@@ -142,14 +139,13 @@ dependencies {
     //leakcanary
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
 
-    //RxVolley
-    implementation 'com.kymjs.rxvolley:rxvolley:1.1.4'
-    implementation 'com.kymjs.rxvolley:okhttp3:1.1.4'
-
     implementation 'com.android.support:multidex:1.0.3'
 
-    //filedownloader
-    implementation 'com.liulishuo.filedownloader:library:1.3.0'
     //圆形头像
     implementation 'de.hdodenhof:circleimageview:2.2.0'
+
+    implementation 'com.github.chrisbanes:PhotoView:1.2.6'
+
+    implementation 'cn.jiguang.sdk:jpush:3.1.1'  // 此处以JPush 3.1.1 版本为例。
+    implementation 'cn.jiguang.sdk:jcore:1.1.9'  // 此处以JCore 1.1.9 版本为例
 }

@@ -2,22 +2,18 @@ package com.ngbj.wallpaper.base;
 
 import android.app.Activity;
 import android.app.Application;
-import android.content.SharedPreferences;
 import android.support.multidex.MultiDex;
 
-import com.liulishuo.filedownloader.FileDownloader;
 import com.ngbj.wallpaper.bean.greenBeanDao.DBManager;
-import com.ngbj.wallpaper.utils.common.SPHelper;
 import com.ngbj.wallpaper.utils.common.StringUtils;
-import com.sigmob.windad.WindAdOptions;
-import com.sigmob.windad.WindAds;
 import com.squareup.leakcanary.LeakCanary;
 import com.umeng.commonsdk.UMConfigure;
 import com.umeng.socialize.PlatformConfig;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+
+import cn.jpush.android.api.JPushInterface;
 
 /***
  * 单例
@@ -61,6 +57,11 @@ public class MyApplication extends Application {
 
         //DBManager初始化
         dbManager = DBManager.getInstance(this);
+
+        //设置调试模式
+        JPushInterface.setDebugMode(true);
+        //init 初始化SDK
+        JPushInterface.init(this);
     }
 
 

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 这个下载路径不可以修改，SIGTDOWNLOAD -->
+    <external-path name="sigmob_download_path" path="SIGTDOWNLOAD" />
+
+
+    <!-- 指定data/data/包名/files/images 为共享目录  name表示URI中的描述 -->
+    <file-path path="images" name="camera_photos" />
+
+    <!-- 指定storage/emulated/0/Android/0/data/包名/cache/ 为共享目录  name表示URI中的描述，用于映射真实地址 -->
+    <external-cache-path
+        name="path"
+        path="."></external-cache-path>
+
+    <external-path name="sdcard" path="."/>
+
+</paths>
