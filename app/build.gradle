@@ -8,12 +8,13 @@ android {
             keyPassword '123456'
             storePassword '123456'
             storeFile file('/Users/niaogebiji/wallpaper.jks')
+            v2SigningEnabled false//关闭签名方案 APK Signature Scheme v2
         }
     }
-    compileSdkVersion 26
+    compileSdkVersion 28
     defaultConfig {
         applicationId "com.ngbj.wallpaper"
-        minSdkVersion 17
+        minSdkVersion 15
         targetSdkVersion 26
         versionCode 1
         versionName "1.0.0"
@@ -41,7 +42,7 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.config
         }
@@ -66,14 +67,14 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:26.0.0'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     //design
-    implementation 'com.android.support:design:26.0.0'
+    implementation 'com.android.support:design:28.0.0'
 
     //Klog
     implementation 'com.github.zhaokaiqiang.klog:library:1.6.0'
@@ -92,7 +93,7 @@ dependencies {
     implementation 'com.qiniu:happy-dns:0.2.13'
 
     //async
-    implementation 'com.loopj.android:android-async-http:1.4.9'
+//    implementation 'com.loopj.android:android-async-http:1.4.9'
 
     //gson
     implementation 'com.google.code.gson:gson:2.8.1'
@@ -144,7 +145,6 @@ dependencies {
     //圆形头像
     implementation 'de.hdodenhof:circleimageview:2.2.0'
 
-    implementation 'com.github.chrisbanes:PhotoView:1.2.6'
 
     implementation 'cn.jiguang.sdk:jpush:3.1.1'  // 此处以JPush 3.1.1 版本为例。
     implementation 'cn.jiguang.sdk:jcore:1.1.9'  // 此处以JCore 1.1.9 版本为例

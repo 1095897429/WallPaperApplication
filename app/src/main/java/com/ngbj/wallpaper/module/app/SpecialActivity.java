@@ -32,6 +32,8 @@ import com.ngbj.wallpaper.eventbus.fragment.LoveSpecialEvent;
 import com.ngbj.wallpaper.mvp.contract.app.SpecialContract;
 import com.ngbj.wallpaper.mvp.presenter.app.LoginPresenter;
 import com.ngbj.wallpaper.mvp.presenter.app.SpecialPresenter;
+import com.ngbj.wallpaper.utils.common.AppHelper;
+import com.ngbj.wallpaper.utils.common.StatusBarUtil;
 import com.ngbj.wallpaper.utils.common.StringUtils;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.socks.library.KLog;
@@ -53,7 +55,12 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
             implements SpecialContract.View {
 
 
-    ArrayList<WallpagerBean> temps = new ArrayList<>();//传递给明细界面的数据
+//    ArrayList<WallpagerBean> temps = new ArrayList<>();//传递给明细界面的数据
+
+
+
+    @BindView(R.id.title_part2)
+    TextView title_part2;
 
     @BindView(R.id.move_top)
     RelativeLayout moveTop;
@@ -67,8 +74,6 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
     RelativeLayout headBack;
 
 
-
-
     private View headView;
     private ImageView imageView;
     private TextView title;
@@ -77,21 +82,9 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
     private ImageView back;
 
     String mBannerId;
-    String bannerImageUrl;
-    String bannerTitle;
     Context mContext;
     private int mImageViewHeight;//图片高度
 
-
-//    public static void openActivity(Context context,String bannerId,String bannerImageUrl,String bannerTitle) {
-//        Intent intent = new Intent(context, SpecialActivity.class);
-//        Bundle bundle = new Bundle();
-//        bundle.putString("bannerId",bannerId);
-//        bundle.putString("bannerImageUrl",bannerImageUrl);
-//        bundle.putString("bannerTitle",bannerTitle);
-//        intent.putExtras(bundle);
-//        context.startActivity(intent);
-//    }
 
 
     @Override
@@ -116,12 +109,11 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
                 MulAdBean mulAdBean = recommendList.get(position);
                 if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
                     KLog.d("tag -- 广告");
-//                    WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
 
                     //不能用静态方法，导致内存泄漏
                     Intent intent = new Intent(mContext, WebViewActivity.class);
                     Bundle bundle = new Bundle();
-                    bundle.putString("loadUrl", "https://www.baidu.com/");
+                    bundle.putString("loadUrl", mulAdBean.adBean.getLink());
                     intent.putExtras(bundle);
                     mContext.startActivity(intent);
                 }else{
@@ -140,7 +132,7 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
                     Intent intent = new Intent(mContext, DetailActivity.class);
                     Bundle bundle = new Bundle();
                     bundle.putSerializable("bean",bean);
-                    bundle.putSerializable("list",temps);
+                    bundle.putSerializable("list",null);
                     intent.putExtras(bundle);
                     mContext.startActivity(intent);
                 }
@@ -183,7 +175,7 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
                 if(scrollY > mImageViewHeight){
                     headBack.setVisibility(View.VISIBLE);
 
-                    if(scrollY > mImageViewHeight + StringUtils.dp2px(SpecialActivity.this,180)){
+                    if(scrollY > mImageViewHeight + AppHelper.dp2px(SpecialActivity.this,180)){
                         moveTop.setVisibility(View.VISIBLE);
                     }else
                         moveTop.setVisibility(View.GONE);
@@ -228,22 +220,14 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
     protected void initData() {
         mContext = this;
         mBannerId = getIntent().getExtras().getString("bannerId");
-        bannerImageUrl = getIntent().getExtras().getString("bannerImageUrl");
-        bannerTitle = getIntent().getExtras().getString("bannerTitle");
-
-        if(!TextUtils.isEmpty(bannerImageUrl)){
-            //大图
-            Glide.with(MyApplication.getInstance())
-                    .load(bannerImageUrl)
-                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                    .into(imageView);
-        }
-
-        title.setText(bannerTitle);
-
+//        bannerImageUrl = getIntent().getExtras().getString("bannerImageUrl");
+//        bannerTitle = getIntent().getExtras().getString("bannerTitle");
 
         initRecommandRecycleView();
         mPresenter.getRecommendData(mBannerId);
+
+        //TODO 1.11
+//        StatusBarUtil.setTransparentForWindow(this);
     }
 
     private void initRecommandRecycleView() {
@@ -272,12 +256,29 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
 
     @Override
     public void showRecommendData(BannerDetailBean bannerDetailBean,List<MulAdBean> list) {
+        //设置标题
+        title_part2.setText(bannerDetailBean.getTitle());
+        //设置内容
+        content.setText(bannerDetailBean.getComment());
+        //设置标题
+        title.setText(bannerDetailBean.getTitle());
+        //大图
+        if(!TextUtils.isEmpty(bannerDetailBean.getImg_url())){
+
+            Glide.with(MyApplication.getInstance())
+                    .load(bannerDetailBean.getImg_url())
+                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                    .into(imageView);
+        }
+
         this.recommendList = list;
         recomendAdapter.setNewData(recommendList);
         KLog.d("size: " + list.size());
 
         /** 构建临时变量  */
-        temps.addAll(transformDataToWallpaper(list));
+//        temps.addAll(transformDataToWallpaper(list));
+
+        commonDtaLogin(AppConstant.SPECIAL,false,list);
     }
 
 
@@ -286,7 +287,9 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
         recomendAdapter.loadMoreComplete();
         recomendAdapter.addData(list);
 
-        temps.addAll(transformDataToWallpaper(list));
+//        temps.addAll(transformDataToWallpaper(list));
+
+        commonDtaLogin(AppConstant.SPECIAL,true,list);
     }
 
     @Override
@@ -327,32 +330,64 @@ public class SpecialActivity extends BaesLogicActivity<SpecialPresenter>
     }
 
     @Subscribe
-    public void onLoveSpecialEvent(LoveSpecialEvent event){
-        boolean isLove = event.isLove();
-        boolean isReset = event.isReset();
-        int page = event.getPage();
-        if(!isReset){ //不需要更新全体数据
+    public void onEvent(LoveEvent event){
+//        boolean isLove = event.isLove();
+//        boolean isReset = event.isReset();
+//        int page = event.getPage();
+//        if(!isReset){ //不需要更新全体数据
+//            MulAdBean mulAdBean= recommendList.get(event.getPosition());
+//            mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
+//            temps.get(event.getPosition()).setIs_collected(isLove ? "1" : "0");
+//        }else{
+//            temps.addAll(transformDataToWallpaper(event.getMulAdBeanList()));
+//            recomendAdapter.addData(event.getMulAdBeanList());
+//        }
+//
+//        recomendAdapter.notifyDataSetChanged();
+
+        String fromWhere = event.getFromWhere();
+        KLog.d("明细中发送过来的fromWhere是：" + fromWhere);
+        if(fromWhere.equals(AppConstant.SPECIAL)){
+            boolean isLove = event.isLove();
             MulAdBean mulAdBean= recommendList.get(event.getPosition());
             mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
-            temps.get(event.getPosition()).setIs_collected(isLove ? "1" : "0");
-        }else{
-            temps.addAll(transformDataToWallpaper(event.getMulAdBeanList()));
-            recomendAdapter.addData(event.getMulAdBeanList());
-        }
+            recomendAdapter.notifyDataSetChanged();
 
-        recomendAdapter.notifyDataSetChanged();
+            WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpager(mulAdBean.adBean.getId(),AppConstant.SPECIAL);
+            wallpagerBean.setIs_collected(isLove ? "1" : "0");
+            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
+
+        }
     }
 
     /** 主界面喜好修改 temps修改 */
     private void updateLove(int position,boolean isLove) {
 
+//        MulAdBean mulAdBean= recommendList.get(position);
+//        if(isLove){
+//            mulAdBean.adBean.setIs_collected("1");
+//            temps.get(position).setIs_collected("1");
+//        }else{
+//            mulAdBean.adBean.setIs_collected("0");
+//            temps.get(position).setIs_collected("0");
+//        }
+//
+//        recomendAdapter.notifyDataSetChanged();
+
+
         MulAdBean mulAdBean= recommendList.get(position);
         if(isLove){
             mulAdBean.adBean.setIs_collected("1");
-            temps.get(position).setIs_collected("1");
+//            temps.get(position).setIs_collected("1");
+            WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpager(mulAdBean.adBean.getId(),AppConstant.SPECIAL);
+            wallpagerBean.setIs_collected("1");
+            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
         }else{
             mulAdBean.adBean.setIs_collected("0");
-            temps.get(position).setIs_collected("0");
+//            temps.get(position).setIs_collected("0");
+            WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpager(mulAdBean.adBean.getId(),AppConstant.SPECIAL);
+            wallpagerBean.setIs_collected("0");
+            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
         }
 
         recomendAdapter.notifyDataSetChanged();

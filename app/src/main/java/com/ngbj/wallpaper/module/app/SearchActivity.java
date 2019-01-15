@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -35,6 +36,7 @@ import com.ngbj.wallpaper.bean.entityBean.IndexBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.constant.AppConstant;
+import com.ngbj.wallpaper.eventbus.LoveEvent;
 import com.ngbj.wallpaper.eventbus.LoveSearchEvent;
 import com.ngbj.wallpaper.mvp.contract.app.SearchContract;
 import com.ngbj.wallpaper.mvp.presenter.app.SearchPresenter;
@@ -80,6 +82,9 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     @BindView(R.id.part2)
     ConstraintLayout part2;//搜索列表
 
+    @BindView(R.id.move_top)
+    RelativeLayout moveTop;
+
     @BindView(R.id.ad_part)
     ConstraintLayout ad_part;
 
@@ -93,10 +98,7 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     History_Search_Adapter historySearchAdapter;
     List<HistoryBean> historyList = new ArrayList<>();
     List<IndexBean.HotSearch> hotWords = new ArrayList<>();
-    ArrayList<WallpagerBean> temps = new ArrayList<>();//传递给明细界面的数据
-//    ArrayList<WallpagerBean> HotTemps = new ArrayList<>();//传递给明细界面的数据
-//    ArrayList<WallpagerBean> NavigationTemps = new ArrayList<>();//传递给明细界面的数据
-//    ArrayList<WallpagerBean> SearchKeyTemps = new ArrayList<>();//传递给明细界面的数据
+//    ArrayList<WallpagerBean> temps = new ArrayList<>();//传递给明细界面的数据
     List<AdBean> ads = new ArrayList<>();
 
     Context mContext;
@@ -106,18 +108,8 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     String navigationId;//导航栏的Id
     String hotSearchTag;//热搜词
     String loadUrl;//广告的链接
+    String adId;//广告的ID
 
-    /** type -- 来源  navId -- 酷站id  hotSearchTag -- 热搜词 */
-//    public static void openActivity(Context context,int type,String navigationId,
-//                                    String hotSearchTag){
-//        Intent intent = new Intent(context,SearchActivity.class);
-//        Bundle bundle = new Bundle();
-//        bundle.putInt(AppConstant.FROMWHERE,type);
-//        bundle.putString(AppConstant.NAVICATIONID,navigationId);
-//        bundle.putString(AppConstant.HOTSEARCHTAG,hotSearchTag);
-//        intent.putExtras(bundle);
-//        context.startActivity(intent);
-//    }
 
     @Override
     protected int getLayoutId() {
@@ -134,6 +126,7 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
         mContext = this;
         fromWhere = getIntent().getExtras().getInt(AppConstant.FROMWHERE);
         KLog.d("来源是：" + fromWhere);
+
 
         //TODO 通过来源显示不同的界面
         initRefreshLayout();
@@ -156,6 +149,13 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
 
         }
 
+        //TODO 2019.1.10 新增推送逻辑
+        keyWord = getIntent().getExtras().getString("keyword");
+        if(!TextUtils.isEmpty(keyWord)){
+            toSearchKeyWord(AppConstant.FROMINDEX_SEACHER,keyWord);
+            return;
+        }
+
 
     }
 
@@ -167,50 +167,59 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
 
-                MulAdBean mulAdBean = recommendList.get(position);
-                if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
-                    KLog.d("tag -- 广告");
+                MulAdBean mulAdBean = recommendList.get(position);//TODO  测试44
 
+
+                if(mulAdBean.getItemType() == MulAdBean.TYPE_ONE){
+                    if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
+                        KLog.d("tag -- 广告");
+
+                        //TODO 2019.1.10 广告点击统计
+                        KLog.d("广告的Id: " ,mulAdBean.adBean.getAd_id() );
+                        adClickStatistics(mulAdBean.adBean.getAd_id());
+
+                        //不能用静态方法，导致内存泄漏
+                        Intent intent = new Intent(mContext, WebViewActivity.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putString("loadUrl", mulAdBean.adBean.getLink());
+                        intent.putExtras(bundle);
+                        mContext.startActivity(intent);
+
+                    }else{
+
+                        DetailParamBean bean = new DetailParamBean();
+                        bean.setPage(page);
+                        bean.setPosition(position);
+                        bean.setWallpagerId(mulAdBean.adBean.getId());
+                        bean.setFromWhere(AppConstant.SEARCH);
+                        bean.setSearchType(fromWhere);
+                        bean.setKeyWord(keyWord);
+                        bean.setNavigation(navigationId);
+                        bean.setHotSearchTag(hotSearchTag);
+
+                        KLog.d("temps的长度： " + temps.size());
+
+                        //不能用静态方法，导致内存泄漏
+                        Intent intent = new Intent(mContext, DetailActivity.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putSerializable("bean",bean);
+                        bundle.putSerializable("list",null);
+                        intent.putExtras(bundle);
+                        mContext.startActivity(intent);
+                    }
+                }else {
+                    KLog.d("tag -- api广告",mulAdBean.apiAdBean.getLink());
                     //不能用静态方法，导致内存泄漏
+
+                    //TODO 2019.1.9 广告点击统计
+                    KLog.d("广告的Id: " ,mulAdBean.apiAdBean.getAd_id() );
+                    adClickStatistics(mulAdBean.apiAdBean.getAd_id());
+
                     Intent intent = new Intent(mContext, WebViewActivity.class);
                     Bundle bundle = new Bundle();
-                    bundle.putString("loadUrl", "https://www.baidu.com/");
+                    bundle.putString("loadUrl", mulAdBean.apiAdBean.getLink());
                     intent.putExtras(bundle);
                     mContext.startActivity(intent);
-
-                }else{
-                    KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
-
-                    DetailParamBean bean = new DetailParamBean();
-                    bean.setPage(page);
-                    bean.setPosition(position);
-                    bean.setWallpagerId(mulAdBean.adBean.getId());
-                    bean.setFromWhere(AppConstant.SEARCH);
-                    bean.setSearchType(fromWhere);
-                    bean.setKeyWord(keyWord);
-                    bean.setNavigation(navigationId);
-                    bean.setHotSearchTag(hotSearchTag);
-
-//                    DetailActivity.openActivity(mContext,bean,temps);
-
-                    //不能用静态方法，导致内存泄漏
-                    Intent intent = new Intent(mContext, DetailActivity.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putSerializable("bean",bean);
-                    bundle.putSerializable("list",temps);
-                    intent.putExtras(bundle);
-                    mContext.startActivity(intent);
-
-
-//                    if(fromWhere == AppConstant.FROMINDEX_NAVICATION){
-//                        DetailActivity.openActivity(mContext,bean,NavigationTemps);
-//                    }else if(fromWhere == AppConstant.FROMINDEX_HOTSEACHER){
-//                        DetailActivity.openActivity(mContext,bean,HotTemps);
-//                    }else
-//                        DetailActivity.openActivity(mContext,bean,SearchKeyTemps);
-
-
-
                 }
             }
         });
@@ -248,11 +257,10 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
                 KLog.d("选择的标签是：" + hotSearch.getTitle());
 
                 hotSearchTag = hotSearch.getTitle();
-                searchContent(AppConstant.FROMINDEX_HOTSEACHER,hotSearch.getTitle());
 
-                editText.setText(hotSearch.getTitle());
-                part2.setVisibility(View.VISIBLE);
-                part1.setVisibility(View.GONE);
+                toSearchKeyWord(AppConstant.FROMINDEX_HOTSEACHER,hotSearchTag);
+
+
                 return false;
             }
         });
@@ -263,11 +271,9 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 HistoryBean historyBean = historyList.get(position);
                 KLog.d("历史记录：" + historyBean.getHistoryName());
-                searchContent(AppConstant.FROMINDEX_SEACHER,historyBean.getHistoryName());
-                //TODO 打开列表页，隐藏历史记录页
-                editText.setText(historyBean.getHistoryName());
-                part2.setVisibility(View.VISIBLE);
-                part1.setVisibility(View.GONE);
+
+                toSearchKeyWord(AppConstant.FROMINDEX_SEACHER,historyBean.getHistoryName());
+
             }
         });
 
@@ -295,17 +301,10 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
                         return true;
                     }
 
-                    //隐藏软键盘
-                    ((InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE))
-                            .hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),InputMethodManager.HIDE_NOT_ALWAYS);
-
                     KLog.d("搜索内容:" + content);
-                    searchContent(AppConstant.FROMINDEX_SEACHER,content);
 
-                    //TODO 打开列表页，隐藏历史记录页
-                    editText.setText(content);
-                    part2.setVisibility(View.VISIBLE);
-                    part1.setVisibility(View.GONE);
+                    toSearchKeyWord(AppConstant.FROMINDEX_SEACHER,content);
+
                 }
                 return false;
             }
@@ -329,6 +328,38 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
             }
         });
 
+
+        //滑动监听
+        recycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                //做处理
+                if(gridLayoutManager != null){
+                    //当前条目索引 -- 根据索引做显示隐藏判断
+                    int position = gridLayoutManager.findFirstVisibleItemPosition();
+                    if(position > 6){//此postion检测是每一行作为一个position
+                        moveTop.setVisibility(View.VISIBLE);
+                    }else{
+                        moveTop.setVisibility(View.GONE);
+                    }
+                }
+            }
+        });
+
+    }
+
+    //关键字搜索
+    private void toSearchKeyWord(int from,String content) {
+
+        //隐藏软键盘
+        ((InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE))
+                .hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),InputMethodManager.HIDE_NOT_ALWAYS);
+
+        searchContent(from,content);
+        //TODO 打开列表页，隐藏历史记录页
+        editText.setText(content);
+        part2.setVisibility(View.VISIBLE);
+        part1.setVisibility(View.GONE);
     }
 
     private void initHistoryRecycleView() {
@@ -358,6 +389,7 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
         }else{
             AdBean adBean = ads.get(0);
             loadUrl = adBean.getLink();
+            adId = adBean.getId();
             String imgUrl = adBean.getImg_url();
             //头像
             Glide.with(mContext)
@@ -386,9 +418,19 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     }
 
 
+    @OnClick(R.id.move_top)
+    public void MoveTop(){
+        recycler.smoothScrollToPosition(0);
+    }
+
+
+
     @OnClick(R.id.search_ad)
     public void SearchAd(){
-//       KLog.d("点击ad");
+
+        KLog.d("广告的Id: " ,adId);
+        adClickStatistics(adId);
+
         Intent intent = new Intent(mContext, WebViewActivity.class);
         Bundle bundle = new Bundle();
         bundle.putString("loadUrl", loadUrl);
@@ -407,7 +449,7 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     /** 搜索内容 */
     private void searchContent(int fromW,String content){
 
-//        content = "动态";
+//        content = "萌宠";
         keyWord = content;
         fromWhere = fromW;
 
@@ -465,11 +507,11 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
 
 
     @Override
-    public void showRecommendData(List<MulAdBean> recommendList) {
-        this.recommendList = recommendList;
-        recomendAdapter.setNewData(recommendList);
+    public void showRecommendData(List<MulAdBean> list) {
+        this.recommendList = list;
 
-        temps.addAll(transformDataToWallpaper(recommendList));
+        recomendAdapter.setNewData(list);
+        commonDtaLogin(AppConstant.SEARCH,false,list);
     }
 
 
@@ -494,38 +536,24 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     }
 
 
-    @OnClick(R.id.ad_part)
-    public void AdPart(){
-//        KLog.d("点击广告");
-    }
-
-
     /** -- 根据热搜词搜索壁纸 -- */
     @Override
     public void showKeySearchData(List<MulAdBean> list) {
         recommendList = list;
+
         recomendAdapter.setNewData(list);
 
-//        SearchKeyTemps.clear();
-//        SearchKeyTemps.addAll(transformDataToWallpaper(list));
-
-        temps.clear();
-        temps.addAll(transformDataToWallpaper(list));
-
+        commonDtaLogin(AppConstant.SEARCH,false,list);
     }
 
 
 
     @Override
     public void showMoreKeySearchData(List<MulAdBean> list) {
-//        recommendList= list;
         recomendAdapter.loadMoreComplete();
+
         recomendAdapter.addData(list);
-
-
-//        SearchKeyTemps.addAll(transformDataToWallpaper(list));
-
-        temps.addAll(transformDataToWallpaper(list));
+        commonDtaLogin(AppConstant.SEARCH,true,list);
     }
 
 
@@ -533,14 +561,9 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     @Override
     public void showNavigationData(List<MulAdBean> list) {
         recommendList = list;
+
         recomendAdapter.setNewData(list);
-//        insertToSql(1,recommendList,AppConstant.SEARCH);
-
-//        NavigationTemps.clear();
-//        NavigationTemps.addAll(transformDataToWallpaper(list));
-
-        temps.clear();
-        temps.addAll(transformDataToWallpaper(list));
+        commonDtaLogin(AppConstant.SEARCH,false,list);
     }
 
     @Override
@@ -548,10 +571,7 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
 
         recomendAdapter.loadMoreComplete();
         recomendAdapter.addData(list);
-
-//        NavigationTemps.addAll(transformDataToWallpaper(list));
-
-        temps.addAll(transformDataToWallpaper(list));
+        commonDtaLogin(AppConstant.SEARCH,true,list);
 }
 
     /** -- 根据热搜词搜索壁纸 -- */
@@ -560,11 +580,7 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
         recommendList = list;
         recomendAdapter.setNewData(list);
 
-//        HotTemps.clear();
-//        HotTemps.addAll(transformDataToWallpaper(list));
-
-        temps.clear();
-        temps.addAll(transformDataToWallpaper(list));
+        commonDtaLogin(AppConstant.SEARCH,false,list);
     }
 
     @Override
@@ -573,10 +589,7 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
         recomendAdapter.loadMoreComplete();//本次数据加载结束并且还有下页数据
         recomendAdapter.addData(list);
 
-
-//        HotTemps.addAll(transformDataToWallpaper(list));
-
-        temps.addAll(transformDataToWallpaper(list));
+        commonDtaLogin(AppConstant.SEARCH,true,list);
     }
 
     @Override
@@ -640,6 +653,17 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     }
 
 
+    @Override
+    public void showError(String msg) {
+
+        if(mRefresh != null){
+            mRefresh.setRefreshing(false);
+            mIsRefreshing = false;
+        }
+    }
+
+
+
     /** =================== EventBus  开始 =================== */
 
     @Override
@@ -652,23 +676,59 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
     public void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().unregister(this);
+
     }
 
     @Subscribe
-    public void onLoveSearchEvent(LoveSearchEvent event){
-        boolean isLove = event.isLove();
-        boolean isReset = event.isReset();
-        if(!isReset){ //不需要更新全体数据
+    public void onEvent(LoveEvent event){
+
+//        boolean isLove = event.isLove();
+//        boolean isReset = event.isReset();
+//        if(!isReset){ //不需要更新全体数据
+//            MulAdBean mulAdBean= recommendList.get(event.getPosition());
+//            mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
+//            temps.get(event.getPosition()).setIs_collected(isLove ? "1" : "0");
+//        }else{
+//            page = event.getPage();
+//            recomendAdapter.addData(event.getMulAdBeanList());
+//        }
+//
+//        recomendAdapter.notifyDataSetChanged();
+
+
+        String fromWhere = event.getFromWhere();
+        KLog.d("明细中发送过来的fromWhere是：" + fromWhere);
+        if(fromWhere.equals(AppConstant.SEARCH)){
+            boolean isLove = event.isLove();
             MulAdBean mulAdBean= recommendList.get(event.getPosition());
             mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
-            temps.get(event.getPosition()).setIs_collected(isLove ? "1" : "0");
-        }else{
-            page = event.getPage();
-            recomendAdapter.addData(event.getMulAdBeanList());
+            recomendAdapter.notifyDataSetChanged();
+
+            WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpager(mulAdBean.adBean.getId(),AppConstant.SEARCH);
+            wallpagerBean.setIs_collected(isLove ? "1" : "0");
+            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
+
         }
 
-        recomendAdapter.notifyDataSetChanged();
     }
+
+    /** 主界面喜好修改 */
+//    private void updateLove(int position,boolean isLove) {
+//
+//        MulAdBean mulAdBean= recommendList.get(position);
+//        if(isLove){
+//            mulAdBean.adBean.setIs_collected("1");
+//            temps.get(position).setIs_collected("1");
+//        }else{
+//            mulAdBean.adBean.setIs_collected("0");
+//            temps.get(position).setIs_collected("0");
+//        }
+//
+//
+//        recomendAdapter.notifyDataSetChanged();
+//
+//    }
+
 
     /** 主界面喜好修改 */
     private void updateLove(int position,boolean isLove) {
@@ -676,29 +736,27 @@ public class SearchActivity extends BaesLogicActivity<SearchPresenter>
         MulAdBean mulAdBean= recommendList.get(position);
         if(isLove){
             mulAdBean.adBean.setIs_collected("1");
-            temps.get(position).setIs_collected("1");
+//            mHashMap.get(category).get(position).setIs_collected("1");
+            WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpager(mulAdBean.adBean.getId(),AppConstant.SEARCH);
+            wallpagerBean.setIs_collected("1");
+            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
         }else{
             mulAdBean.adBean.setIs_collected("0");
-            temps.get(position).setIs_collected("0");
+//            mHashMap.get(category).get(position).setIs_collected("0");
+            WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpager(mulAdBean.adBean.getId(),AppConstant.SEARCH);
+            wallpagerBean.setIs_collected("0");
+            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
         }
 
 
         recomendAdapter.notifyDataSetChanged();
 
-//        List<WallpagerBean> wallpagerBeanList = MyApplication.getDbManager().queryDifferWPId(mulAdBean.adBean.getId());
-//        for (WallpagerBean wallpagerBean: wallpagerBeanList) {
-//            if(isLove){
-//                wallpagerBean.setIs_collected("1");
-//            }else
-//                wallpagerBean.setIs_collected("0");
-//
-//            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
-//        }
-
     }
 
 
     /** =================== EventBus  结束 =================== */
+
+
 
 
 }

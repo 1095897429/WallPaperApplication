@@ -13,14 +13,17 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.base.BaseActivity;
 import com.socks.library.KLog;
 
 import butterknife.BindView;
+import butterknife.OnClick;
 
 /***
  * 1.定位 -- ok
@@ -33,23 +36,16 @@ public class WebViewActivity extends BaseActivity {
     @BindView(R.id.webview)
     WebView webview;
 
-    @BindView(R.id.webView_ll)
-    LinearLayout mWebViewll;
+
+    @BindView(R.id.move_back)
+    RelativeLayout move_back;
+
 
     @BindView(R.id.progressBar)
     ProgressBar mProgressBar;
 
     WebSettings webSettings;
     String loadUrl;
-
-//    public  void openActivity(Context context, String loadUrl) {
-//        Intent intent = new Intent(context, WebViewActivity.class);
-//        Bundle bundle = new Bundle();
-//        bundle.putString("loadUrl", loadUrl);
-//        intent.putExtras(bundle);
-//        context.startActivity(intent);
-//    }
-
 
     @Override
     protected int getLayoutId() {
@@ -75,6 +71,7 @@ public class WebViewActivity extends BaseActivity {
 
         if(webview != null) {
             webview.stopLoading();
+            webview.clearHistory();
             webview.destroy();
         }
     }
@@ -107,6 +104,7 @@ public class WebViewActivity extends BaseActivity {
                 super.onReceivedTitle(view, title);
             }
 
+
         });
     }
 
@@ -117,15 +115,11 @@ public class WebViewActivity extends BaseActivity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 view.loadUrl(url);//在这里设置对应的操作
-                return false;
+                return true;// false 可以解决由于重定向导致的webview.goback()无法返回的问题
             }
 
             @Override
             public void onReceivedSslError(WebView webView, SslErrorHandler handler, SslError error) {
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//                    webView.getSettings()
-//                            .setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-//                }
 
                 handler.proceed();// 接受所有网站的证书
             }
@@ -179,11 +173,18 @@ public class WebViewActivity extends BaseActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         KLog.i("ansen", "是否有上一个页面:" + webview.canGoBack());
-        if (webview.canGoBack() && keyCode == KeyEvent.KEYCODE_BACK) {//点击返回按钮的时候判断有没有上一页
-            webview.goBack(); // goBack()表示返回webView的上一页面
-            return true;
-        }
+//        if (webview.canGoBack() && keyCode == KeyEvent.KEYCODE_BACK) {//点击返回按钮的时候判断有没有上一页
+//            webview.goBack(); // goBack()表示返回webView的上一页面
+//            return true;
+//        }
         return super.onKeyDown(keyCode, event);
     }
+
+
+    @OnClick(R.id.move_back)
+    public void MoveBack() {
+        finish();
+    }
+
 
 }

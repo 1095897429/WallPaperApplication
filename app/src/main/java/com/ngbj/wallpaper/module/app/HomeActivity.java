@@ -45,6 +45,7 @@ import com.ngbj.wallpaper.service.MyJobService;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.sigmob.windad.WindAdOptions;
 import com.sigmob.windad.WindAds;
+import com.socks.library.KLog;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -74,13 +75,6 @@ public class HomeActivity extends BaseActivity<HomePresenter>
     MyFragment myFragment;
     Fragment currentFragment;
 
-
-//    public static void openActivity(Context context){
-//        Intent intent = new Intent(context,HomeActivity.class);
-//        context.startActivity(intent);
-//    }
-
-
     @Override
     protected int getLayoutId() {
         return R.layout.activity_home;
@@ -93,8 +87,6 @@ public class HomeActivity extends BaseActivity<HomePresenter>
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             openJobService();
-        } else {
-//            openTwoService();
         }
     }
 
@@ -338,4 +330,54 @@ public class HomeActivity extends BaseActivity<HomePresenter>
 
 
 
+    /** =================== 推送参数  =================== */
+
+    private String type;
+    private String param;
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        if(intent.getExtras() != null ){
+            type = intent.getExtras().getString("type");
+            param = intent.getExtras().getString("param");
+
+            if(AppConstant.APPHOME.equals(type)){//啥都不做
+                KLog.d("啥都不做");
+            }else if(AppConstant.APPBANNER.equals(type)){//banner -- id = 4
+
+                Intent toIntent = new Intent(mContext, SpecialActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putString("bannerId",param);
+                toIntent.putExtras(bundle);
+                mContext.startActivity(toIntent);
+
+            }else if(AppConstant.APPNAVICATION.equals(type)){//导航 -- id = 16
+
+                Intent toIntent = new Intent(mContext,SearchActivity.class);
+                Bundle bundle = new Bundle();
+
+                bundle.putInt(AppConstant.FROMWHERE,AppConstant.FROMINDEX_NAVICATION);
+                bundle.putString(AppConstant.NAVICATIONID,param);
+                bundle.putString(AppConstant.HOTSEARCHTAG,"");
+                toIntent.putExtras(bundle);
+                mContext.startActivity(toIntent);
+
+            }else if(AppConstant.APPKEYWORD.equals(type)){//搜索关键字
+
+                Intent toIntent = new Intent(mContext,SearchActivity.class);
+                Bundle bundle = new Bundle();
+
+                bundle.putInt(AppConstant.FROMWHERE,AppConstant.FROMINDEX_SEACHER);
+                bundle.putString(AppConstant.NAVICATIONID,"");
+                bundle.putString(AppConstant.HOTSEARCHTAG,"");
+                bundle.putString("keyword",param);
+                toIntent.putExtras(bundle);
+                mContext.startActivity(toIntent);
+
+            }
+        }
+
+    }
 }

@@ -4,11 +4,13 @@ import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Generated;
 
+import java.io.Serializable;
+
 /***
  * 下载的次数
  */
 @Entity
-public class DownBean {
+public class DownBean implements Serializable {
     @Id
     private Long id;
     private String date;//当日时间
@@ -52,4 +54,6 @@ public class DownBean {
     public void setCount(int count) {
         this.count = count;
     }
+
+
 }

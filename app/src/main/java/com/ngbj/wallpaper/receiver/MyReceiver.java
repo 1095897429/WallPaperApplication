@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import com.google.gson.Gson;
+import com.ngbj.wallpaper.bean.entityBean.JpushExtras;
 import com.ngbj.wallpaper.module.app.HomeActivity;
 import com.socks.library.KLog;
 
@@ -30,30 +32,48 @@ public class MyReceiver extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
 		try {
 			Bundle bundle = intent.getExtras();
-			KLog.d(TAG, "[MyReceiver] onReceive - " + intent.getAction() + ", extras: " + printBundle(bundle));
+//			KLog.d(TAG, "[MyReceiver] onReceive - " + intent.getAction() + ", extras: " + printBundle(bundle));
 
 			if (JPushInterface.ACTION_REGISTRATION_ID.equals(intent.getAction())) {
 				String regId = bundle.getString(JPushInterface.EXTRA_REGISTRATION_ID);
-				KLog.d(TAG, "[MyReceiver] 接收Registration Id : " + regId);
+//				KLog.d(TAG, "[MyReceiver] 接收Registration Id : " + regId);
 				//send the Registration Id to your server...
 
 			} else if (JPushInterface.ACTION_MESSAGE_RECEIVED.equals(intent.getAction())) {
-				KLog.d(TAG, "[MyReceiver] 接收到推送下来的自定义消息: " + bundle.getString(JPushInterface.EXTRA_MESSAGE));
+//				KLog.d(TAG, "[MyReceiver] 接收到推送下来的自定义消息: " + bundle.getString(JPushInterface.EXTRA_MESSAGE));
 
 
 			} else if (JPushInterface.ACTION_NOTIFICATION_RECEIVED.equals(intent.getAction())) {
-				KLog.d(TAG, "[MyReceiver] 接收到推送下来的通知");
+//				KLog.d(TAG, "[MyReceiver] 接收到推送下来的通知");
 				int notifactionId = bundle.getInt(JPushInterface.EXTRA_NOTIFICATION_ID);
-				KLog.d(TAG, "[MyReceiver] 接收到推送下来的通知的ID: " + notifactionId);
+//				KLog.d(TAG, "[MyReceiver] 接收到推送下来的通知的ID: " + notifactionId);
+
+				String content = bundle.getString(JPushInterface.EXTRA_ALERT);//内容
+				KLog.d("接受到推送下来的内容：" , content);
 
 			} else if (JPushInterface.ACTION_NOTIFICATION_OPENED.equals(intent.getAction())) {
 				KLog.d(TAG, "[MyReceiver] 用户点击打开了通知");
+				// type = 1 banner  type = 2 导航  type = 3 关键字  type = 4 首页
+				//{"param":"我是谁","type":"1"}
+				String extras = bundle.getString(JPushInterface.EXTRA_EXTRA);
+				KLog.d("extras:" + extras);
+				String type = "4";
+				String param = "0";
+				if(!TextUtils.isEmpty(extras)){
+					Gson gson = new Gson();
+					JpushExtras jpushExtras = gson.fromJson(extras,JpushExtras.class);
+					type = jpushExtras.getType();
+					param = jpushExtras.getParam();
+				}
 
 				//打开自定义的Activity
 				Intent i = new Intent(context, HomeActivity.class);
-				i.putExtras(bundle);
-				//i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				Bundle b = new Bundle();
+				b.putString("type",type);
+				b.putString("param",param);
+				i.putExtras(b);
 				i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP );
+				i.putExtras(b);
 				context.startActivity(i);
 
 			} else if (JPushInterface.ACTION_RICHPUSH_CALLBACK.equals(intent.getAction())) {
@@ -62,7 +82,7 @@ public class MyReceiver extends BroadcastReceiver {
 
 			} else if(JPushInterface.ACTION_CONNECTION_CHANGE.equals(intent.getAction())) {
 				boolean connected = intent.getBooleanExtra(JPushInterface.EXTRA_CONNECTION_CHANGE, false);
-				KLog.w(TAG, "[MyReceiver]" + intent.getAction() +" connected state change to "+connected);
+//				KLog.w(TAG, "[MyReceiver]" + intent.getAction() +" connected state change to "+connected);
 			} else {
 				KLog.d(TAG, "[MyReceiver] Unhandled intent - " + intent.getAction());
 			}

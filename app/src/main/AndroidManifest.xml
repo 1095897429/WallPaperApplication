@@ -102,7 +102,7 @@
 
 
         <!-- 友盟后台申请的应用Appkey -->
-        <meta-data android:value="5bea861cb465f54c850001be" android:name="UMENG_APPKEY"/>
+        <meta-data android:value="5c18c4adb465f5aeb1000058" android:name="UMENG_APPKEY"/>
 
         <!--百度定位申请的应用Appkey -->
         <meta-data
@@ -186,6 +186,7 @@
         </activity>
 
         <activity android:name=".module.app.SearchActivity"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait">
 
         </activity>
@@ -208,6 +209,11 @@
         </activity>
 
         <activity android:name=".module.app.AboutActivity"
+            android:screenOrientation="portrait">
+
+        </activity>
+
+        <activity android:name=".module.app.NickNameActivity"
             android:screenOrientation="portrait">
 
         </activity>

@@ -32,6 +32,7 @@ public class AdBean implements Parcelable {
     private String begin_time;
     private String end_time;
     private String show_position;
+    private String ad_id;//广告的id
 
     public List<Category> getCategory() {
         return category;
@@ -166,6 +167,15 @@ public class AdBean implements Parcelable {
     }
 
 
+    public String getAd_id() {
+        return ad_id;
+    }
+
+    public void setAd_id(String ad_id) {
+        this.ad_id = ad_id;
+    }
+
+
     @Override
     public int describeContents() {
         return 0;
@@ -182,12 +192,13 @@ public class AdBean implements Parcelable {
         dest.writeString(this.head_img);
         dest.writeString(this.thumb_img_url);
         dest.writeString(this.is_collected);
-        dest.writeList(this.category);
+        dest.writeTypedList(this.category);
         dest.writeString(this.link);
         dest.writeString(this.img_url);
         dest.writeString(this.begin_time);
         dest.writeString(this.end_time);
         dest.writeString(this.show_position);
+        dest.writeString(this.ad_id);
     }
 
     protected AdBean(Parcel in) {
@@ -200,16 +211,16 @@ public class AdBean implements Parcelable {
         this.head_img = in.readString();
         this.thumb_img_url = in.readString();
         this.is_collected = in.readString();
-        this.category = new ArrayList<Category>();
-        in.readList(this.category, Category.class.getClassLoader());
+        this.category = in.createTypedArrayList(Category.CREATOR);
         this.link = in.readString();
         this.img_url = in.readString();
         this.begin_time = in.readString();
         this.end_time = in.readString();
         this.show_position = in.readString();
+        this.ad_id = in.readString();
     }
 
-    public static final Parcelable.Creator<AdBean> CREATOR = new Parcelable.Creator<AdBean>() {
+    public static final Creator<AdBean> CREATOR = new Creator<AdBean>() {
         @Override
         public AdBean createFromParcel(Parcel source) {
             return new AdBean(source);

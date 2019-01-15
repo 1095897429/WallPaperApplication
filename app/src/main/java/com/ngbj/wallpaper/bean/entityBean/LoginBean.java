@@ -4,11 +4,13 @@ import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Generated;
 
+import java.io.Serializable;
+
 /***
  * 登录的信息
  */
 @Entity
-public class LoginBean {
+public class LoginBean implements Serializable {
     @Id
     private Long id;
     private String access_token;
@@ -91,4 +93,6 @@ public class LoginBean {
     public void setId(Long id) {
         this.id = id;
     }
+
+
 }

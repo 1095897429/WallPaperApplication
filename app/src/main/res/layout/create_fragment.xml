@@ -6,4 +6,6 @@
 
  <include layout="@layout/comman_refresh_recycler"></include>
 
+ <include layout="@layout/move_to_layout"></include>
+
 </android.support.constraint.ConstraintLayout>

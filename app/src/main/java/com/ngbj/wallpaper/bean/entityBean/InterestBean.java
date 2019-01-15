@@ -1,7 +1,10 @@
 package com.ngbj.wallpaper.bean.entityBean;
 
 
-public class InterestBean {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class InterestBean implements Parcelable {
 
     private String id;//感兴趣分类id
     private String img_url;
@@ -56,4 +59,39 @@ public class InterestBean {
         this.is_interested = is_interested;
         this.isSelect = isSelect;
     }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.id);
+        dest.writeString(this.img_url);
+        dest.writeString(this.name);
+        dest.writeString(this.is_interested);
+        dest.writeByte(this.isSelect ? (byte) 1 : (byte) 0);
+    }
+
+    protected InterestBean(Parcel in) {
+        this.id = in.readString();
+        this.img_url = in.readString();
+        this.name = in.readString();
+        this.is_interested = in.readString();
+        this.isSelect = in.readByte() != 0;
+    }
+
+    public static final Parcelable.Creator<InterestBean> CREATOR = new Parcelable.Creator<InterestBean>() {
+        @Override
+        public InterestBean createFromParcel(Parcel source) {
+            return new InterestBean(source);
+        }
+
+        @Override
+        public InterestBean[] newArray(int size) {
+            return new InterestBean[size];
+        }
+    };
 }

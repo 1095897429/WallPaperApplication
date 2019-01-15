@@ -19,7 +19,7 @@ import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.category.CategoryNewAdapter;
 import com.ngbj.wallpaper.adapter.category.Category_Top_Adapter;
 import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
-import com.ngbj.wallpaper.base.BaesLogicFragment;
+import com.ngbj.wallpaper.base.BaseFragment;
 import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.InterestBean;
@@ -42,7 +42,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.OnClick;
 
-public class CategoryFragment extends BaesLogicFragment<CategoryPresenter>
+public class CategoryFragment extends BaseFragment<CategoryPresenter>
                 implements CategoryContract.View{
 
     @BindView(R.id.view_pager)
@@ -274,7 +274,7 @@ public class CategoryFragment extends BaesLogicFragment<CategoryPresenter>
 
             @Override
             public void onPageSelected(int position) {
-                KLog.d("position :" + position);
+//                KLog.d("position :" + position);
                 for (InterestBean bean: interestBeanList) {
                     bean.setSelect(false);
                 }

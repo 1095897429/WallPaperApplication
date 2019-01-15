@@ -1,13 +1,20 @@
 package com.ngbj.wallpaper.mvp.presenter.fragment;
 
-import com.ngbj.wallpaper.base.BaseObjectSubscriber;
+import android.widget.Toast;
+
+import com.google.gson.Gson;
+import com.ngbj.wallpaper.base.MyApplication;
+import com.ngbj.wallpaper.base.ResponseSubscriber;
 import com.ngbj.wallpaper.base.RxPresenter;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.bean.entityBean.HttpResponse;
 import com.ngbj.wallpaper.bean.entityBean.IndexBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.mvp.contract.fragment.IndexContract;
 import com.ngbj.wallpaper.network.helper.OkHttpHelper;
 import com.ngbj.wallpaper.network.helper.RetrofitHelper;
+import com.socks.library.KLog;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +23,7 @@ import java.util.List;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 
 public class IndexPresenter extends RxPresenter<IndexContract.View>
         implements IndexContract.Presenter<IndexContract.View> {
@@ -28,16 +36,33 @@ public class IndexPresenter extends RxPresenter<IndexContract.View>
         hashMap.put("wallpaperId",wallpaperId);
         RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
 
+        // TODO 全方位解密测试
         addSubscribe(RetrofitHelper.getApiService()
                 .deleteCollection(requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(String string) {
-                        mView.showDeleteCollection();
+                    public void onSuccess(HttpResponse response) {
+                        KLog.d(response.getCode());
+                        if(response.getCode() == 200){
+                            mView.showDeleteCollection();
+                        }else{
+                            Toast.makeText(MyApplication.getInstance(), response.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }));
+
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .deleteCollection(requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+//                    @Override
+//                    public void onSuccess(String string) {
+//                        mView.showDeleteCollection();
+//                    }
+//                }));
     }
 
 
@@ -51,55 +76,119 @@ public class IndexPresenter extends RxPresenter<IndexContract.View>
         hashMap.put("type",type);
         RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
 
+
+        // TODO 全方位解密测试
         addSubscribe(RetrofitHelper.getApiService()
                 .record(requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(String string) {
-                        mView.showRecordData();
+                    public void onSuccess(HttpResponse response) {
+                        KLog.d(response.getCode());
+                        if(response.getCode() == 200){
+                            mView.showRecordData();
+                        }else{
+                            mView.showError(response.getMessage());
+                        }
                     }
                 }));
+
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .record(requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+//                    @Override
+//                    public void onSuccess(String string) {
+//                        mView.showRecordData();
+//                    }
+//                }));
     }
 
 
     @Override
     public void getAdData(final int page) {
+
+
         addSubscribe(RetrofitHelper.getApiService()
                 .index(page,OkHttpHelper.getRequestBody(null))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseObjectSubscriber<IndexBean>(mView) {
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(IndexBean indexBean) {
+                    public void onSuccess(HttpResponse response) {
+                        KLog.d(response.getCode());
+                        if(response.getCode() == 200){
+                            Gson gson = new Gson();
+                            String result =  gson.toJson(response.getData());
+                            IndexBean indexBean = gson.fromJson(result,IndexBean.class);
+                            List<AdBean> recommendList = indexBean.getRecommend();
 
-                        List<AdBean> recommendList = indexBean.getRecommend();
+                            /** 只有首页第一次加载才获取到上面的数据 */
+                            if(page == 1){
+                                List<IndexBean.HotSearch> hotSearches = indexBean.getHotSearch();
+                                List<IndexBean.Banner> banners = indexBean.getBanner();
+                                List<IndexBean.Navigation> navigations = indexBean.getNavigation();
+                                mView.showAdData(hotSearches,banners,navigations);
+                            }
 
-                        /** 只有首页第一次加载才获取到上面的数据 */
-                        if(page == 1){
-                            List<IndexBean.HotSearch> hotSearches = indexBean.getHotSearch();
-                            List<IndexBean.Banner> banners = indexBean.getBanner();
-                            List<IndexBean.Navigation> navigations = indexBean.getNavigation();
-                            mView.showAdData(hotSearches,banners,navigations);
-                        }
+                            /** 这里转换一下 */
+                            List<MulAdBean> list = getMulAdBeanData(recommendList);
 
-                        /** 这里转换一下 */
-                        List<MulAdBean> list = getMulAdBeanData(recommendList);
-
-                        /** 根据 page判断是否是第一页  */
-                        if(page == 1){
-                            mView.showRecommendData(list);
-                        }else
-                            mView.showMoreRecommendData(list);
+                            /** 根据 page判断是否是第一页  */
+                            if(page == 1){
+                                mView.showRecommendData(list);
+                            }else
+                                mView.showMoreRecommendData(list);
 
 
-                        if(list.isEmpty()){
-                            mView.showEndView();
-                            return;
+                            if(list.isEmpty()){
+                                mView.showEndView();
+                                return;
+                            }
+                        }else{
+                            Toast.makeText(MyApplication.getInstance(), response.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     }
                 }));
+
+
+
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .index(page,OkHttpHelper.getRequestBody(null))
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new BaseObjectSubscriber<IndexBean>(mView) {
+//                    @Override
+//                    public void onSuccess(IndexBean indexBean) {
+//
+//                        List<AdBean> recommendList = indexBean.getRecommend();
+//
+//                        /** 只有首页第一次加载才获取到上面的数据 */
+//                        if(page == 1){
+//                            List<IndexBean.HotSearch> hotSearches = indexBean.getHotSearch();
+//                            List<IndexBean.Banner> banners = indexBean.getBanner();
+//                            List<IndexBean.Navigation> navigations = indexBean.getNavigation();
+//                            mView.showAdData(hotSearches,banners,navigations);
+//                        }
+//
+//                        /** 这里转换一下 */
+//                        List<MulAdBean> list = getMulAdBeanData(recommendList);
+//
+//                        /** 根据 page判断是否是第一页  */
+//                        if(page == 1){
+//                            mView.showRecommendData(list);
+//                        }else
+//                            mView.showMoreRecommendData(list);
+//
+//
+//                        if(list.isEmpty()){
+//                            mView.showEndView();
+//                            return;
+//                        }
+//                    }
+//                }));
     }
 
 

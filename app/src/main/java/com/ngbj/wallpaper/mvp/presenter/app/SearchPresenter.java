@@ -1,22 +1,25 @@
 package com.ngbj.wallpaper.mvp.presenter.app;
 
 import android.annotation.SuppressLint;
+import android.widget.Toast;
 
-import com.ngbj.wallpaper.base.BaseListSubscriber;
-import com.ngbj.wallpaper.base.BaseObjectSubscriber;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.ngbj.wallpaper.base.MyApplication;
+import com.ngbj.wallpaper.base.ResponseSubscriber;
 import com.ngbj.wallpaper.base.RxPresenter;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
-import com.ngbj.wallpaper.bean.entityBean.ApiAdBean;
 import com.ngbj.wallpaper.bean.entityBean.HistoryBean;
+import com.ngbj.wallpaper.bean.entityBean.HttpResponse;
 import com.ngbj.wallpaper.bean.entityBean.IndexBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.bean.entityBean.SearchBean;
-import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.mvp.contract.app.SearchContract;
 import com.ngbj.wallpaper.network.helper.OkHttpHelper;
 import com.ngbj.wallpaper.network.helper.RetrofitHelper;
+import com.socks.library.KLog;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +27,7 @@ import java.util.List;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 
 
 public class SearchPresenter extends RxPresenter<SearchContract.View>
@@ -37,14 +41,31 @@ public class SearchPresenter extends RxPresenter<SearchContract.View>
         hashMap.put("wallpaperId",wallpaperId);
         RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
 
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .deleteCollection(requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+//                    @Override
+//                    public void onSuccess(String string) {
+//                        mView.showDeleteCollection();
+//                    }
+//                }));
+
+        // TODO 全方位解密测试
         addSubscribe(RetrofitHelper.getApiService()
                 .deleteCollection(requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(String string) {
-                        mView.showDeleteCollection();
+                    public void onSuccess(HttpResponse response) {
+                        KLog.d(response.getCode());
+                        if(response.getCode() == 200){
+                            mView.showDeleteCollection();
+                        }else{
+                            Toast.makeText(MyApplication.getInstance(), response.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }));
     }
@@ -60,16 +81,33 @@ public class SearchPresenter extends RxPresenter<SearchContract.View>
         hashMap.put("type",type);
         RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
 
+        // TODO 全方位解密测试
         addSubscribe(RetrofitHelper.getApiService()
                 .record(requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(String string) {
-                        mView.showRecordData();
+                    public void onSuccess(HttpResponse response) {
+                        KLog.d(response.getCode());
+                        if(response.getCode() == 200){
+                            mView.showRecordData();
+                        }else{
+                            mView.showError(response.getMessage());
+                        }
                     }
                 }));
+
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .record(requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+//                    @Override
+//                    public void onSuccess(String string) {
+//                        mView.showRecordData();
+//                    }
+//                }));
     }
 
 
@@ -83,32 +121,72 @@ public class SearchPresenter extends RxPresenter<SearchContract.View>
         hashMap.put("hotSearchTag",hotSearchTag);
         RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
 
+
+
+        // TODO 2019.1.14 全方位解密测试
         addSubscribe(RetrofitHelper.getApiService()
                 .hotSearchList(page,requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseListSubscriber<AdBean>(mView) {
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(List<AdBean> adBeanList) {
+                    public void onSuccess(HttpResponse response) {
+                        KLog.d(response.getCode());
+                        if(response.getCode() == 200){
+                            Gson gson = new Gson();
+                            String result =  gson.toJson(response.getData());
 
-                        /** 这里转换一下 */
-                        List<MulAdBean> list = getMulAdBeanData(adBeanList);
+                            Type type = new TypeToken<List<AdBean>>() {}.getType();
+                            List<AdBean> adBeanList = gson.fromJson(result, type);
+
+                            /** 这里转换一下 */
+                            List<MulAdBean> list = getMulAdBeanData(adBeanList);
 
 
-                        /** 根据 page判断是否是第一页  */
-                        if(page == 1){
-                            mView.showHotSearchData(list);
-                        }else
-                            mView.showMoreHotSearchData(list);
+                            /** 根据 page判断是否是第一页  */
+                            if(page == 1){
+                                mView.showHotSearchData(list);
+                            }else
+                                mView.showMoreHotSearchData(list);
 
 
-                        if(list.isEmpty() ){
-                            mView.showEndView();
-                            return;
+                            if(list.isEmpty() ){
+                                mView.showEndView();
+                                return;
+                            }
+
+                        }else{
+                            Toast.makeText(MyApplication.getInstance(), response.getMessage(), Toast.LENGTH_SHORT).show();
                         }
-
                     }
                 }));
+
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .hotSearchList(page,requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new BaseListSubscriber<AdBean>(mView) {
+//                    @Override
+//                    public void onSuccess(List<AdBean> adBeanList) {
+//
+//                        /** 这里转换一下 */
+//                        List<MulAdBean> list = getMulAdBeanData(adBeanList);
+//
+//
+//                        /** 根据 page判断是否是第一页  */
+//                        if(page == 1){
+//                            mView.showHotSearchData(list);
+//                        }else
+//                            mView.showMoreHotSearchData(list);
+//
+//
+//                        if(list.isEmpty() ){
+//                            mView.showEndView();
+//                            return;
+//                        }
+//
+//                    }
+//                }));
     }
 
     @Override
@@ -126,30 +204,68 @@ public class SearchPresenter extends RxPresenter<SearchContract.View>
         RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
 
 
+        // TODO 2019.1.14 全方位解密测试
         addSubscribe(RetrofitHelper.getApiService()
                 .navigationList(page,requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseListSubscriber<AdBean>(mView) {
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(List<AdBean> adBeanList) {
+                    public void onSuccess(HttpResponse response) {
+                        KLog.d(response.getCode());
+                        if(response.getCode() == 200){
+                            Gson gson = new Gson();
+                            String result =  gson.toJson(response.getData());
 
-                        /** 这里转换一下 */
-                        List<MulAdBean> list = getMulAdBeanData(adBeanList);
+                            Type type = new TypeToken<List<AdBean>>() {}.getType();
+                            List<AdBean> adBeanList = gson.fromJson(result, type);
 
-                        /** 根据 page判断是否是第一页  */
-                        if(page == 1){
-                            mView.showNavigationData(list);
-                        }else
-                            mView.showMoreNavigationData(list);
+                            /** 这里转换一下 */
+                            List<MulAdBean> list = getMulAdBeanData(adBeanList);
 
-                        if(list.isEmpty()){
-                            mView.showEndView();
-                            return;
+                            /** 根据 page判断是否是第一页  */
+                            if(page == 1){
+                                mView.showNavigationData(list);
+                            }else
+                                mView.showMoreNavigationData(list);
+
+                            if(list.isEmpty()){
+                                mView.showEndView();
+                                return;
+                            }
+
+
+                        }else{
+                            Toast.makeText(MyApplication.getInstance(), response.getMessage(), Toast.LENGTH_SHORT).show();
                         }
-
                     }
                 }));
+
+
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .navigationList(page,requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new BaseListSubscriber<AdBean>(mView) {
+//                    @Override
+//                    public void onSuccess(List<AdBean> adBeanList) {
+//
+//                        /** 这里转换一下 */
+//                        List<MulAdBean> list = getMulAdBeanData(adBeanList);
+//
+//                        /** 根据 page判断是否是第一页  */
+//                        if(page == 1){
+//                            mView.showNavigationData(list);
+//                        }else
+//                            mView.showMoreNavigationData(list);
+//
+//                        if(list.isEmpty()){
+//                            mView.showEndView();
+//                            return;
+//                        }
+//
+//                    }
+//                }));
     }
 
     @Override
@@ -166,31 +282,70 @@ public class SearchPresenter extends RxPresenter<SearchContract.View>
         RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
 
 
+
+        // TODO 2019.1.14 全方位解密测试
         addSubscribe(RetrofitHelper.getApiService()
                 .search(page,requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseListSubscriber<AdBean>(mView) {
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(List<AdBean> adBeanList) {
+                    public void onSuccess(HttpResponse response) {
+                        KLog.d(response.getCode());
+                        if(response.getCode() == 200){
+                            Gson gson = new Gson();
+                            String result =  gson.toJson(response.getData());
 
-                        /** 这里转换一下 */
-                        List<MulAdBean> list = getMulAdBeanData(adBeanList);
+                            Type type = new TypeToken<List<AdBean>>() {}.getType();
+                            List<AdBean> adBeanList = gson.fromJson(result, type);
 
-                        /** 根据 page判断是否是第一页  */
-                        if(page == 1){
-                            mView.showKeySearchData(list);
-                        }else
-                            mView.showMoreKeySearchData(list);
+                            /** 这里转换一下 */
+                            List<MulAdBean> list = getMulAdBeanData(adBeanList);
+
+                            /** 根据 page判断是否是第一页  */
+                            if(page == 1){
+                                mView.showKeySearchData(list);
+                            }else
+                                mView.showMoreKeySearchData(list);
 
 
-                        if(list.isEmpty()){
-                            mView.showEndView();
-                            return;
+                            if(list.isEmpty()){
+                                mView.showEndView();
+                                return;
+                            }
+
+
+                        }else{
+                            Toast.makeText(MyApplication.getInstance(), response.getMessage(), Toast.LENGTH_SHORT).show();
                         }
-
                     }
                 }));
+
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .search(page,requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new BaseListSubscriber<AdBean>(mView) {
+//                    @Override
+//                    public void onSuccess(List<AdBean> adBeanList) {
+//
+//                        /** 这里转换一下 */
+//                        List<MulAdBean> list = getMulAdBeanData(adBeanList);
+//
+//                        /** 根据 page判断是否是第一页  */
+//                        if(page == 1){
+//                            mView.showKeySearchData(list);
+//                        }else
+//                            mView.showMoreKeySearchData(list);
+//
+//
+//                        if(list.isEmpty()){
+//                            mView.showEndView();
+//                            return;
+//                        }
+//
+//                    }
+//                }));
     }
 
     @Override
@@ -203,18 +358,41 @@ public class SearchPresenter extends RxPresenter<SearchContract.View>
     @Override
     public void getHotWordsAndAd() {
 
+
+        // TODO 2019.1.14 全方位解密测试
         addSubscribe(RetrofitHelper.getApiService()
                 .searchPage(OkHttpHelper.getRequestBody(null))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseObjectSubscriber<SearchBean>(mView) {
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(SearchBean searchBean) {
-                        List<IndexBean.HotSearch> hotSearches = searchBean.getHotSearch();
-                        List<AdBean> adlist = searchBean.getAd();
-                        mView.showHotWordsAndAd(hotSearches,adlist);
+                    public void onSuccess(HttpResponse response) {
+                        KLog.d(response.getCode());
+                        if(response.getCode() == 200){
+                            Gson gson = new Gson();
+                            String result =  gson.toJson(response.getData());
+                            SearchBean searchBean = gson.fromJson(result,SearchBean.class);
+                            List<IndexBean.HotSearch> hotSearches = searchBean.getHotSearch();
+                            List<AdBean> adlist = searchBean.getAd();
+                            mView.showHotWordsAndAd(hotSearches,adlist);
+                        }else{
+                            Toast.makeText(MyApplication.getInstance(), response.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }));
+
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .searchPage(OkHttpHelper.getRequestBody(null))
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new BaseObjectSubscriber<SearchBean>(mView) {
+//                    @Override
+//                    public void onSuccess(SearchBean searchBean) {
+//                        List<IndexBean.HotSearch> hotSearches = searchBean.getHotSearch();
+//                        List<AdBean> adlist = searchBean.getAd();
+//                        mView.showHotWordsAndAd(hotSearches,adlist);
+//                    }
+//                }));
     }
 
     @Override

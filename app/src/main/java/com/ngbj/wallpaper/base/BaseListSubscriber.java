@@ -35,7 +35,7 @@ public abstract class BaseListSubscriber<T>
     protected void onStart() {
         super.onStart();
         // 判断网络
-        KLog.d("显示对话框");
+//        KLog.d("显示对话框");
     }
 
     /** 连接成功，后台返回数据,接下来走onComplete方法*/
@@ -47,6 +47,7 @@ public abstract class BaseListSubscriber<T>
                 onSuccess(response.getData());
             }
         }else{
+            mView.showError(response.getMessage());
             onFailure(response.getCode(),response.getMessage());
         }
     }
@@ -61,7 +62,8 @@ public abstract class BaseListSubscriber<T>
     @Override
     public void onError(Throwable t) {
         KLog.d("数据返回错误信息 结束对话框");
-        KLog.d("t : " + t.getMessage().toString());
+        KLog.d("t : " + t.getMessage());
+
         if(t instanceof HttpException){ //   HTTP错误
             onException(ExceptionReason.BAD_NETWORK);
         }else if(t instanceof ConnectException
@@ -88,7 +90,11 @@ public abstract class BaseListSubscriber<T>
 
 
     public void onException(ExceptionReason reason) {
+
+        mView.showError("网络连接超时");
+
         switch (reason) {
+
             case CONNECT_ERROR:
                 KLog.d("连接超时");
                 break;

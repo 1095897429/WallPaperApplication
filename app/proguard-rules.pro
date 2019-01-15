@@ -22,7 +22,7 @@
 
 #############################################
 #
-# 对于一些基本指令的添加
+# 对于一些基本指令的添加 -- 公共部分
 #
 #############################################
 -dontwarn
@@ -66,7 +66,7 @@
 
 #############################################
 #
-# Android开发中一些需要保留的公共部分
+# Android开发中一些需要保留的公共部分 -- 默认保留区
 #
 #############################################
 
@@ -120,6 +120,11 @@
     public <init>(android.content.Context, android.util.AttributeSet, int);
 }
 
+-keepclassmembers public class * extends android.view.View {
+   void set*(***);
+   *** get*();
+}
+
 # 保留Parcelable序列化类不被混淆
 -keep class * implements android.os.Parcelable {
     public static final android.os.Parcelable$Creator *;
@@ -156,40 +161,25 @@
     public void *(android.webkit.webView, jav.lang.String);
 }
 
-# 移除Log类打印各个等级日志的代码，打正式包的时候可以做为禁log使用，这里可以作为禁止log打印的功能使用
-# 记得proguard-android.txt中一定不要加-dontoptimize才起作用
-# 另外的一种实现方案是通过BuildConfig.DEBUG的变量来控制
-#-assumenosideeffects class android.util.Log {
-#    public static int v(...);
-#    public static int i(...);
-#    public static int w(...);
-#    public static int d(...);
-#    public static int e(...);
-#}
-
 #############################################
 #
 # 项目中特殊处理部分
 #
 #############################################
 
-#-----------处理反射类---------------
-
-
-
-#-----------处理js交互---------------
-
-
 
 #-----------处理实体类---------------
 # 在开发的时候我们可以将所有的实体类放在一个包内，这样我们写一次混淆就行了。
--keep public class com.dellmac.browser3.bean.** {
+-keep public class com.ngbj.wallpaper.bean.entityBean.** {
     public void set*(***);
     public *** get*();
     public *** is*();
 }
 
 #-----------处理第三方依赖库---------
+
+#FlycoTabLayout  可以混淆
+
 # ButterKnife
 -keep class butterknife.** { *; }
 -dontwarn butterknife.internal.**
@@ -223,12 +213,17 @@
   public *;
 }
 
+# banner 的混淆代码
+-keep class com.youth.banner.** {
+    *;
+ }
+
 # Gson
 -keepattributes Signature
 -keepattributes *Annotation*
 -keep public class com.google.gson.**
 -keep public class com.google.gson.** {public private protected *;}
--keep class com.dellmac.browser3.bean.** { *; }
+-keep class com.ngbj.wallpaper.bean.entityBean.** { *; }
 
 #-keep public class com.project.mocha_patient.login.SignResponseData { private *; }
 -keep class com.project.mocha_patient.login.FindForgotInfoActivity$ForgetResponse {*;}
@@ -257,18 +252,29 @@
 -keepattributes Signature
 -keepattributes Exceptions
 
-# RxJava RxAndroid
-#-dontwarn sun.misc.**
-#-keepclassmembers class rx.internal.util.unsafe.*ArrayQueue*Field* {
-#    long producerIndex;
-#    long consumerIndex;
-#}
-#-keepclassmembers class rx.internal.util.unsafe.BaseLinkedQueueProducerNodeRef {
-#    rx.internal.util.atomic.LinkedQueueNode producerNode;
-#}
-#-keepclassmembers class rx.internal.util.unsafe.BaseLinkedQueueConsumerNodeRef {
-#    rx.internal.util.atomic.LinkedQueueNode consumerNode;
-#}
+#----------- rxjava rxandroid----------------
+-dontwarn sun.misc.**
+-keepclassmembers class rx.internal.util.unsafe.*ArrayQueue*Field* {
+    long producerIndex;
+    long consumerIndex;
+}
+-keepclassmembers class rx.internal.util.unsafe.BaseLinkedQueueProducerNodeRef {
+    rx.internal.util.atomic.LinkedQueueNode producerNode;
+}
+-keepclassmembers class rx.internal.util.unsafe.BaseLinkedQueueConsumerNodeRef {
+    rx.internal.util.atomic.LinkedQueueNode consumerNode;
+}
+-dontnote rx.internal.util.PlatformDependent
+
+#-------------BaseRecyclerViewAdapterHelper--------
+-keep class com.chad.library.adapter.** {
+*;
+}
+-keep public class * extends com.chad.library.adapter.base.BaseQuickAdapter
+-keep public class * extends com.chad.library.adapter.base.BaseViewHolder
+-keepclassmembers  class **$** extends com.chad.library.adapter.base.BaseViewHolder {
+     <init>(...);
+}
 
 # Greendao
 -keep class org.greenrobot.greendao.**{*;}
@@ -293,20 +299,19 @@ public static java.lang.String TABLENAME;
     public static ** valueOf(java.lang.String);
 }
 
--keep public class com.dellmac.browser3.R$*{
+-keep public class com.ngbj.wallpaper.bean.entityBean.R$*{
 public static final int *;
 }
 
 #-keep class com.umeng.commonsdk.** {*;}
 #-keep class com.umeng.commonsdk.** {*;}
 
-#jar包 sdk_HeWeather_Public_Android_V2.0.jar
--ignorewarnings
-#-libraryjars libs/sdk_HeWeather_Public_Android_V2.0.jar
--dontwarn interfaces.heweather.com.**
-
 
 # WindAd
 -keep class sun.misc.Unsafe { *; }
 -dontwarn com.sigmob.**
 -keep class com.sigmob.**.**{*;}
+
+
+#BaiduLbs
+-keep class com.baidu.** { *; }

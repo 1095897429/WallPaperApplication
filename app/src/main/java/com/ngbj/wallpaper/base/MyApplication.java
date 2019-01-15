@@ -6,7 +6,6 @@ import android.support.multidex.MultiDex;
 
 import com.ngbj.wallpaper.bean.greenBeanDao.DBManager;
 import com.ngbj.wallpaper.utils.common.StringUtils;
-import com.squareup.leakcanary.LeakCanary;
 import com.umeng.commonsdk.UMConfigure;
 import com.umeng.socialize.PlatformConfig;
 
@@ -44,15 +43,15 @@ public class MyApplication extends Application {
 
 
         //LeakCanary初始化
-        if (LeakCanary.isInAnalyzerProcess(this)) {
-            return;
-        }
-        LeakCanary.install(this);
+//        if (LeakCanary.isInAnalyzerProcess(this)) {
+//            return;
+//        }
+//        LeakCanary.install(this);
 
 
         //友盟初始化
         String channelName = StringUtils.getChannelFromApk(this,"channel");
-        UMConfigure.init(this,"5bea861cb465f54c850001be",channelName ,UMConfigure.DEVICE_TYPE_PHONE,"");
+        UMConfigure.init(this,"5c18c4adb465f5aeb1000058",channelName ,UMConfigure.DEVICE_TYPE_PHONE,"");
         UMConfigure.setLogEnabled(false);
 
         //DBManager初始化
@@ -90,7 +89,7 @@ public class MyApplication extends Application {
         for (Activity activity: mActivities) {
             activity.finish();
         }
-        android.os.Process.killProcess(android.os.Process.myPid());//杀死该进程
+//        android.os.Process.killProcess(android.os.Process.myPid());//杀死该进程
     }
 
     /** activity集合 结束 */

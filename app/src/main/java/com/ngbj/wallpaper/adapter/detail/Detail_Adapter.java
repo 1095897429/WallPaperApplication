@@ -40,76 +40,24 @@ public class Detail_Adapter extends BaseQuickAdapter<WallpagerBean,BaseViewHolde
 //        KLog.d("进入适配器中 ，缩略图一直显示的--=-=--=-==-=");
 
         if(item.getType().equals(AppConstant.COMMON_WP)){ //静态
-//            helper.getView(R.id.video_view).animate().alpha(0).start();
-//
-//            helper.setVisible(R.id.webview,false);
-//            helper.setVisible(R.id.part2,true);
             commonData(helper,item);
 
         }else if(item.getType().equals(AppConstant.DYMATIC_WP)){//动态
 
-//            if(TextUtils.isEmpty(item.getMovie_url())){
-//                ToastHelper.customToastView(mContext,"视频获取失败，请重新加载");
-//                ((Activity)mContext).finish();
-//                return;
-//            }
-
             helper.getView(R.id.video_view).animate().alpha(1).start();
-//            helper.getView(R.id.video_view).animate().alpha(1).start();
-
-
-//            helper.setVisible(R.id.webview,false);
-//            helper.setVisible(R.id.part2,true);
             commonData(helper,item);
 
 
 
-//            ((VideoView)helper.getView(R.id.video_view)).setVideoPath(item.getMovie_url());
-
-//            SPHelper.put(mContext,"video",item.getMovie_url());//用于系统动态设置
 
         }else if(item.getType().equals(AppConstant.COMMON_AD)){//item 广告
-//            KLog.d("item 广告");
-
-//            helper.setVisible(R.id.webview,true);
-//            helper.setVisible(R.id.part2,false);
-
-            //默认加载为缩略图
-//            Glide.with(MyApplication.getInstance())
-//                    .load(R.mipmap.img_video_1)
-//                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-//                    .centerCrop()
-//                    .crossFade()
-//                    .into((ImageView) helper.getView(R.id.img_thumb));
 
         }else if(item.getType().equals(AppConstant.API_AD)){//Api 广告
-//            KLog.d("Api 广告");
-
-            //默认加载为缩略图
-//            Glide.with(MyApplication.getInstance())
-//                    .load(R.mipmap.img_video_2)
-//                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-//                    .centerCrop()
-//                    .crossFade()
-//                    .into((ImageView) helper.getView(R.id.img_thumb));
         }
     }
 
 
     private  void commonData(BaseViewHolder helper, WallpagerBean item){
-        //大图
-//        if(!TextUtils.isEmpty(item.getImg_url())){
-//            Glide.with(MyApplication.getInstance())
-//                    .load(item.getImg_url())
-//                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-//                    .into((ImageView) helper.getView(R.id.img_all));
-//        }else{
-//            //默认加载为缩略图
-//            Glide.with(MyApplication.getInstance())
-//                    .load(item.getThumb_img_url())
-//                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-//                    .into((ImageView) helper.getView(R.id.img_thumb));
-//        }
 
         //默认加载为缩略图
         Glide.with(MyApplication.getInstance())

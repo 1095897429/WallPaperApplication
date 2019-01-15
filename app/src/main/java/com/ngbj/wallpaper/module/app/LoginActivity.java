@@ -58,16 +58,6 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
     TextView getDone;
 
 
-
-
-//    public static void openActivity(Context context) {
-//        Intent intent = new Intent(context, LoginActivity.class);
-//        Bundle bundle = new Bundle();
-//        intent.putExtras(bundle);
-//        context.startActivity(intent);
-//    }
-
-
     @Override
     protected int getLayoutId() {
         return R.layout.activity_login;
@@ -94,6 +84,15 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
     protected void initPresenter() {
         mPresenter = new LoginPresenter();
     }
+
+
+
+
+    @OnClick(R.id.safe_txt)
+    public void SafeTxt(){
+        startActivity(new Intent(this,SafeActivity.class));
+    }
+
 
 
 
@@ -146,7 +145,7 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
             return false;
         }
         if(codeNum.length() != 4){
-            Toast.makeText(this,"输入的验证码数位不正确",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"输入的验证码位数不正确",Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;
@@ -166,7 +165,7 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
 
         Intent intent = new Intent(mContext, HomeActivity.class);
         mContext.startActivity(intent);
-
+        //登录成功后发送的事件
         EventBus.getDefault().post(new LoginSuccessEvent(loginBean));
     }
 
@@ -229,20 +228,6 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
         return false;
     }
 
-    /** 检测是否安装微信 */
-    public static boolean isWxInstall(Context context) {
-        final PackageManager packageManager = context.getPackageManager();// 获取packagemanager
-        List<PackageInfo> pinfo = packageManager.getInstalledPackages(0);// 获取所有已安装程序的包信息
-        if (pinfo != null) {
-            for (int i = 0; i < pinfo.size(); i++) {
-                String pn = pinfo.get(i).packageName;
-                if (pn.equals("com.tencent.mm")) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 
     public static boolean isWBInstall(Context context) {
         final PackageManager packageManager = context.getPackageManager();// 获取packagemanager
@@ -335,6 +320,10 @@ public class LoginActivity extends BaseActivity<LoginPresenter>
     protected void onDestroy() {
         super.onDestroy();
         UMShareAPI.get(this).release();//防止内存泄漏
-        mCountDownTimer = null;
+
+        if(mCountDownTimer != null){
+            mCountDownTimer.cancel();
+            mCountDownTimer = null;
+        }
     }
 }

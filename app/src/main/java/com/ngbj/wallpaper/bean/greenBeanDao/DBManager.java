@@ -7,6 +7,7 @@ import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.DownBean;
 import com.ngbj.wallpaper.bean.entityBean.HistoryBean;
 import com.ngbj.wallpaper.bean.entityBean.LoginBean;
+import com.ngbj.wallpaper.bean.entityBean.StatisticsBean;
 import com.ngbj.wallpaper.bean.entityBean.TestBean;
 import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 
@@ -203,6 +204,7 @@ public class DBManager {
         historyDataDao.deleteAll();
     }
 
+
     /** 查询一条壁纸记录 */
     public WallpagerBean queryWallpagerBean(String wallpaperId) {
         DaoMaster daoMaster = new DaoMaster(getReadableDatabase());
@@ -350,8 +352,6 @@ public class DBManager {
 
     /** ========================= 登录  结束================================================== */
 
-    /** =========================   开始================================================== */
-
     /** 插入一条用户记录 */
     public void insertTestBean(TestBean testBean) {
         DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
@@ -389,6 +389,39 @@ public class DBManager {
 
 
     /** ========================= 登录  结束================================================== */
+
+
+
+    /** ========================= 用户点击广告数  开始================================================== */
+
+    /** 插入一条记录 */
+    public void insertStatisticsBean(StatisticsBean statisticsBean) {
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        StatisticsBeanDao userDao = daoSession.getStatisticsBeanDao();
+        userDao.insert(statisticsBean);
+    }
+
+    /** 更新一条记录 */
+    public void updateStatisticsBean(StatisticsBean statisticsBean) {
+        DaoMaster daoMaster = new DaoMaster(getWritableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        StatisticsBeanDao downBeanDao = daoSession.getStatisticsBeanDao();
+        downBeanDao.update(statisticsBean);
+    }
+
+
+    /** 查询一条记录 */
+    public StatisticsBean queryStatisticsBean(String adId) {
+        DaoMaster daoMaster = new DaoMaster(getReadableDatabase());
+        DaoSession daoSession = daoMaster.newSession();
+        StatisticsBeanDao userDao = daoSession.getStatisticsBeanDao();
+        StatisticsBean bean = userDao.queryBuilder().where(StatisticsBeanDao.Properties.Ad_id.eq(adId)).unique();
+        return bean;
+    }
+
+    /** ========================= 用户点击广告数  结束================================================== */
+
 
 
 

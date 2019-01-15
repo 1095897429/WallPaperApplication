@@ -35,14 +35,14 @@ public class MyCommonAdapter extends BaseQuickAdapter<MulAdBean,BaseViewHolder> 
 
             Glide.with(mContext)
                     .load(adBean.getThumb_img_url())
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                    .placeholder(R.mipmap.default_loading)
                     .centerCrop()
                     .crossFade()
-                    .transform(new GlideRoundTransform(mContext,5))
+                    .transform(new GlideRoundTransform(mContext,8))
                     .into((ImageView) holder.getView(R.id.imageView));
 
-        }else
-            holder.setImageResource(R.id.imageView,R.mipmap.release_image);
+        }
 
 
 
@@ -58,6 +58,7 @@ public class MyCommonAdapter extends BaseQuickAdapter<MulAdBean,BaseViewHolder> 
                             mContext.getResources().getColor(R.color.item_bottom_color)))
                     .transform(new GlideCircleTransform(mContext))
                     .into((ImageView) holder.getView(R.id.author_icon));
+
         } else {
             holder.setImageResource(R.id.author_icon,R.mipmap.author_head);
         }

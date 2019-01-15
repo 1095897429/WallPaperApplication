@@ -4,29 +4,21 @@ import android.annotation.SuppressLint;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.ngbj.wallpaper.base.BaseObjectSubscriber;
 import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.base.ResponseSubscriber;
 import com.ngbj.wallpaper.base.RxPresenter;
-import com.ngbj.wallpaper.bean.entityBean.InitUserBean;
+import com.ngbj.wallpaper.bean.entityBean.HttpResponse;
 import com.ngbj.wallpaper.bean.entityBean.LoginBean;
-import com.ngbj.wallpaper.bean.entityBean.VerCodeBean;
 import com.ngbj.wallpaper.mvp.contract.app.LoginContract;
 import com.ngbj.wallpaper.network.helper.OkHttpHelper;
 import com.ngbj.wallpaper.network.helper.RetrofitHelper;
-import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.socks.library.KLog;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
-import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 
@@ -42,16 +34,38 @@ public class LoginPresenter extends RxPresenter<LoginContract.View>
 
         RequestBody requestBody = OkHttpHelper.getRequestBody(map);
 
+
+
+        // TODO 全方位解密测试
         addSubscribe(RetrofitHelper.getApiService()
                 .thirdPlatLogin(requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseObjectSubscriber<LoginBean>(mView) {
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(LoginBean loginBean) {
-                        mView.showThridData(loginBean);
+                    public void onSuccess(HttpResponse response) {
+                        if(response.getCode() == 200){
+                            Gson gson = new Gson();
+                            String result =  gson.toJson(response.getData());
+                            LoginBean loginBean = gson.fromJson(result,LoginBean.class);
+                            mView.showThridData(loginBean);
+                        }else{
+                            mView.showError(response.getMessage());
+                        }
                     }
                 }));
+
+
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .thirdPlatLogin(requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new BaseObjectSubscriber<LoginBean>(mView) {
+//                    @Override
+//                    public void onSuccess(LoginBean loginBean) {
+//                        mView.showThridData(loginBean);
+//                    }
+//                }));
     }
 
 
@@ -65,31 +79,50 @@ public class LoginPresenter extends RxPresenter<LoginContract.View>
         hashMap.put("mobile",phone);
         RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
 
+
+        // TODO 全方位解密测试
         addSubscribe(RetrofitHelper.getApiService()
                 .sendMobileCode(requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new ResponseSubscriber<ResponseBody>() {
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(ResponseBody body) {
-
-                        String jsongString ;
-                        try {
-                            jsongString = body.string();
-                            JSONObject jsonObject =  new JSONObject(jsongString);
-                            int code = jsonObject.optInt("code");
-                            String msg = jsonObject.optString("message");
-                            if(200 == code){
-                                mView.showVerCodeData();
-                            }else
-                                Toast.makeText(MyApplication.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                    public void onSuccess(HttpResponse response) {
+                        KLog.d(response.getCode());
+                        if(response.getCode() == 200){
+                            mView.showVerCodeData();
+                        }else{
+//                            mView.showError(response.getMessage());
+                            Toast.makeText(MyApplication.getInstance(), response.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     }
                 }));
+
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .sendMobileCode(requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new ResponseSubscriber<ResponseBody>() {
+//                    @Override
+//                    public void onSuccess(ResponseBody body) {
+//
+//                        String jsongString ;
+//                        try {
+//                            jsongString = body.string();
+//                            JSONObject jsonObject =  new JSONObject(jsongString);
+//                            int code = jsonObject.optInt("code");
+//                            String msg = jsonObject.optString("message");
+//                            if(200 == code){
+//                                mView.showVerCodeData();
+//                            }else
+//                                Toast.makeText(MyApplication.getInstance(), msg, Toast.LENGTH_SHORT).show();
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        } catch (JSONException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                }));
     }
 
 
@@ -104,34 +137,58 @@ public class LoginPresenter extends RxPresenter<LoginContract.View>
         RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
 
 
+        // TODO 全方位解密测试
         addSubscribe(RetrofitHelper.getApiService()
                 .loginPhone(requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new ResponseSubscriber<ResponseBody>() {
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(ResponseBody body) {
-                        String jsongString ;
-                        try {
-                            jsongString = body.string();
-                            JSONObject jsonObject =  new JSONObject(jsongString);
-                            int code = jsonObject.optInt("code");
-                            String msg = jsonObject.optString("message");
-                            if(200 == code){
-                                JSONObject data = jsonObject.optJSONObject("data");
-                                Gson gson = new Gson();
-                                LoginBean loginBean = gson.fromJson(data.toString(),LoginBean.class);
-                                mView.showLoginData(loginBean);
-                            }else
-                                Toast.makeText(MyApplication.getInstance(), msg, Toast.LENGTH_SHORT).show();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                    public void onSuccess(HttpResponse response) {
+                        KLog.d(response.getCode());
+                        if(response.getCode() == 200){
+                            Gson gson = new Gson();
+                            String result =  gson.toJson(response.getData());
+                            LoginBean loginBean = gson.fromJson(result,LoginBean.class);
+                            mView.showLoginData(loginBean);
+                        }else{
+                            Toast.makeText(MyApplication.getInstance(), response.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     }
-
                 }));
+
+
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .loginPhone(requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new ResponseSubscriber<ResponseBody>() {
+//                    @Override
+//                    public void onSuccess(ResponseBody body) {
+//                        String jsongString ;
+//                        try {
+//                            jsongString = body.string();
+//                            JSONObject jsonObject =  new JSONObject(jsongString);
+//                            int code = jsonObject.optInt("code");
+//                            String msg = jsonObject.optString("message");
+//                            if(200 == code){
+//                                JSONObject data = jsonObject.optJSONObject("data");
+//                                Gson gson = new Gson();
+//                                LoginBean loginBean = gson.fromJson(data.toString(),LoginBean.class);
+//                                mView.showLoginData(loginBean);
+//                            }else
+//                                Toast.makeText(MyApplication.getInstance(), msg, Toast.LENGTH_SHORT).show();
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        } catch (JSONException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//
+//                }));
+
+
+
     }
 
 

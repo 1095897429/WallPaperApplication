@@ -11,7 +11,12 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.ngbj.wallpaper.R;
+import com.ngbj.wallpaper.base.MyApplication;
+import com.ngbj.wallpaper.bean.entityBean.AdBean;
+import com.ngbj.wallpaper.utils.widget.GlideRoundTransform;
 
 /***
  * 广告下载弹出框
@@ -24,6 +29,7 @@ public class AdShowDialog {
     private Display display;
     private ImageView mImageView;
     private TextView mTextView;
+    private AdBean mAdBean;
 
     public AdShowDialog(Context context) {
         this.context = context;
@@ -52,7 +58,10 @@ public class AdShowDialog {
         return this;
     }
 
-
+    public AdShowDialog  setAdBean(AdBean adBean){
+        mAdBean = adBean;
+        return this;
+    }
 
 
     public AdShowDialog setCancelable(boolean cancel) {
@@ -86,8 +95,34 @@ public class AdShowDialog {
     }
 
 
+    public AdShowDialog setImageViewListener( final View.OnClickListener listener) {
+
+        mImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (listener != null) {
+                    listener.onClick(v);
+                }
+                dialog.dismiss();
+            }
+        });
+
+        return this;
+    }
+
+
 
     private void setLayout() {
+        if(mAdBean != null){
+            Glide.with(MyApplication.getInstance())
+                    .load(mAdBean.getImg_url())
+                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                    .placeholder(R.mipmap.dialog_ad)
+                    .centerCrop()
+                    .crossFade()
+                    .into(mImageView);
+        }
+
 
     }
 

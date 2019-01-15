@@ -1,7 +1,10 @@
 package com.ngbj.wallpaper.bean.entityBean;
 
 
-public class UploadTagBean {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class UploadTagBean implements Parcelable {
 
     private String name;
     private String tagId;//标签的ID
@@ -39,4 +42,35 @@ public class UploadTagBean {
         this.name = name;
         this.isSelect = isSelect;
     }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.name);
+        dest.writeString(this.tagId);
+        dest.writeByte(this.isSelect ? (byte) 1 : (byte) 0);
+    }
+
+    protected UploadTagBean(Parcel in) {
+        this.name = in.readString();
+        this.tagId = in.readString();
+        this.isSelect = in.readByte() != 0;
+    }
+
+    public static final Parcelable.Creator<UploadTagBean> CREATOR = new Parcelable.Creator<UploadTagBean>() {
+        @Override
+        public UploadTagBean createFromParcel(Parcel source) {
+            return new UploadTagBean(source);
+        }
+
+        @Override
+        public UploadTagBean[] newArray(int size) {
+            return new UploadTagBean[size];
+        }
+    };
 }

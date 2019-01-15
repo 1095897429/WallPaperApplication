@@ -4,7 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.RelativeLayout;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.ngbj.wallpaper.R;
@@ -18,6 +20,7 @@ import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.eventbus.LoveCreateEvent;
+import com.ngbj.wallpaper.eventbus.LoveEvent;
 import com.ngbj.wallpaper.module.app.DetailActivity;
 import com.ngbj.wallpaper.module.app.WebViewActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.MyContract;
@@ -32,6 +35,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.OnClick;
+
 /***
  * 创作Fragment
  */
@@ -42,9 +48,8 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,MulAdBean>
     MyCommonAdapter myCommonAdapter;
     GridLayoutManager gridLayoutManager;
     String mType;
-    String fromWhere = "";//来源
 
-    ArrayList<WallpagerBean> temps = new ArrayList<>();//传递给明细界面的数据
+
     HashMap<String ,ArrayList<WallpagerBean>> mHashMap = new HashMap<>();//key -- category  value -- list
 
 
@@ -95,38 +100,30 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,MulAdBean>
 
                     if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
                         KLog.d("tag -- 广告");
-//                        WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+
+                        //TODO 2019.1.9 广告点击统计
+                        KLog.d("广告的Id: " ,mulAdBean.adBean.getAd_id() );
+                        adClickStatistics(mulAdBean.adBean.getAd_id());
 
                         //不能用静态方法，导致内存泄漏
                         Intent intent = new Intent(mContext, WebViewActivity.class);
                         Bundle bundle = new Bundle();
-                        bundle.putString("loadUrl", "https://www.baidu.com/");
+                        bundle.putString("loadUrl", mulAdBean.adBean.getLink());
                         intent.putExtras(bundle);
                         mContext.startActivity(intent);
                     }else{
                         KLog.d("tag -- 正常",recommendList.get(position).adBean.getTitle());
 
 
-//                        if(AppConstant.COLLECTION.equals(mType)){
-//                            fromWhere = AppConstant.MY_2;
-//                        }else if(AppConstant.SHARE.equals(mType)){
-//                            fromWhere = AppConstant.MY_3;
-//                        }else if(AppConstant.DOWNLOAD.equals(mType)){
-//                            fromWhere = AppConstant.MY_4;
-//                        }
-
-
-
                         DetailParamBean bean = new DetailParamBean();
                         bean.setPage(1);
                         bean.setPosition(position);
                         bean.setWallpagerId(mulAdBean.adBean.getId());
-                        bean.setFromWhere(AppConstant.MY_1);
+                        bean.setFromWhere(AppConstant.FRAGMENT_MY + mType);
 
                         //从不同的集合中获取
                         ArrayList<WallpagerBean> mytemp = mHashMap.get(mType);
 
-//                        DetailActivity.openActivity(mContext,bean,mytemp);
 
                         //不能用静态方法，导致内存泄漏
                         Intent intent = new Intent(mContext, DetailActivity.class);
@@ -139,7 +136,8 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,MulAdBean>
                     }
 
                 }else {
-                    KLog.d("tag -- 广告",recommendList.get(position).apiAdBean.getName());
+
+
                 }
 
             }
@@ -166,15 +164,15 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,MulAdBean>
                 myCommonAdapter.notifyDataSetChanged();
             }
         });
+
     }
+
 
 
     @Override
     protected void lazyAgainLoadData() {
         mPresenter.getRecord(mType);
     }
-
-
 
     @Override
     public void showUploadHistory(List<MulAdBean> list) {
@@ -239,14 +237,28 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,MulAdBean>
 
 
     @Subscribe
-    public void onLoveCreateEvent(LoveCreateEvent event){
-        boolean isLove = event.isLove();
-        int position = event.getPosition();
-        MulAdBean mulAdBean= recommendList.get(position);
-        mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
-        mHashMap.get(mType).get(position).setIs_collected(isLove ? "1" : "0");
+    public void onEvent(LoveEvent event){
+//        boolean isLove = event.isLove();
+//        int position = event.getPosition();
+//        MulAdBean mulAdBean= recommendList.get(position);
+//        mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
+//        mHashMap.get(mType).get(position).setIs_collected(isLove ? "1" : "0");
+//
+//        myCommonAdapter.notifyDataSetChanged();
 
-        myCommonAdapter.notifyDataSetChanged();
+        String fromWhere = event.getFromWhere();
+        KLog.d("明细中发送过来的fromWhere是：" + fromWhere);
+        if(fromWhere.equals(AppConstant.FRAGMENT_MY + mType)){
+            boolean isLove = event.isLove();
+            MulAdBean mulAdBean= recommendList.get(event.getPosition());
+            mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
+            myCommonAdapter.notifyDataSetChanged();
+//
+//            WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpager(mulAdBean.adBean.getId(),AppConstant.CATEGORY + category);
+//            wallpagerBean.setIs_collected(isLove ? "1" : "0");
+//            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
+
+        }
 
     }
 
@@ -264,42 +276,13 @@ public class CreateFragment extends BaseRefreshFragment<MyPresenter,MulAdBean>
             mHashMap.get(mType).get(position).setIs_collected("0");
         }
 
-
         myCommonAdapter.notifyDataSetChanged();
 
-//        List<WallpagerBean> wallpagerBeanList = MyApplication.getDbManager().queryDifferWPId(mulAdBean.adBean.getId());
-//        for (WallpagerBean wallpagerBean: wallpagerBeanList) {
-//            if(isLove){
-//                wallpagerBean.setIs_collected("1");
-//            }else
-//                wallpagerBean.setIs_collected("0");
-//
-//            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
-//        }
     }
 
 
     /** =================== EventBus  结束 =================== */
 
-
-
-
-
-    /** 隐藏加载进度框 */
-//    @Override
-//    public void complete() {
-//
-//        if(mRefresh != null)
-//            mRefresh.setRefreshing(false);
-//
-//        if(mIsRefreshing){
-//            if(recommendList != null && !recommendList.isEmpty()){
-//                recommendList.clear();
-//                KLog.d("刷新成功");
-//            }
-//        }
-//        mIsRefreshing = false;
-//    }
 
 
 }

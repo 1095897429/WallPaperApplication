@@ -18,7 +18,9 @@ import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.eventbus.LoveCreateEvent;
+import com.ngbj.wallpaper.eventbus.LoveEvent;
 import com.ngbj.wallpaper.eventbus.LoveUploadWorksEvent;
+import com.ngbj.wallpaper.eventbus.fragment.ExitRefreshEvent;
 import com.ngbj.wallpaper.module.app.DetailActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.MyContract;
 import com.ngbj.wallpaper.mvp.presenter.fragment.MyPresenter;
@@ -134,13 +136,17 @@ public class UploadHistoryFragment extends BaseRefreshFragment<MyPresenter,MulAd
 
     @Override
     protected void lazyAgainLoadData() {
-
         LoginBean bean = MyApplication.getDbManager().queryLoginBean();
         if(null != bean){
             String accessToken = bean.getAccess_token();
             mPresenter.getUploadHistory(accessToken);
-        }else
+        }else{
+            recommendList.clear();
+            temps.clear();
+            myCommonAdapter.setNewData(recommendList);
             complete();
+        }
+
 
     }
 
@@ -187,6 +193,13 @@ public class UploadHistoryFragment extends BaseRefreshFragment<MyPresenter,MulAd
         KLog.d("what the fucking thing");
     }
 
+    @Override
+    public void showError(String msg) {
+        KLog.d("msg",msg);
+        if(myCommonAdapter.isLoadMoreEnable())
+            myCommonAdapter.loadMoreFail();
+    }
+
     /** =================== EventBus  开始 =================== */
 
     @Override
@@ -201,14 +214,36 @@ public class UploadHistoryFragment extends BaseRefreshFragment<MyPresenter,MulAd
         EventBus.getDefault().unregister(this);
     }
 
+
+    /** 退出登录的时候 刷新 */
     @Subscribe
-    public void onLoveUploadWorksEvent(LoveUploadWorksEvent event){
-        boolean isLove = event.isLove();
-        int position = event.getPosition();
-        MulAdBean mulAdBean= recommendList.get(position);
-        mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
-        temps.get(event.getPosition()).setIs_collected(isLove ? "1" : "0");
-        myCommonAdapter.notifyDataSetChanged();
+    public void onExitRefreshEvent(ExitRefreshEvent event){
+        lazyAgainLoadData();
+    }
+
+
+    @Subscribe
+    public void onEvent(LoveEvent event){
+//        boolean isLove = event.isLove();
+//        int position = event.getPosition();
+//        MulAdBean mulAdBean= recommendList.get(position);
+//        mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
+//        temps.get(event.getPosition()).setIs_collected(isLove ? "1" : "0");
+//        myCommonAdapter.notifyDataSetChanged();
+
+        String fromWhere = event.getFromWhere();
+        KLog.d("明细中发送过来的fromWhere是：" + fromWhere);
+        if(fromWhere.equals(AppConstant.MY_UPLOAD_WORKD)){
+            boolean isLove = event.isLove();
+            MulAdBean mulAdBean= recommendList.get(event.getPosition());
+            mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
+            myCommonAdapter.notifyDataSetChanged();
+
+//            WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpager(mulAdBean.adBean.getId(),AppConstant.SPECIAL);
+//            wallpagerBean.setIs_collected(isLove ? "1" : "0");
+//            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
+
+        }
     }
 
     /** 主界面喜好修改 */
@@ -226,15 +261,6 @@ public class UploadHistoryFragment extends BaseRefreshFragment<MyPresenter,MulAd
 
         myCommonAdapter.notifyDataSetChanged();
 
-//        List<WallpagerBean> wallpagerBeanList = MyApplication.getDbManager().queryDifferWPId(mulAdBean.adBean.getId());
-//        for (WallpagerBean wallpagerBean: wallpagerBeanList) {
-//            if(isLove){
-//                wallpagerBean.setIs_collected("1");
-//            }else
-//                wallpagerBean.setIs_collected("0");
-//
-//            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
-//        }
     }
 
 

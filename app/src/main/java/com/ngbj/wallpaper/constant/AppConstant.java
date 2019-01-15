@@ -9,23 +9,21 @@ public class AppConstant {
     public static String SecretKey = "4Y5wq6L5PfkmdTWydcZzgLj70mG_bBN5j9kDuVPq";//七牛云的SecretKey
 
     //正式
-//    public static String APPID = "1307";//WindSDK
-//    public static String APPKEY = "66c4a117090e24d0";//WindSDK
-//    public static String PLACEMENTID = "e0fb9aca84d";//WindSDK
+    public static String APPID = "1307";//WindSDK
+    public static String APPKEY = "66c4a117090e24d0";//WindSDK
+    public static String PLACEMENTID = "e0fb9aca84d";//WindSDK
 
     //测试
-    public static String APPID = "1282";//测试 WindSDK
-    public static String APPKEY = "27531c7c64157934";//测试 WindSDK
-    public static String PLACEMENTID = "e01480dcea2";//测试 WindSDK
+//    public static String APPID = "1282";//测试 WindSDK
+//    public static String APPKEY = "27531c7c64157934";//测试 WindSDK
+//    public static String PLACEMENTID = "e01480dcea2";//测试 WindSDK
 
     public static String COMMON_AD = "0";//列表项广告
     public static String COMMON_WP = "1";//静态壁纸
     public static String DYMATIC_WP = "2";//动态壁纸
     public static String API_AD = "3";//api广告
 
-//    public static String ACCESSTOKEN = "accesstoken";//xml的遍历
     public static String ISFRISTCOME  = "isFristCome";//是否首次登陆
-//    public static String ISLOGIN  = "isLogin";//是否已登陆
     public static String ISCLEARCACHE  = "isClearCache";//是否已清除缓存
 
     public static String FROMWHERE = "fromwhere";//跳转到搜索界面的来源
@@ -39,7 +37,11 @@ public class AppConstant {
     public static int PAGESIZE = 19;//数据每次加载最大限制数
 
     public static String INDEX = "0";//来自于首页
-    public static String CATEGORY = "1";//来自于分类
+    public static String CATEGORY = "Category";//来自于分类
+    public static String CATEGORY_NEW_NEW_NEW= "NEW";//最新
+    public static String CATEGORY_NEW_HOT_TEST = "NEWHOT";//最热 -- 最新最热
+    public static String FRAGMENT_MY = "FRAGMENTMY";//下载 分享 收藏
+
     public static String CATEGORY_NEW = "7";//来自于分类中的子项
     public static String CATEGORY_NEW_HOT = "8";//来自于最新最热
 
@@ -57,6 +59,18 @@ public class AppConstant {
     public static String SHARE = "3";//分享
     public static String DOWNLOAD = "1";//下载
 
+
+    public static String AdClickEvent = "AdClickEvent";//广告点击事件
+    public static String AdUserClickCount = "AdUserClickCount";//广告用户点击数
+
+
+    public static String YUMING = "http://qn.bslwallpaper.top/";//上传图片地址
+
+
+    public static String APPBANNER = "1";
+    public static String APPNAVICATION = "2";
+    public static String APPKEYWORD = "3";
+    public static String APPHOME = "4";
 
 
 }

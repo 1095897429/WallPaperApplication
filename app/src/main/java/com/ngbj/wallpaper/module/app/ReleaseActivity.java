@@ -26,7 +26,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ngbj.wallpaper.R;
-import com.ngbj.wallpaper.base.BaesLogicActivity;
 import com.ngbj.wallpaper.base.BaseActivity;
 import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.InterestBean;
@@ -36,14 +35,12 @@ import com.ngbj.wallpaper.bean.entityBean.UploadTokenBean;
 import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.dialog.BottomAlertDialog;
 import com.ngbj.wallpaper.dialog.HeadAlertDialog;
+import com.ngbj.wallpaper.dialog.LoadingDialog;
 import com.ngbj.wallpaper.eventbus.TagPositionEvent;
 import com.ngbj.wallpaper.mvp.contract.app.ReleaseContract;
 import com.ngbj.wallpaper.mvp.presenter.app.ReleasePresenter;
 import com.ngbj.wallpaper.utils.common.PicPathHelper;
-import com.ngbj.wallpaper.utils.common.RegexUtils;
-import com.ngbj.wallpaper.utils.common.SPHelper;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
-import com.ngbj.wallpaper.utils.qiniu.Auth;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
@@ -59,9 +56,8 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,13 +92,8 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
 
     String token;//上传的token
     String title;//上传的标题
-
-//    public static void openActivity(Context context) {
-//        Intent intent = new Intent(context, ReleaseActivity.class);
-//        Bundle bundle = new Bundle();
-//        intent.putExtras(bundle);
-//        context.startActivity(intent);
-//    }
+    String accessToken;//用户的token
+    LoadingDialog dialog;//显示加载框
 
 
     @Override
@@ -134,6 +125,8 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
 
     @Override
     protected void initData() {
+        LoginBean bean = MyApplication.getDbManager().queryLoginBean();
+        accessToken = bean.getAccess_token();
         mPresenter.getUploadToken();
         mPresenter.getInterestData();
     }
@@ -165,10 +158,20 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
         KLog.d("文本内容：" + upload_text.getText().toString().trim());
 
         if(checkParams()){
+            showDialog();
             uploadImg2QiNiu();
         }
 
     }
+
+    //显示Dialog
+    private void showDialog(){
+        LoadingDialog.Builder builder1 = new LoadingDialog.Builder(mContext)
+                .setCancelable(true);
+        dialog = builder1.create();
+        dialog.show();
+    }
+
 
     private boolean checkParams(){
         title = upload_text.getText().toString().trim();
@@ -177,6 +180,17 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
             KLog.d("请填入标题");
             return false;
         }
+        try {
+            KLog.d("标题的长度：" + title.getBytes("GBK").length);
+            if(title.getBytes("GBK").length > 20){
+                Toast.makeText(this,"字数超出限制了,不能超过10个汉字",Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+
         if(tags.isEmpty()){
             Toast.makeText(this,"请添加标签",Toast.LENGTH_SHORT).show();
             KLog.d("请添加标签");
@@ -204,7 +218,8 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
 
     @Override
     public void showUploadWallpaper() {
-        Toast.makeText(mContext, "上传成功,请等待审核", Toast.LENGTH_SHORT).show();
+        if(dialog != null)dialog.dismiss();
+        Toast.makeText(getApplicationContext(), "上传成功,请等待审核", Toast.LENGTH_SHORT).show();
         finish();
     }
 
@@ -217,26 +232,16 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
         //方式二  固定前 + 10位时间戳 +  固定后 + ".png" 如：hkoolweqeuiopas1546926001OKMJhde.jpg
         String key = SOLIDHEADPART + System.currentTimeMillis()/1000 + SOLIDLASTPART + ".jpg";
         String picPath = getPicFile().toString();
-        final String yuming = "pjb68wj3e.bkt.clouddn.com/";
+
+        final String yuming = AppConstant.YUMING;
+
         KLog.d(TAG, "picPath: " + picPath);
         uploadManager.put(picPath, key, token, new UpCompletionHandler() {
             @Override
             public void complete(String key, ResponseInfo info, JSONObject res) {
                 // 上传成功后将key值上传到自己的服务器
                 if (info.isOK()) {
-                    String headpicPath = "http://" + yuming + key;
-//                    KLog.i(TAG, "图片的地址: " + headpicPath);
-//                    String thumbPath = "http://" + yuming + key + "?imageView2/1/w/108/h/192";
-//                    KLog.i(TAG, "缩略图的地址: " + thumbPath);
-
-//                    String accessToken = (String) SPHelper.get(ReleaseActivity.this,AppConstant.ACCESSTOKEN,"");
-//                    if(TextUtils.isEmpty(accessToken)){
-//                        accessToken = "7v72FRobjPBvOFD6udGGq2UgRNPANUrv";
-//                    }
-
-                    LoginBean bean = MyApplication.getDbManager().queryLoginBean();
-                    String accessToken = bean.getAccess_token();
-
+                    String headpicPath = yuming + key;
 
                     Map<String,Object> map = new HashMap<>();
 
@@ -248,6 +253,8 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
                     map.put("type","1");//1静态壁纸 2动态壁纸
                     mPresenter.uploadWallpaper(accessToken,map);
 
+                }else{
+                    if(dialog != null)dialog.dismiss();
                 }
             }
         }, null);
@@ -336,7 +343,7 @@ public class ReleaseActivity extends BaseActivity<ReleasePresenter>
 
     //此为打开系统相册
     private void openAlbum() {
-        Intent intent = new Intent("android.intent.action.GET_CONTENT");
+        Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
         startActivityForResult(intent,CHOOSE_PHOTO);//打开相册
     }

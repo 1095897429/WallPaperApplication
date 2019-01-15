@@ -6,7 +6,9 @@ import com.google.gson.Gson;
 import com.ngbj.wallpaper.BuildConfig;
 import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.utils.common.AppHelper;
+import com.ngbj.wallpaper.utils.encry.AesUtils;
 import com.socks.library.KLog;
+import com.umeng.analytics.AnalyticsConfig;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -62,56 +64,13 @@ public class OkHttpHelper {
                 .writeTimeout(DEFAULT_WRITE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
                 .connectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
                 .retryOnConnectionFailure(true) // 失败重发
-//                .addInterceptor(new HttpBaseParamsInterceptor())
                 .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
                 .build();
 
     }
 
-    //公共参数拦截器
-    class HttpBaseParamsInterceptor implements Interceptor{
 
-        @Override
-        public Response intercept(Chain chain) throws IOException {
-            Gson gson = new Gson();
-            HashMap<String,Object> hashMap = new HashMap<>();
-            //获取到请求链接
-            Request request = chain.request();
-            Request.Builder requestBuilder = request.newBuilder();
-
-
-            KLog.d("content-Type:" + request.body().contentType());
-
-
-            //对请求参数获取 -- 只限于表单 post
-            if(request.body() instanceof FormBody){
-                FormBody oldFormBody = (FormBody) request.body();
-                for (int i = 0; i < oldFormBody.size(); i++) {
-                    hashMap.put(oldFormBody.encodedName(i),oldFormBody.encodedValue(i));
-                }
-            }
-
-            hashMap.put("fromPlat", "default");
-            hashMap.put("appVersion", AppHelper.getPackageName(MyApplication.getInstance()));
-            hashMap.put("deviceId", AppHelper.getUniquePsuedoID());
-            hashMap.put("deviceType", "android");
-            hashMap.put("timestamp", System.currentTimeMillis() + "");
-            hashMap.put("sign", "");
-            String strEntity = gson.toJson(hashMap);
-            strEntity = URLDecoder.decode(strEntity,"UTF-8");
-            request = requestBuilder
-                    .post(RequestBody.create(MediaType.parse("application/json;charset=UTF-8"),
-                            strEntity))
-                    .build();
-
-
-            return chain.proceed(request);
-        }
-    }
-
-
-
-    /** 统一添加公共参数在请求体中 */
+    /** 统一添加公共参数在请求体中  将公共 + 必须参数 aes加密 ，得到sign值 ---> 将公共 + 必须参数 + sign aes加密，得到数据 ---> hashmap.put(data,得到数据)*/
     public static RequestBody getRequestBody(Map<String,Object> paramMap){
         Gson gson = new Gson();
         HashMap<String,Object> hashMap = new HashMap<>();
@@ -121,14 +80,33 @@ public class OkHttpHelper {
                 hashMap.put(entry.getKey(),entry.getValue());
             }
         }
-        hashMap.put("fromPlat", "default");
+        hashMap.put("fromPlat", AnalyticsConfig.getChannel(MyApplication.getInstance()));
         hashMap.put("appVersion", AppHelper.getPackageName(MyApplication.getInstance()));
         hashMap.put("deviceId", AppHelper.getUniquePsuedoID());
         hashMap.put("deviceType", "android");
         hashMap.put("timestamp", System.currentTimeMillis() + "");
-        hashMap.put("sign", "");
+
+        String enctry = gson.toJson(hashMap);
+        String result = AesUtils.encrypt(enctry,AesUtils.SECRETKEY,AesUtils.IV);
+//        KLog.d("加密数据：" + result);
+        hashMap.put("sign", result);
+
+        String dectry =  AesUtils.decrypt(result,AesUtils.SECRETKEY,AesUtils.IV);
+//        KLog.d("解密 =  " +  dectry);
+
         String strEntity = gson.toJson(hashMap);
-        RequestBody requestBody =  RequestBody.create(MediaType.parse("application/json;charset=UTF-8"), strEntity);
+//        KLog.d("加过密之后的sign数据：" + strEntity);
+
+
+        String lastResult = AesUtils.encrypt(strEntity,AesUtils.SECRETKEY,AesUtils.IV);
+//        KLog.d("加过密之后的发送数据：" + lastResult);
+
+        hashMap.clear();
+        hashMap.put("data",lastResult);
+
+        String lastStrEntity = gson.toJson(hashMap);
+
+        RequestBody requestBody =  RequestBody.create(MediaType.parse("application/json;charset=UTF-8"), lastStrEntity);
         return requestBody;
     }
 

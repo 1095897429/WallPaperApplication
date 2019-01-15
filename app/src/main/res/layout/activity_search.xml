@@ -46,7 +46,6 @@
 
             <ImageView
                 android:id="@+id/search_ad"
-                android:src="@mipmap/search_ad"
                 android:scaleType="centerCrop"
                 android:layout_width="match_parent"
                 android:layout_height="60dp" />
@@ -104,6 +103,9 @@
         app:layout_constraintVertical_weight="1">
 
         <include layout="@layout/comman_refresh_recycler"></include>
+
+
+        <include layout="@layout/move_to_layout"></include>
 
     </android.support.constraint.ConstraintLayout>
 

@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">变色龙</string>
+    <string name="app_name">变色龙壁纸</string>
     <string name="index_search">搜索壁纸</string>
     <string name="index_hot_search" tools:ignore="ExtraTranslation">热搜:</string>
 

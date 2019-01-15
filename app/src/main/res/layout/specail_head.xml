@@ -8,23 +8,11 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:src="@mipmap/special_head_view"
         android:layout_width="match_parent"
         android:scaleType="centerCrop"
         android:layout_height="150dp">
     </ImageView>
 
-
-    <!--<ImageView-->
-        <!--android:id="@+id/back"-->
-        <!--android:layout_marginTop="10dp"-->
-        <!--app:layout_constraintLeft_toLeftOf="parent"-->
-        <!--app:layout_constraintTop_toTopOf="parent"-->
-        <!--android:src="@mipmap/icon_back"-->
-        <!--android:paddingRight="10dp"-->
-        <!--android:paddingLeft="12dp"-->
-        <!--android:layout_width="35dp"-->
-        <!--android:layout_height="20dp" />-->
 
     <ImageView
         android:id="@+id/back"
@@ -38,7 +26,7 @@
 
     <TextView
         android:id="@+id/title"
-        android:text="巨无霸汉堡"
+        android:text=""
         app:layout_constraintTop_toBottomOf="@+id/imageView"
         android:textColor="@color/white"
         android:padding="12dp"
@@ -59,7 +47,7 @@
 
     <TextView
         android:id="@+id/content"
-        android:text="深秋夜晚，日料探店。来自新西兰风味烤肉，味道柔相顺滑"
+        android:text=""
         app:layout_constraintTop_toBottomOf="@+id/author"
         android:textColor="@color/white"
         android:textSize="12sp"

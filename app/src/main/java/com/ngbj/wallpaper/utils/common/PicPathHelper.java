@@ -19,6 +19,7 @@ import android.provider.MediaStore;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.FileProvider;
 
+import com.ngbj.wallpaper.base.MyApplication;
 import com.socks.library.KLog;
 
 import java.io.ByteArrayOutputStream;
@@ -47,12 +48,14 @@ public class PicPathHelper {
 
         if (data == null) {
             KLog.d("选择图片文件出错");
+            ToastHelper.customToastView(MyApplication.getInstance(),"选择图片文件出错");
             return null;
         }
 
         Uri photoUri = data.getData();
         if (photoUri == null) {
             KLog.d("选择图片文件出错");
+            ToastHelper.customToastView(MyApplication.getInstance(),"选择图片文件出错");
             return null;
         }
 
@@ -68,6 +71,7 @@ public class PicPathHelper {
             return picPath;
         }else{
             KLog.d("选择图片文件出错");
+            ToastHelper.customToastView(MyApplication.getInstance(),"选择图片文件类型出错");
             return null;
         }
     }

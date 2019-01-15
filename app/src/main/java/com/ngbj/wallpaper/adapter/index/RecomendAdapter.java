@@ -52,7 +52,7 @@ public class RecomendAdapter extends BaseMultiItemQuickAdapter<MulAdBean,BaseVie
                             .into((ImageView) holder.getView(R.id.imageView));
 
                 }else
-                    holder.setImageResource(R.id.imageView,R.mipmap.release_image);
+                    holder.setImageResource(R.id.imageView,R.mipmap.default_loading);
 
 
 
@@ -116,13 +116,15 @@ public class RecomendAdapter extends BaseMultiItemQuickAdapter<MulAdBean,BaseVie
                 ApiAdBean apiAdBean = item.apiAdBean;
                 //大型广告
                 if(!TextUtils.isEmpty(apiAdBean.getImgUrl())){
-                    //头像
+
                     Glide.with(mContext)
                             .load(apiAdBean.getImgUrl())
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .placeholder(R.mipmap.default_loading)
                             .centerCrop()
                             .crossFade()
                             .into((ImageView) holder.getView(R.id.imageView_ad));
+
                 }
 
                 break;

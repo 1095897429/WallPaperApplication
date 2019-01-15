@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,13 +19,15 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.index.IndexCoolAdapter;
 import com.ngbj.wallpaper.adapter.index.IndexCoolGridAdapter;
 import com.ngbj.wallpaper.adapter.index.Index_HotSearch_Adapter;
 import com.ngbj.wallpaper.adapter.index.RecomendAdapter;
-import com.ngbj.wallpaper.base.BaesLogicFragment;
+import com.ngbj.wallpaper.base.BaseFragment;
+import com.ngbj.wallpaper.base.MyApplication;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.DetailParamBean;
 import com.ngbj.wallpaper.bean.entityBean.IndexBean;
@@ -58,9 +61,12 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.OnClick;
 
-public class IndexFragment extends BaesLogicFragment<IndexPresenter>
-                implements IndexContract.View{
+public class IndexFragment extends BaseFragment<IndexPresenter>
+                implements IndexContract.View, SwipeRefreshLayout.OnRefreshListener{
 
+
+    @BindView(R.id.refresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
 
     @BindView(R.id.emptyView)
     EmptyView emptyView;
@@ -87,7 +93,7 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
     GridLayoutManager gridLayoutManager;
     RecomendAdapter recomendAdapter;
     List<MulAdBean> recommendList = new ArrayList<>();//界面临时数据
-    ArrayList<WallpagerBean> temps = new ArrayList<>();//传递给明细界面的数据
+//    ArrayList<WallpagerBean> temps = new ArrayList<>();//传递给明细界面的数据
     int mPage = 1;//默认为第一页
 
     IndexBean.Navigation mNavigation;//记录酷站的实体
@@ -120,6 +126,8 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
 
     @Override
     protected void initEvent() {
+        //注册下拉刷新监听
+        mSwipeRefreshLayout.setOnRefreshListener(this);
 
         //第一次网络加载失败点击事件
         emptyView.setOnLayoutClickListener(new View.OnClickListener() {
@@ -143,20 +151,16 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
                     if(mulAdBean.getItemType() == MulAdBean.TYPE_ONE){
 
                         if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
-//                            WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+
+                            //TODO 2019.1.9 广告点击统计
+                            KLog.d("广告的Id: " ,mulAdBean.adBean.getAd_id() );
+                            adClickStatistics(mulAdBean.adBean.getAd_id());
 
                             KLog.d("url: ",mulAdBean.adBean.getLink());
                             //不能用静态方法，导致内存泄漏
                             Intent intent = new Intent(mContext, WebViewActivity.class);
                             Bundle bundle = new Bundle();
                             bundle.putString("loadUrl", mulAdBean.adBean.getLink());
-                            intent.putExtras(bundle);
-                            mContext.startActivity(intent);
-                        }else  if(mulAdBean.adBean.getType().equals(AppConstant.API_AD)){
-                            //不能用静态方法，导致内存泄漏
-                            Intent intent = new Intent(mContext, WebViewActivity.class);
-                            Bundle bundle = new Bundle();
-                            bundle.putString("loadUrl", mulAdBean.apiAdBean.getLink());
                             intent.putExtras(bundle);
                             mContext.startActivity(intent);
                         }else{
@@ -166,13 +170,11 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
                             bean.setWallpagerId(mulAdBean.adBean.getId());
                             bean.setFromWhere(AppConstant.INDEX);
 
-//                            DetailActivity.openActivity(mContext,bean,temps);
-
                             //不能用静态方法，导致内存泄漏
                             Intent intent = new Intent(mContext, DetailActivity.class);
                             Bundle bundle = new Bundle();
                             bundle.putSerializable("bean",bean);
-                            bundle.putSerializable("list",temps);
+                            bundle.putSerializable("list",null);
                             intent.putExtras(bundle);
                             mContext.startActivity(intent);
 
@@ -182,6 +184,12 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
                     }else {
                         KLog.d("tag -- api广告",mulAdBean.apiAdBean.getLink());
                         //不能用静态方法，导致内存泄漏
+
+                        //TODO 2019.1.9 广告点击统计
+                        KLog.d("广告的Id: " ,mulAdBean.apiAdBean.getAd_id());
+                        adClickStatistics(mulAdBean.apiAdBean.getAd_id());
+
+
                         Intent intent = new Intent(mContext, WebViewActivity.class);
                         Bundle bundle = new Bundle();
                         bundle.putString("loadUrl", mulAdBean.apiAdBean.getLink());
@@ -244,11 +252,10 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
             public void OnBannerClick(int position) {
                 IndexBean.Banner banner = myBannerList.get(position);
 
-//                SpecialActivity.openActivity(getActivity(),banner.getId(),
-//                        banner.getImg_url(),banner.getTitle());
+                if(banner.getType().equals(AppConstant.COMMON_AD)){
 
-                if(banner.getType().equals(AppConstant.API_AD) ||
-                        banner.getType().equals(AppConstant.COMMON_AD)){
+                    KLog.d("广告的Id: " ,banner.getId());
+                    adClickStatistics(banner.getId());
 
                     Intent intent = new Intent(mContext, WebViewActivity.class);
                     Bundle bundle = new Bundle();
@@ -260,8 +267,8 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
                     Intent intent = new Intent(mContext, SpecialActivity.class);
                     Bundle bundle = new Bundle();
                     bundle.putString("bannerId",banner.getId());
-                    bundle.putString("bannerImageUrl",banner.getImg_url());
-                    bundle.putString("bannerTitle",banner.getTitle());
+//                    bundle.putString("bannerImageUrl",banner.getImg_url());
+//                    bundle.putString("bannerTitle",banner.getTitle());
                     intent.putExtras(bundle);
                     mContext.startActivity(intent);
                 }
@@ -285,6 +292,8 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
             }
         });
     }
+
+
 
     private void addHeadView() {
         headView = LayoutInflater.from(getActivity()).inflate(R.layout.index_head,null);
@@ -324,7 +333,6 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
         //不让其自动滑动到顶部
         mRecommandRecyclerView.setFocusableInTouchMode(false);
         mRecommandRecyclerView.setFocusable(false);
-//        mRecommandRecyclerView.setHasFixedSize(true);
 
     }
 
@@ -350,11 +358,13 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
         return;
     }
 
+
     @Override
     public void showAdData(List<IndexBean.HotSearch> list, List<IndexBean.Banner> bannerList,
                            List<IndexBean.Navigation> coolList) {
+
         hotAdList.addAll(list);
-        indexHotSearchAdapter.setNewData(list);
+        indexHotSearchAdapter.setNewData(hotAdList);
         myBannerList.addAll(bannerList);
         startBanner();
         myCoolList = coolList;
@@ -366,27 +376,42 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
 
         /** 第一次加载数据结束 -- Error HIDE  NODATA*/
         emptyView.setType(EmptyView.HIDE);
-        mRecommandRecyclerView.setVisibility(View.VISIBLE);
+        mSwipeRefreshLayout.setVisibility(View.VISIBLE);
 
         this.recommendList = recommendList;
         recomendAdapter.setNewData(recommendList);
-        /** 构建临时变量  */
-        temps.addAll(transformDataToWallpaper(recommendList));
+
+        commonDtaLogin(AppConstant.INDEX,false,recommendList);
     }
 
 
 
 
     @Override
-    public void showMoreRecommendData(List<MulAdBean> recommendList) {
+    public void showMoreRecommendData(List<MulAdBean> list) {
         recomendAdapter.loadMoreComplete();
-        recomendAdapter.addData(recommendList);
-
-        temps.addAll(transformDataToWallpaper(recommendList));
+        recomendAdapter.addData(list);
+        commonDtaLogin(AppConstant.INDEX,true,list);
     }
 
 
+    // 临时数据 数据库数据
+    protected void commonDtaLogin(String fromWhere,boolean isMore,List<MulAdBean> list) {
 
+        if(!isMore){
+//            temps.clear();//临时数据清空
+            MyApplication.getDbManager().deleteWallpagerBeanList(fromWhere);//删除某来源
+        }
+
+
+        List<WallpagerBean> wTemps = transformDataToWallpaper(fromWhere,list);
+//        temps.addAll(wTemps);
+
+        for (WallpagerBean wallpagerBean:wTemps) {
+            MyApplication.getDbManager().insertWallpagerBean(wallpagerBean);//新增
+        }
+
+    }
 
 
     /** 用户喜好 */
@@ -419,8 +444,12 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
                     mNavigation = myCoolList.get(position);
                     KLog.d("选择的cool ：" + mNavigation.getTitle());
 
-                    if(mNavigation.getType().equals(AppConstant.COMMON_AD) ||
-                            mNavigation.getType().equals(AppConstant.API_AD)){
+
+                    if(mNavigation.getType().equals(AppConstant.COMMON_AD)){
+
+                            KLog.d("广告的Id: " ,mNavigation.getId());
+                            adClickStatistics(mNavigation.getId());
+
                             Intent intent = new Intent(mContext, WebViewActivity.class);
                             Bundle bundle = new Bundle();
                             bundle.putString("loadUrl", mNavigation.getLink());
@@ -489,7 +518,12 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
         public void displayImage(Context context, Object path, ImageView imageView) {
             //Glide 加载图片简单用法
             IndexBean.Banner banner = (IndexBean.Banner) path;
-            Glide.with(context).load(banner.getImg_url()).centerCrop().into(imageView);
+            Glide.with(context)
+                    .load(banner.getImg_url())
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .centerCrop()
+                    .crossFade()
+                    .into(imageView);
         }
     }
 
@@ -511,6 +545,10 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
         KLog.d("msg",msg);
         if(recomendAdapter.isLoadMoreEnable())
             recomendAdapter.loadMoreFail();
+
+        if(mSwipeRefreshLayout != null){
+            mSwipeRefreshLayout.setRefreshing(false);
+        }
     }
 
     /** =================== EventBus  开始 =================== */
@@ -529,21 +567,36 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
     }
 
     @Subscribe
-    public void onLoveEvent(LoveEvent event){
-        boolean isLove = event.isLove();
-        boolean isReset = event.isReset();
-        int page = event.getPage();
-        if(!isReset){ //不需要更新全体数据
+    public void onEvent(LoveEvent event){
+//        boolean isLove = event.isLove();
+//        boolean isReset = event.isReset();
+//        int page = event.getPage();
+//        if(!isReset){ //不需要更新全体数据
+//            MulAdBean mulAdBean= recommendList.get(event.getPosition());
+//            mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
+//            temps.get(event.getPosition()).setIs_collected(isLove ? "1" : "0");
+//        }else{
+//            mPage = page;
+//            temps.addAll(transformDataToWallpaper(event.getMulAdBeanList()));
+//            recomendAdapter.addData(event.getMulAdBeanList());
+//        }
+//
+//        recomendAdapter.notifyDataSetChanged();
+
+
+        String fromWhere = event.getFromWhere();
+        KLog.d("明细中发送过来的fromWhere是：" + fromWhere);
+        if(fromWhere.equals(AppConstant.INDEX)){
+            boolean isLove = event.isLove();
             MulAdBean mulAdBean= recommendList.get(event.getPosition());
             mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
-            temps.get(event.getPosition()).setIs_collected(isLove ? "1" : "0");
-        }else{
-            mPage = page;
-            temps.addAll(transformDataToWallpaper(event.getMulAdBeanList()));
-            recomendAdapter.addData(event.getMulAdBeanList());
-        }
+            recomendAdapter.notifyDataSetChanged();
 
-        recomendAdapter.notifyDataSetChanged();
+            WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpager(mulAdBean.adBean.getId(),AppConstant.INDEX);
+            wallpagerBean.setIs_collected(isLove ? "1" : "0");
+            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
+
+        }
     }
 
     /** 主界面喜好修改 temps修改 */
@@ -552,10 +605,16 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
         MulAdBean mulAdBean= recommendList.get(position);
         if(isLove){
             mulAdBean.adBean.setIs_collected("1");
-            temps.get(position).setIs_collected("1");
+//            temps.get(position).setIs_collected("1");
+            WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpager(mulAdBean.adBean.getId(),AppConstant.INDEX);
+            wallpagerBean.setIs_collected("1");
+            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
         }else{
             mulAdBean.adBean.setIs_collected("0");
-            temps.get(position).setIs_collected("0");
+//            temps.get(position).setIs_collected("0");
+            WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpager(mulAdBean.adBean.getId(),AppConstant.INDEX);
+            wallpagerBean.setIs_collected("0");
+            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
         }
 
         recomendAdapter.notifyDataSetChanged();
@@ -563,4 +622,46 @@ public class IndexFragment extends BaesLogicFragment<IndexPresenter>
 
 
     /** =================== EventBus  结束 =================== */
+
+
+
+    /** =================== 下拉刷新  开始 =================== */
+
+    protected boolean mIsRefreshing = false;//第一次或者手动的下拉操作
+
+    @Override
+    public void onRefresh() {
+
+        if(null != mSwipeRefreshLayout){
+            mSwipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
+        }
+
+        mIsRefreshing = true;
+        mPage = 1;
+        mPresenter.getAdData(mPage);
+    }
+
+
+    /** 隐藏加载进度框 */
+    @Override
+    public void complete() {
+
+        if(mSwipeRefreshLayout != null)
+            mSwipeRefreshLayout.setRefreshing(false);
+
+
+        if(mIsRefreshing){
+            if(recommendList != null && !recommendList.isEmpty()){
+                recommendList.clear();
+                hotAdList.clear();
+                myBannerList.clear();
+                myCoolList.clear();
+                KLog.d("刷新成功");
+            }
+        }
+        mIsRefreshing = false;
+    }
+
+    /** =================== 下拉刷新  结束 =================== */
+
 }

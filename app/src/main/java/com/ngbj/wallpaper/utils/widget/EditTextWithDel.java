@@ -12,6 +12,8 @@ import android.view.MotionEvent;
 import android.widget.EditText;
 
 import com.ngbj.wallpaper.R;
+import com.ngbj.wallpaper.utils.common.AppHelper;
+import com.ngbj.wallpaper.utils.common.StringUtils;
 
 /**
  * 自定义EditText：自带删除按钮
@@ -66,7 +68,7 @@ public class EditTextWithDel extends EditText {
             //让长方形的宽等于edittext的宽，让长方形的高等于edittext的高
             getGlobalVisibleRect(rect);
             //把长方形缩短至右边30dp，约等于（padding+图标分辨率）
-            rect.left = rect.right - dp2px(mContext, 30);
+            rect.left = rect.right - AppHelper.dp2px(mContext, 30);
             //如果x和y坐标在长方形当中，说明你点击了右边的xx图片,清空输入框
             if (rect.contains(x, y)) {
                 setText("");
@@ -83,8 +85,5 @@ public class EditTextWithDel extends EditText {
         }
     }
 
-    public int dp2px(Context context, float dpValue) {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (dpValue * scale);
-    }
+
 }

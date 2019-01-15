@@ -1,9 +1,8 @@
 package com.ngbj.wallpaper.module.app;
 
+
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.base.BaseActivity;
-import com.ngbj.wallpaper.mvp.presenter.app.LoginPresenter;
-import com.socks.library.KLog;
 
 import butterknife.OnClick;
 
@@ -21,6 +20,13 @@ public class SafeActivity extends BaseActivity{
     protected void initPresenter() {
 
     }
+
+
+    @OnClick(R.id.back)
+    public void Back(){
+        finish();
+    }
+
 
 
 }

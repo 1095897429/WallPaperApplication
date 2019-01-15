@@ -4,7 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.RelativeLayout;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.ngbj.wallpaper.R;
@@ -18,6 +20,7 @@ import com.ngbj.wallpaper.bean.entityBean.InterestBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
 import com.ngbj.wallpaper.bean.entityBean.WallpagerBean;
 import com.ngbj.wallpaper.constant.AppConstant;
+import com.ngbj.wallpaper.eventbus.LoveEvent;
 import com.ngbj.wallpaper.eventbus.LoveHotNewEvent;
 import com.ngbj.wallpaper.module.app.DetailActivity;
 import com.ngbj.wallpaper.module.app.WebViewActivity;
@@ -33,6 +36,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.OnClick;
+
 /***
  * 最新最热Fragment
  * 1.共用列表的adapter
@@ -40,11 +46,13 @@ import java.util.List;
 public class HotNewFragment extends BaseRefreshFragment<CategoryPresenter,MulAdBean>
             implements CategoryContract.View{
 
+    @BindView(R.id.move_top)
+    RelativeLayout moveTop;
 
     RecomendAdapter mRecomendAdapter;
     GridLayoutManager gridLayoutManager;
     List<MulAdBean> recommendList = new ArrayList<>();//界面临时数据
-    ArrayList<WallpagerBean> temps = new ArrayList<>();//传递给明细界面的数据
+//    ArrayList<WallpagerBean> temps = new ArrayList<>();//传递给明细界面的数据
     HashMap<String ,ArrayList<WallpagerBean>> mHashMap = new HashMap<>();//key -- category  value -- list
 
     String category = "0";//分类的id 推荐为0
@@ -115,11 +123,15 @@ public class HotNewFragment extends BaseRefreshFragment<CategoryPresenter,MulAdB
 
                     if(mulAdBean.adBean.getType().equals(AppConstant.COMMON_AD)){
                         KLog.d("tag -- 广告");
-//                        WebViewActivity.openActivity(mContext,"https://www.baidu.com/");
+
+                        //TODO 2019.1.9 广告点击统计
+                        KLog.d("广告的Id: " ,mulAdBean.adBean.getAd_id() );
+                        adClickStatistics(mulAdBean.adBean.getAd_id());
+
                         //不能用静态方法，导致内存泄漏
                         Intent intent = new Intent(mContext, WebViewActivity.class);
                         Bundle bundle = new Bundle();
-                        bundle.putString("loadUrl", "https://www.baidu.com/");
+                        bundle.putString("loadUrl", mulAdBean.adBean.getLink());
                         intent.putExtras(bundle);
                         mContext.startActivity(intent);
                     }else{
@@ -138,7 +150,7 @@ public class HotNewFragment extends BaseRefreshFragment<CategoryPresenter,MulAdB
                         bean.setPosition(position);
                         bean.setFromWhere(from);
                         bean.setWallpagerId(mulAdBean.adBean.getId());
-                        bean.setFromWhere(AppConstant.CATEGORY_NEW_HOT);
+                        bean.setFromWhere(AppConstant.CATEGORY_NEW_HOT_TEST + category);
                         bean.setCategory(category);
                         bean.setOrder(order);
 
@@ -151,7 +163,7 @@ public class HotNewFragment extends BaseRefreshFragment<CategoryPresenter,MulAdB
                         Intent intent = new Intent(mContext, DetailActivity.class);
                         Bundle bundle = new Bundle();
                         bundle.putSerializable("bean",bean);
-                        bundle.putSerializable("list",mytemp);
+                        bundle.putSerializable("list",null);
                         intent.putExtras(bundle);
                         mContext.startActivity(intent);
 
@@ -159,7 +171,20 @@ public class HotNewFragment extends BaseRefreshFragment<CategoryPresenter,MulAdB
                     }
 
                 }else {
-                    KLog.d("tag -- 广告",recommendList.get(position).apiAdBean.getName());
+
+                    KLog.d("tag -- api广告",mulAdBean.apiAdBean.getLink());
+                    //不能用静态方法，导致内存泄漏
+
+                    //TODO 2019.1.9 广告点击统计
+                    KLog.d("广告的Id: " ,mulAdBean.apiAdBean.getAd_id() );
+                    adClickStatistics(mulAdBean.apiAdBean.getAd_id());
+
+
+                    Intent intent = new Intent(mContext, WebViewActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("loadUrl", mulAdBean.apiAdBean.getLink());
+                    intent.putExtras(bundle);
+                    mContext.startActivity(intent);
                 }
             }
         });
@@ -173,12 +198,12 @@ public class HotNewFragment extends BaseRefreshFragment<CategoryPresenter,MulAdB
                 AdBean adBean = recommendList.get(position).adBean;
                 if("0".equals(adBean.getIs_collected())){
                     adBean.setIs_collected("1");
-                    ToastHelper.customToastView(getActivity(),"收藏成功");
+                    ToastHelper.customToastView(MyApplication.getInstance(),"收藏成功");
                     mPresenter.getRecordData(adBean.getId(),"2");
                     updateLove(position,true);
                 }else{
                     adBean.setIs_collected("0");
-                    ToastHelper.customToastView(getActivity(),"取消收藏");
+                    ToastHelper.customToastView(MyApplication.getInstance(),"取消收藏");
                     mPresenter.getDeleteCollection(adBean.getId());
                     updateLove(position,false);
                 }
@@ -188,6 +213,36 @@ public class HotNewFragment extends BaseRefreshFragment<CategoryPresenter,MulAdB
         });
 
     }
+
+
+    @Override
+    protected void initEvent() {
+        //滑动监听
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                //做处理
+                if(gridLayoutManager != null){
+                    //当前条目索引 -- 根据索引做显示隐藏判断
+                    int position = gridLayoutManager.findFirstVisibleItemPosition();
+                    if(position > 6){//此postion检测是每一行作为一个position
+                        moveTop.setVisibility(View.VISIBLE);
+                    }else{
+                        moveTop.setVisibility(View.GONE);
+                    }
+                }
+            }
+        });
+
+    }
+
+
+
+    @OnClick(R.id.move_top)
+    public void MoveTop(){
+        mRecyclerView.smoothScrollToPosition(0);
+    }
+
 
 
 
@@ -215,8 +270,11 @@ public class HotNewFragment extends BaseRefreshFragment<CategoryPresenter,MulAdB
         mRecomendAdapter.setNewData(list);
 
         //临时数据清空
-        temps.clear();
-        temps.addAll(transformDataToWallpaper(list));
+//        temps.clear();
+//        temps.addAll(transformDataToWallpaper(list));
+
+        commonDtaLogin(AppConstant.CATEGORY_NEW_HOT_TEST + category,false,list);
+
         mHashMap.put(category,temps);
 
     }
@@ -226,7 +284,9 @@ public class HotNewFragment extends BaseRefreshFragment<CategoryPresenter,MulAdB
         mRecomendAdapter.loadMoreComplete();
         mRecomendAdapter.addData(list);
         recommendList.addAll(list);
-        temps.addAll(transformDataToWallpaper(list));
+//        temps.addAll(transformDataToWallpaper(list));
+
+        commonDtaLogin(AppConstant.CATEGORY_NEW_HOT_TEST + category,true,list);
         mHashMap.put(category,temps);
 
     }
@@ -268,19 +328,34 @@ public class HotNewFragment extends BaseRefreshFragment<CategoryPresenter,MulAdB
 
 
     @Subscribe
-    public void onLoveHotNewEvent(LoveHotNewEvent event){
-        boolean isLove = event.isLove();
-        boolean isReset = event.isReset();
-        if(!isReset){ //不需要更新全体数据
+    public void onEvent(LoveEvent event){
+//        boolean isLove = event.isLove();
+//        boolean isReset = event.isReset();
+//        if(!isReset){ //不需要更新全体数据
+//            MulAdBean mulAdBean= recommendList.get(event.getPosition());
+//            mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
+//            mHashMap.get(category).get(event.getPosition()).setIs_collected(isLove ? "1":"0");
+//        }else{
+//            mPage = event.getPage();
+//            mRecomendAdapter.addData(event.getMulAdBeanList());
+//        }
+//
+//        mRecomendAdapter.notifyDataSetChanged();
+
+
+        String fromWhere = event.getFromWhere();
+        KLog.d("明细中发送过来的fromWhere是：" + fromWhere);
+        if(fromWhere.equals(AppConstant.CATEGORY_NEW_HOT_TEST + category)){
+            boolean isLove = event.isLove();
             MulAdBean mulAdBean= recommendList.get(event.getPosition());
             mulAdBean.adBean.setIs_collected(isLove ? "1" : "0");
-            mHashMap.get(category).get(event.getPosition()).setIs_collected(isLove ? "1":"0");
-        }else{
-            mPage = event.getPage();
-            mRecomendAdapter.addData(event.getMulAdBeanList());
-        }
+            mRecomendAdapter.notifyDataSetChanged();
 
-        mRecomendAdapter.notifyDataSetChanged();
+            WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpager(mulAdBean.adBean.getId(),AppConstant.CATEGORY_NEW_HOT_TEST + category);
+            wallpagerBean.setIs_collected(isLove ? "1" : "0");
+            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
+
+        }
     }
 
 
@@ -288,73 +363,40 @@ public class HotNewFragment extends BaseRefreshFragment<CategoryPresenter,MulAdB
     /** 主界面喜好修改 */
     private void updateLove(int position,boolean isLove) {
 
+//        MulAdBean mulAdBean= recommendList.get(position);
+//        if(isLove){
+//            mulAdBean.adBean.setIs_collected("1");
+//            mHashMap.get(category).get(position).setIs_collected("1");
+//        }else{
+//            mulAdBean.adBean.setIs_collected("0");
+//            mHashMap.get(category).get(position).setIs_collected("0");
+//        }
+//
+//        mRecomendAdapter.notifyDataSetChanged();
+
+
         MulAdBean mulAdBean= recommendList.get(position);
         if(isLove){
             mulAdBean.adBean.setIs_collected("1");
-            mHashMap.get(category).get(position).setIs_collected("1");
+//            mHashMap.get(category).get(position).setIs_collected("1");
+            WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpager(mulAdBean.adBean.getId(),AppConstant.CATEGORY_NEW_HOT_TEST + category);
+            wallpagerBean.setIs_collected("1");
+            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
         }else{
             mulAdBean.adBean.setIs_collected("0");
-            mHashMap.get(category).get(position).setIs_collected("0");
+//            mHashMap.get(category).get(position).setIs_collected("0");
+            WallpagerBean wallpagerBean = MyApplication.getDbManager().queryWallpager(mulAdBean.adBean.getId(),AppConstant.CATEGORY_NEW_HOT_TEST + category);
+            wallpagerBean.setIs_collected("0");
+            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
         }
+
 
         mRecomendAdapter.notifyDataSetChanged();
 
-//        List<WallpagerBean> wallpagerBeanList = MyApplication.getDbManager().queryDifferWPId(mulAdBean.adBean.getId());
-//        for (WallpagerBean wallpagerBean: wallpagerBeanList) {
-//            if(isLove){
-//                wallpagerBean.setIs_collected("1");
-//            }else
-//                wallpagerBean.setIs_collected("0");
-//
-//            MyApplication.getDbManager().updateWallpagerBean(wallpagerBean);
-//        }
     }
 
 
     /** =================== EventBus  结束 =================== */
-
-
-
-    /** page == 1 表示初始化请求  其他情况是加载更多*/
-    protected void insertToSql(int page, final List<MulAdBean> recommendList, final String fromWhere){
-
-        if(1 == page){
-            MyApplication.getDbManager().deleteWallpagerBeanList(fromWhere);
-
-        }
-
-        //TODO 线程加入到数据库中 -- 先删除，后添加
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                WallpagerBean wallpagerBean;
-                AdBean adBean ;
-                ApiAdBean apiAdBean;
-                for (MulAdBean bean: recommendList) {
-                    if(bean.getItemType() == MulAdBean.TYPE_ONE){
-                        adBean = bean.adBean;
-                        wallpagerBean = new WallpagerBean();
-                        wallpagerBean.setFromWhere(fromWhere);
-                        wallpagerBean.setType(adBean.getType());
-                        wallpagerBean.setIs_collected(adBean.getIs_collected());
-                        wallpagerBean.setMovie_url(adBean.getMovie_url());
-                        wallpagerBean.setWallpager_id(adBean.getId());
-                        wallpagerBean.setNickname(adBean.getNickname());
-                        wallpagerBean.setTitle(adBean.getTitle());
-                        wallpagerBean.setHead_img(adBean.getHead_img());
-                        wallpagerBean.setThumb_img_url(adBean.getThumb_img_url());
-                        MyApplication.getDbManager().insertWallpagerBean(wallpagerBean);
-                    }else if(bean.getItemType() == MulAdBean.TYPE_TWO){
-                        apiAdBean = bean.apiAdBean;
-                        wallpagerBean = new WallpagerBean();
-                        wallpagerBean.setFromWhere(fromWhere);
-                        wallpagerBean.setType(apiAdBean.getType());
-                        MyApplication.getDbManager().insertWallpagerBean(wallpagerBean);
-                    }
-                }
-            }
-        }).start();
-    }
 
 
 

@@ -15,6 +15,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_weight="1">
 
+
     </android.support.v7.widget.RecyclerView>
 
     <RelativeLayout
@@ -27,14 +28,6 @@
         android:paddingRight="10dp"
         android:layout_height="50dp">
 
-        <!--<ImageView-->
-            <!--android:id="@+id/back_2"-->
-            <!--android:layout_centerVertical="true"-->
-            <!--android:src="@mipmap/icon_back"-->
-            <!--android:paddingRight="10dp"-->
-            <!--android:paddingLeft="2dp"-->
-            <!--android:layout_width="25dp"-->
-            <!--android:layout_height="20dp"  />-->
 
         <ImageView
             android:id="@+id/back_2"
@@ -46,8 +39,8 @@
             android:layout_height="30dp" />
 
         <TextView
-            android:id="@+id/down"
-            android:text="专题页"
+            android:id="@+id/title_part2"
+            android:text=""
             android:textColor="@color/white"
             android:textSize="16sp"
             android:layout_centerInParent="true"

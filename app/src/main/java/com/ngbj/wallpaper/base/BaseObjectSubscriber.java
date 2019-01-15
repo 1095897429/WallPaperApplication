@@ -6,6 +6,7 @@ import com.ngbj.wallpaper.bean.entityBean.HttpResponse;
 import com.ngbj.wallpaper.dialog.LoadingDialog;
 import com.ngbj.wallpaper.module.app.DetailActivity;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
+import com.ngbj.wallpaper.utils.encry.AesUtils;
 import com.socks.library.KLog;
 
 import org.json.JSONException;
@@ -43,13 +44,14 @@ public abstract class BaseObjectSubscriber<T>
     }
 
 
+
     @Override
     public void onNext(HttpResponse<T> response) {
 
         if(response.getCode() == 200){
             mView.complete();
             if(response.getData() != null){
-                onSuccess(response.getData());
+                onSuccess(response.getData());//返回此泛型的具体类型
             }
         }else{
             mView.showError(response.getMessage());

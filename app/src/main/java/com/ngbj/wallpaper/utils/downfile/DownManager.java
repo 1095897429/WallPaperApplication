@@ -61,9 +61,10 @@ public class DownManager {
 //				KLog.d("进度： " + progress);
 				break;
 			case DOWN_OVER:
-//				Toast.makeText(context, "下载完毕", Toast.LENGTH_SHORT).show();
+
 				File dir = new File(SDCardHelper.getSDCardBaseDir(), "BSLWallpaper");
-				ToastHelper.customToastViewLong(context,"图片保存到" + dir.getAbsolutePath() + "目录下");
+				Toast.makeText(context, "图片保存到" + dir.getAbsolutePath() + "目录下", Toast.LENGTH_LONG).show();
+//				ToastHelper.customToastViewLong(context,"图片保存到" + dir.getAbsolutePath() + "目录下");
 				if(null != mDownListener)
 					mDownListener.fun();
 				break;

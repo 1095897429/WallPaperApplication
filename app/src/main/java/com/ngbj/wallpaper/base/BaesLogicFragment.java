@@ -30,37 +30,5 @@ public abstract class BaesLogicFragment<T extends BaseContract.BasePresenter> ex
 
     }
 
-    protected List<WallpagerBean> transformDataToWallpaper(List<MulAdBean> recommendList) {
-        WallpagerBean wallpagerBean;
-        AdBean adBean ;
-        ApiAdBean apiAdBean;
-        List<WallpagerBean> tempList = new ArrayList<>();
-        for (MulAdBean bean: recommendList) {
-            if(bean.getItemType() == MulAdBean.TYPE_ONE){
-                adBean = bean.adBean;
-                wallpagerBean = new WallpagerBean();
-                wallpagerBean.setType(adBean.getType());
-                wallpagerBean.setIs_collected(adBean.getIs_collected());
-                wallpagerBean.setMovie_url(adBean.getMovie_url());
-                wallpagerBean.setWallpager_id(adBean.getId());
-                wallpagerBean.setNickname(adBean.getNickname());
-                wallpagerBean.setTitle(adBean.getTitle());
-                wallpagerBean.setHead_img(adBean.getHead_img());
-                wallpagerBean.setThumb_img_url(adBean.getThumb_img_url());
-                wallpagerBean.setImg_url(adBean.getImg_url());
-                wallpagerBean.setLink(adBean.getLink());//TODO 新增的
-                tempList.add(wallpagerBean);
-            }else if(bean.getItemType() == MulAdBean.TYPE_TWO){
-                apiAdBean = bean.apiAdBean;
-                wallpagerBean = new WallpagerBean();
-                wallpagerBean.setType(apiAdBean.getType());
-                wallpagerBean.setImg_url(apiAdBean.getImgUrl());
-                wallpagerBean.setLink(apiAdBean.getLink());
-                tempList.add(wallpagerBean);
-            }
-        }
-        return tempList;
-    }
-
 
 }

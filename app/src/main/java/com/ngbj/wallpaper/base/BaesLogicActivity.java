@@ -24,50 +24,94 @@ public abstract class BaesLogicActivity<T extends BaseContract.BasePresenter> ex
     protected RecomendAdapter recomendAdapter;
     protected GridLayoutManager gridLayoutManager;
     protected List<MulAdBean> recommendList = new ArrayList<>();
+    protected  ArrayList<WallpagerBean> temps = new ArrayList<>();//传递给明细界面的数据
 
 
 
     /** ---------------- 公共方法  ------------------  */
-    /** page == 1 表示初始化请求  其他情况是加载更多*/
-    protected void insertToSql(int page, final List<MulAdBean> recommendList, final String fromWhere){
 
-        if(1 == page){
-            MyApplication.getDbManager().deleteWallpagerBeanList(fromWhere);
+    // 临时数据 数据库数据
+    protected void commonDtaLogin(String fromWhere,boolean isMore,List<MulAdBean> list) {
 
+        if(!isMore){
+            temps.clear();//临时数据清空
+            MyApplication.getDbManager().deleteWallpagerBeanList(fromWhere);//删除某来源
         }
 
-        //TODO 线程加入到数据库中 -- 先删除，后添加
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                WallpagerBean wallpagerBean;
-                AdBean adBean ;
-                ApiAdBean apiAdBean;
-                for (MulAdBean bean: recommendList) {
-                    if(bean.getItemType() == MulAdBean.TYPE_ONE){
-                        adBean = bean.adBean;
-                        wallpagerBean = new WallpagerBean();
-                        wallpagerBean.setFromWhere(fromWhere);
-                        wallpagerBean.setType(adBean.getType());
-                        wallpagerBean.setIs_collected(adBean.getIs_collected());
-                        wallpagerBean.setMovie_url(adBean.getMovie_url());
-                        wallpagerBean.setWallpager_id(adBean.getId());
-                        wallpagerBean.setNickname(adBean.getNickname());
-                        wallpagerBean.setTitle(adBean.getTitle());
-                        wallpagerBean.setHead_img(adBean.getHead_img());
-                        wallpagerBean.setThumb_img_url(adBean.getThumb_img_url());
-                        MyApplication.getDbManager().insertWallpagerBean(wallpagerBean);
-                    }else if(bean.getItemType() == MulAdBean.TYPE_TWO){
-                        apiAdBean = bean.apiAdBean;
-                        wallpagerBean = new WallpagerBean();
-                        wallpagerBean.setFromWhere(fromWhere);
-                        wallpagerBean.setType(apiAdBean.getType());
-                        MyApplication.getDbManager().insertWallpagerBean(wallpagerBean);
-                    }
-                }
-            }
-        }).start();
+
+        List<WallpagerBean> wTemps = transformDataToWallpaper(fromWhere,list);
+        temps.addAll(wTemps);
+
+        for (WallpagerBean wallpagerBean:wTemps) {
+            MyApplication.getDbManager().insertWallpagerBean(wallpagerBean);//新增
+        }
+
     }
+
+
+    protected List<WallpagerBean> transformDataToWallpaper(String fromWhere,List<MulAdBean> recommendList) {
+        WallpagerBean wallpagerBean;
+        AdBean adBean ;
+        ApiAdBean apiAdBean;
+        List<WallpagerBean> tempList = new ArrayList<>();
+        for (MulAdBean bean: recommendList) {
+            if(bean.getItemType() == MulAdBean.TYPE_ONE){
+                adBean = bean.adBean;
+                wallpagerBean = new WallpagerBean();
+                wallpagerBean.setType(adBean.getType());
+                wallpagerBean.setFromWhere(fromWhere);
+                wallpagerBean.setIs_collected(adBean.getIs_collected());
+                wallpagerBean.setMovie_url(adBean.getMovie_url());
+                wallpagerBean.setNickname(adBean.getNickname());
+                wallpagerBean.setTitle(adBean.getTitle());
+                wallpagerBean.setHead_img(adBean.getHead_img());
+                wallpagerBean.setThumb_img_url(adBean.getThumb_img_url());
+                wallpagerBean.setImg_url(adBean.getImg_url());
+
+                if(adBean.getType().equals(AppConstant.COMMON_WP)){
+                    wallpagerBean.setWallpager_id(adBean.getId());
+                }else{
+                    wallpagerBean.setWallpager_id(adBean.getAd_id());
+                    wallpagerBean.setLink(adBean.getLink());//TODO 新增的
+                }
+
+                tempList.add(wallpagerBean);
+            }else if(bean.getItemType() == MulAdBean.TYPE_TWO){
+                apiAdBean = bean.apiAdBean;
+                wallpagerBean = new WallpagerBean();
+                wallpagerBean.setFromWhere(fromWhere);
+                wallpagerBean.setWallpager_id(apiAdBean.getAd_id());
+                wallpagerBean.setType(apiAdBean.getType());
+                wallpagerBean.setImg_url(apiAdBean.getImgUrl());
+                wallpagerBean.setLink(apiAdBean.getLink());
+                tempList.add(wallpagerBean);
+            }
+        }
+        return tempList;
+    }
+
+
+//////////////////下面是老的
+
+
+    // 临时数据 数据库数据
+    protected void commonDtaLogin(boolean isMore,List<MulAdBean> list) {
+
+        if(!isMore){
+            temps.clear();//临时数据清空
+            MyApplication.getDbManager().deleteAllWallpagerBean();//删除
+        }
+
+
+        List<WallpagerBean> wTemps = transformDataToWallpaper(list);
+        temps.addAll(wTemps);
+
+        for (WallpagerBean wallpagerBean:wTemps) {
+            MyApplication.getDbManager().insertWallpagerBean(wallpagerBean);//新增
+        }
+
+    }
+
 
 
     protected List<WallpagerBean> transformDataToWallpaper(List<MulAdBean> recommendList) {
@@ -82,16 +126,28 @@ public abstract class BaesLogicActivity<T extends BaseContract.BasePresenter> ex
                 wallpagerBean.setType(adBean.getType());
                 wallpagerBean.setIs_collected(adBean.getIs_collected());
                 wallpagerBean.setMovie_url(adBean.getMovie_url());
-                wallpagerBean.setWallpager_id(adBean.getId());
+
+                if(adBean.getType().equals(AppConstant.COMMON_WP)){
+                    wallpagerBean.setWallpager_id(adBean.getId());
+                }else{
+                    wallpagerBean.setWallpager_id(adBean.getAd_id());
+                    wallpagerBean.setLink(adBean.getLink());//TODO 新增的
+                }
+
+
                 wallpagerBean.setNickname(adBean.getNickname());
                 wallpagerBean.setTitle(adBean.getTitle());
                 wallpagerBean.setHead_img(adBean.getHead_img());
                 wallpagerBean.setThumb_img_url(adBean.getThumb_img_url());
                 tempList.add(wallpagerBean);
             }else if(bean.getItemType() == MulAdBean.TYPE_TWO){
+
                 apiAdBean = bean.apiAdBean;
                 wallpagerBean = new WallpagerBean();
+                wallpagerBean.setWallpager_id(apiAdBean.getAd_id());
                 wallpagerBean.setType(apiAdBean.getType());
+                wallpagerBean.setImg_url(apiAdBean.getImgUrl());
+                wallpagerBean.setLink(apiAdBean.getLink());
                 tempList.add(wallpagerBean);
             }
         }

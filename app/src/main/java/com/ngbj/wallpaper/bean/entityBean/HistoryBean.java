@@ -4,8 +4,10 @@ import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Generated;
 
+import java.io.Serializable;
+
 @Entity
-public class HistoryBean {
+public class HistoryBean implements Serializable {
     @Id
     private Long id;
     private String historyName;
@@ -55,4 +57,6 @@ public class HistoryBean {
     public void setClickTime(String clickTime) {
         this.clickTime = clickTime;
     }
+
+
 }

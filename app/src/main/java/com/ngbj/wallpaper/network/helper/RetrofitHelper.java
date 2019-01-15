@@ -12,7 +12,9 @@ public class RetrofitHelper {
     private Retrofit mRetrofit;
     private static RetrofitHelper instance;
     private static ApiService mApiService;
-    private static String BASEURL = "http://bsl.bslwallpaper.top/";
+//    private static String BASEURL = "http://bsl.bslwallpaper.top/";//正式地址
+    private static String BASEURL = "http://bslwallpaper.birdbrowser.info/";//测试地址
+
 
 
     private RetrofitHelper(){}

@@ -236,6 +236,7 @@
         android:textSize="14sp"
         android:text="退出登录"
         android:padding="10dp"
+        android:visibility="gone"
         android:layout_marginBottom="74dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"

@@ -1,14 +1,17 @@
 package com.ngbj.wallpaper.mvp.presenter.app;
 
-import com.ngbj.wallpaper.base.BaseObjectSubscriber;
+import android.widget.Toast;
+
+import com.google.gson.Gson;
+import com.ngbj.wallpaper.base.MyApplication;
+import com.ngbj.wallpaper.base.ResponseSubscriber;
 import com.ngbj.wallpaper.base.RxPresenter;
 import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.ApiAdBean;
 import com.ngbj.wallpaper.bean.entityBean.BannerDetailBean;
 import com.ngbj.wallpaper.bean.entityBean.BannerListBean;
-import com.ngbj.wallpaper.bean.entityBean.IndexBean;
+import com.ngbj.wallpaper.bean.entityBean.HttpResponse;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
-import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.mvp.contract.app.SpecialContract;
 import com.ngbj.wallpaper.network.helper.OkHttpHelper;
 import com.ngbj.wallpaper.network.helper.RetrofitHelper;
@@ -21,6 +24,7 @@ import java.util.List;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 
 public class SpecialPresenter extends RxPresenter<SpecialContract.View>
         implements SpecialContract.Presenter<SpecialContract.View> {
@@ -34,16 +38,33 @@ public class SpecialPresenter extends RxPresenter<SpecialContract.View>
         hashMap.put("wallpaperId",wallpaperId);
         RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
 
+        // TODO 全方位解密测试
         addSubscribe(RetrofitHelper.getApiService()
                 .deleteCollection(requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(String string) {
-                        mView.showDeleteCollection();
+                    public void onSuccess(HttpResponse response) {
+                        KLog.d(response.getCode());
+                        if(response.getCode() == 200){
+                            mView.showDeleteCollection();
+                        }else{
+                            Toast.makeText(MyApplication.getInstance(), response.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }));
+
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .deleteCollection(requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+//                    @Override
+//                    public void onSuccess(String string) {
+//                        mView.showDeleteCollection();
+//                    }
+//                }));
     }
 
 
@@ -57,16 +78,34 @@ public class SpecialPresenter extends RxPresenter<SpecialContract.View>
         hashMap.put("type",type);
         RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
 
+        // TODO 全方位解密测试
         addSubscribe(RetrofitHelper.getApiService()
                 .record(requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(String string) {
-                        mView.showRecordData();
+                    public void onSuccess(HttpResponse response) {
+                        KLog.d(response.getCode());
+                        if(response.getCode() == 200){
+                            mView.showRecordData();
+                        }else{
+                            mView.showError(response.getMessage());
+                        }
                     }
                 }));
+
+
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .record(requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new BaseObjectSubscriber<String>(mView) {
+//                    @Override
+//                    public void onSuccess(String string) {
+//                        mView.showRecordData();
+//                    }
+//                }));
     }
 
 
@@ -78,31 +117,65 @@ public class SpecialPresenter extends RxPresenter<SpecialContract.View>
         hashMap.put("bannerId",bannerId);
         RequestBody requestBody = OkHttpHelper.getRequestBody(hashMap);
 
-
+        // TODO 2019.1.14 全方位解密测试
         addSubscribe(RetrofitHelper.getApiService()
                 .banner(requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new BaseObjectSubscriber<BannerListBean>(mView){
+                .subscribeWith(new ResponseSubscriber<ResponseBody>(mView) {
                     @Override
-                    public void onSuccess(BannerListBean bannerListBean) {
-                        BannerDetailBean bannerDetailBean = bannerListBean.getInfo();
-                        List<AdBean> recommendList = bannerListBean.getList();
-                        List<MulAdBean> list = new ArrayList<>();//重新构造的函数
-                        if(!recommendList.isEmpty()){
-                            AdBean adBean;
-                            MulAdBean mulAdBean;
+                    public void onSuccess(HttpResponse response) {
+                        KLog.d(response.getCode());
+                        if(response.getCode() == 200){
+                            Gson gson = new Gson();
+                            String result =  gson.toJson(response.getData());
+                            BannerListBean bannerListBean = gson.fromJson(result,BannerListBean.class);
+                            BannerDetailBean bannerDetailBean = bannerListBean.getInfo();
+                            List<AdBean> recommendList = bannerListBean.getList();
+                            List<MulAdBean> list = new ArrayList<>();//重新构造的函数
+                            if(!recommendList.isEmpty()){
+                                AdBean adBean;
+                                MulAdBean mulAdBean;
 
-                            for (int i = 0; i < recommendList.size(); i++) {
-                                adBean = recommendList.get(i);
-                                //正常
-                                mulAdBean = new MulAdBean(MulAdBean.TYPE_ONE,MulAdBean.ITEM_SPAN_SIZE,adBean);
-                                list.add(mulAdBean);
+                                for (int i = 0; i < recommendList.size(); i++) {
+                                    adBean = recommendList.get(i);
+                                    //正常
+                                    mulAdBean = new MulAdBean(MulAdBean.TYPE_ONE,MulAdBean.ITEM_SPAN_SIZE,adBean);
+                                    list.add(mulAdBean);
+                                }
                             }
+                            mView.showRecommendData(bannerDetailBean,list);
+                        }else{
+                            Toast.makeText(MyApplication.getInstance(), response.getMessage(), Toast.LENGTH_SHORT).show();
                         }
-                        mView.showRecommendData(bannerDetailBean,list);
                     }
                 }));
+
+
+//        addSubscribe(RetrofitHelper.getApiService()
+//                .banner(requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeWith(new BaseObjectSubscriber<BannerListBean>(mView){
+//                    @Override
+//                    public void onSuccess(BannerListBean bannerListBean) {
+//                        BannerDetailBean bannerDetailBean = bannerListBean.getInfo();
+//                        List<AdBean> recommendList = bannerListBean.getList();
+//                        List<MulAdBean> list = new ArrayList<>();//重新构造的函数
+//                        if(!recommendList.isEmpty()){
+//                            AdBean adBean;
+//                            MulAdBean mulAdBean;
+//
+//                            for (int i = 0; i < recommendList.size(); i++) {
+//                                adBean = recommendList.get(i);
+//                                //正常
+//                                mulAdBean = new MulAdBean(MulAdBean.TYPE_ONE,MulAdBean.ITEM_SPAN_SIZE,adBean);
+//                                list.add(mulAdBean);
+//                            }
+//                        }
+//                        mView.showRecommendData(bannerDetailBean,list);
+//                    }
+//                }));
     }
 
 

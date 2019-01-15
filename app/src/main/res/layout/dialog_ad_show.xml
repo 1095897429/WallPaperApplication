@@ -6,11 +6,10 @@
     android:gravity="center"
     android:padding="8dp"
     android:orientation="vertical"
-    android:background="@drawable/shape_iosdialog_bg">
+    android:background="@drawable/shape_iosdialog_white_bg">
 
     <ImageView
         android:id="@+id/ad_pic"
-        android:src="@mipmap/dialog_ad"
         android:scaleType="centerCrop"
         android:layout_width="match_parent"
         android:layout_height="164dp" />

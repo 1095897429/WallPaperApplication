@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,35 +29,26 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.flyco.tablayout.SlidingTabLayout;
 import com.flyco.tablayout.listener.OnTabSelectListener;
-import com.google.gson.Gson;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.my.MyFragmentAdapter;
 import com.ngbj.wallpaper.base.BaseFragment;
 import com.ngbj.wallpaper.base.MyApplication;
-import com.ngbj.wallpaper.bean.entityBean.AdBean;
 import com.ngbj.wallpaper.bean.entityBean.LoginBean;
 import com.ngbj.wallpaper.bean.entityBean.MulAdBean;
-import com.ngbj.wallpaper.bean.entityBean.ShareBean;
 import com.ngbj.wallpaper.constant.AppConstant;
 import com.ngbj.wallpaper.dialog.HeadAlertDialog;
-import com.ngbj.wallpaper.dialog.ReportAlertDialog;
-import com.ngbj.wallpaper.dialog.ShareAlertDialog;
-import com.ngbj.wallpaper.eventbus.LoveEvent;
 import com.ngbj.wallpaper.eventbus.activity.LoginSuccessEvent;
+import com.ngbj.wallpaper.eventbus.activity.NickNameSuccessEvent;
 import com.ngbj.wallpaper.module.app.LoginActivity;
+import com.ngbj.wallpaper.module.app.NickNameActivity;
 import com.ngbj.wallpaper.module.app.ReleaseActivity;
 import com.ngbj.wallpaper.module.app.SettingActivity;
 import com.ngbj.wallpaper.mvp.contract.fragment.MyContract;
-import com.ngbj.wallpaper.mvp.presenter.fragment.IndexPresenter;
 import com.ngbj.wallpaper.mvp.presenter.fragment.MyPresenter;
 import com.ngbj.wallpaper.utils.common.Base64;
-import com.ngbj.wallpaper.utils.common.PicPathHelper;
 import com.ngbj.wallpaper.utils.common.SDCardHelper;
-import com.ngbj.wallpaper.utils.common.SPHelper;
-import com.ngbj.wallpaper.utils.common.StatusBarUtil;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.ngbj.wallpaper.utils.widget.GlideCircleTransform;
-import com.ngbj.wallpaper.utils.widget.GlideRoundTransform;
 import com.socks.library.KLog;
 
 import org.greenrobot.eventbus.EventBus;
@@ -230,13 +220,25 @@ public class MyFragment extends BaseFragment<MyPresenter>
     }
 
 
+    @OnClick(R.id.name)
+    public void NickName(){
+
+        LoginBean bean = MyApplication.getDbManager().queryLoginBean();
+        if(null != bean) {
+            Intent intent = new Intent(getActivity(),NickNameActivity.class);
+            startActivity(intent);
+        }else{
+           ToastHelper.customToastView(MyApplication.getInstance(),"您还未登录");
+        }
+    }
+
+
     @OnClick(R.id.upload_fl)
     public void UploadFl(){
 
 
         LoginBean bean = MyApplication.getDbManager().queryLoginBean();
         if(null != bean) {
-//            ReleaseActivity.openActivity(getActivity());
             Intent intent = new Intent(mContext, ReleaseActivity.class);
             Bundle bundle = new Bundle();
             intent.putExtras(bundle);
@@ -270,8 +272,6 @@ public class MyFragment extends BaseFragment<MyPresenter>
 
         LoginBean bean = MyApplication.getDbManager().queryLoginBean();
         if(null == bean) {
-//            LoginActivity.openActivity(getActivity());
-
             Intent intent = new Intent(mContext, LoginActivity.class);
             Bundle bundle = new Bundle();
             intent.putExtras(bundle);
@@ -287,6 +287,7 @@ public class MyFragment extends BaseFragment<MyPresenter>
 
         HeadAlertDialog headAlertDialog =  new HeadAlertDialog(mContext)
                 .builder()
+                .setCanceledOnTouchOutside(true)
                 .setHeadBeanList(temps);
         headAlertDialog.setOnDialogItemClickListener(new HeadAlertDialog.OnDialogItemClickListener() {
             @Override
@@ -532,9 +533,21 @@ public class MyFragment extends BaseFragment<MyPresenter>
         EventBus.getDefault().unregister(this);
     }
 
+
+
     @Subscribe
+    public void onNickNameSuccessEvent(NickNameSuccessEvent event) {
+        LoginBean loginBean = event.getLoginBean();
+        name.setText(event.getLoginBean().getNickname());
+    }
+
+
+        @Subscribe
     public void onLoginSuccessEvent(LoginSuccessEvent event){
-        String headImg = event.getLoginBean().getHead_img();
+
+        LoginBean loginBean = event.getLoginBean();
+
+        String headImg = loginBean.getHead_img();
         KLog.d("headImg: " + headImg);
         if(!TextUtils.isEmpty(headImg)){
             Glide.with(this)
@@ -559,10 +572,12 @@ public class MyFragment extends BaseFragment<MyPresenter>
 
         }
 
-        if(!TextUtils.isEmpty(event.getLoginBean().getNickname())){
+        if(!TextUtils.isEmpty(loginBean.getNickname())){
             name.setText(event.getLoginBean().getNickname());
-        }else
-            name.setText("Mask");
+        }else{
+            name.setText("未登录");
+        }
+
 
     }
 

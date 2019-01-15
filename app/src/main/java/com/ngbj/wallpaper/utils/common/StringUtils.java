@@ -18,17 +18,17 @@ public class StringUtils {
 
 
     /** 获取友盟集成测试设备的设备号和mac */
-    public static String[] getTestDeviceInfo(Context context){
-        String[] deviceInfo = new String[2];
-        try {
-            if(context != null){
-                deviceInfo[0] = DeviceConfig.getDeviceIdForGeneral(context);
-                deviceInfo[1] = DeviceConfig.getMac(context);
-            }
-        } catch (Exception e){}
-        KLog.d("device_id  " + deviceInfo[0] + "  mac " +  deviceInfo[1]);
-        return deviceInfo;
-    }
+//    public static String[] getTestDeviceInfo(Context context){
+//        String[] deviceInfo = new String[2];
+//        try {
+//            if(context != null){
+//                deviceInfo[0] = DeviceConfig.getDeviceIdForGeneral(context);
+//                deviceInfo[1] = DeviceConfig.getMac(context);
+//            }
+//        } catch (Exception e){}
+//        KLog.d("device_id  " + deviceInfo[0] + "  mac " +  deviceInfo[1]);
+//        return deviceInfo;
+//    }
 
 
     /** 获取当前日期 和 点击时的日期*/
@@ -47,11 +47,6 @@ public class StringUtils {
     }
 
 
-    /** 尺寸转换 */
-    public static int dp2px(Context context, float dpValue) {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (dpValue * scale);
-    }
 
 
     /** 从包名中获取渠道名 */

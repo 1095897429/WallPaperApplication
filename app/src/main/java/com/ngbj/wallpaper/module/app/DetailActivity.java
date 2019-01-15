@@ -1,19 +1,24 @@
 package com.ngbj.wallpaper.module.app;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.media.MediaPlayer;
 import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
-import android.service.wallpaper.WallpaperService;
+import android.os.Handler;
+import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -30,14 +35,12 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.chad.library.adapter.base.BaseViewHolder;
 import com.ngbj.wallpaper.R;
 import com.ngbj.wallpaper.adapter.detail.Detail_Adapter;
 import com.ngbj.wallpaper.base.BaesLogicActivity;
@@ -56,17 +59,11 @@ import com.ngbj.wallpaper.dialog.PreviewAlertDialog;
 import com.ngbj.wallpaper.dialog.ReportAlertDialog;
 import com.ngbj.wallpaper.dialog.ShareAlertDialog;
 import com.ngbj.wallpaper.eventbus.LoveEvent;
-import com.ngbj.wallpaper.eventbus.LoveHotNewEvent;
-import com.ngbj.wallpaper.eventbus.LoveCreateEvent;
-import com.ngbj.wallpaper.eventbus.LoveNewEvent;
-import com.ngbj.wallpaper.eventbus.LoveSearchEvent;
-import com.ngbj.wallpaper.eventbus.LoveUploadWorksEvent;
-import com.ngbj.wallpaper.eventbus.fragment.LoveSpecialEvent;
 import com.ngbj.wallpaper.mvp.contract.app.DetailContract;
 import com.ngbj.wallpaper.mvp.presenter.app.DetailPresenter;
 import com.ngbj.wallpaper.service.VideoLiveWallpaperService;
+import com.ngbj.wallpaper.utils.common.AppHelper;
 import com.ngbj.wallpaper.utils.common.SDCardHelper;
-import com.ngbj.wallpaper.utils.common.ScreenHepler;
 import com.ngbj.wallpaper.utils.common.ToastHelper;
 import com.ngbj.wallpaper.utils.downfile.DownManager;
 import com.ngbj.wallpaper.utils.widget.OnViewPagerListener;
@@ -88,6 +85,8 @@ import com.umeng.socialize.media.UMImage;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -139,16 +138,7 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
     boolean isPrepareOK;//资源是否加载完成
     boolean isDown;//是否下滑动作
     LoadingDialog dialog;//显示加载框
-
-
-//    public static void openActivity(Context context, DetailParamBean bean,ArrayList<WallpagerBean> list) {
-//        Intent intent = new Intent(context, DetailActivity.class);
-//        Bundle bundle = new Bundle();
-//        bundle.putSerializable("bean",bean);
-//        bundle.putSerializable("list",list);
-//        intent.putExtras(bundle);
-//        context.startActivity(intent);
-//    }
+    AdBean mAdBean;//下载时请求的bean
 
 
     @Override
@@ -166,10 +156,16 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
 
         mDetailParamBean = (DetailParamBean) getIntent().getExtras().getSerializable("bean");
         mTemps = (List<WallpagerBean>) getIntent().getExtras().getSerializable("list");
+        /** 如果传递过来的参数有值，那么不查询 */
+        if(mTemps == null){
+            mTemps = MyApplication.getDbManager().queryDifferCome(mDetailParamBean.getFromWhere());
+        }
+
         KLog.d(TAG,"数据的长度是：" + mTemps.size());
         mPosition = mDetailParamBean.getPosition();
         mPage = mDetailParamBean.getPage();
         fromWhere = mDetailParamBean.getFromWhere();
+        KLog.d(TAG," ------ 来源： " + fromWhere);
         mCategory = mDetailParamBean.getCategory();
         mOrder = mDetailParamBean.getOrder();
         keyWord = mDetailParamBean.getKeyWord();
@@ -177,11 +173,10 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
         hotSearchTag = mDetailParamBean.getHotSearchTag();
         searchType = mDetailParamBean.getSearchType();
 
+        adSetting(); //激励视频广告
         initRecycleView();  //实例化
         getDetailData();  //默认加载的数据
         isNeedGetRequest(); //网络请求
-        adSetting(); //激励视频广告
-
 
     }
 
@@ -219,45 +214,46 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
         type = mWallpagerBean.getType();
         KLog.d("切换的type:  ",type);
 
+        wallpagerId = mWallpagerBean.getWallpager_id();
+
         if(type.equals(AppConstant.COMMON_AD) || type.equals(AppConstant.API_AD) ){
-            Log.e(TAG,"嘿嘿😋，我是广告 " + mWallpagerBean.getLink());
+            Log.e(TAG,"嘿嘿😋，我是广告 id是 " + wallpagerId + " 链接是 " + mWallpagerBean.getLink());
             View itemView = recyclerView.getChildAt(0);
             final WebView webView = itemView.findViewById(R.id.webview);
             final RelativeLayout part2 = itemView.findViewById(R.id.part2);
             part2.setVisibility(View.GONE);
             webView.setVisibility(View.VISIBLE);
+
+            showDialog();
+
             toWebView(webView);
+
+            //TODO 2019.1.9 广告点击统计
+            KLog.d("广告的Id: " ,mWallpagerBean.getWallpager_id());
+            adClickStatistics(mWallpagerBean.getWallpager_id() );
 
             return;
         }else{
-        }
 
-        wallpagerId = mWallpagerBean.getWallpager_id();
-        if(null == wallpagerId || "1".equals(wallpagerId)
-                || "2".equals(wallpagerId) || "3".equals(wallpagerId)){
-
-
-        }else{
-
+            //TODO 重新加载
+            loadAd();
 
             //判断大图路径是否为空
             if (TextUtils.isEmpty(mWallpagerBean.getImg_url())) {
                 showDialog();
-                mPresenter.getDetailData(mWallpagerBean.getWallpager_id());
+                mPresenter.getDetailData(wallpagerId);
                 return;
             }
 
             //更新 事件
             updateToDesktop(mWallpagerBean.getImg_url(),mWallpagerBean.getCategory_name());
 
-
-
             /** 切换时加载视频 */
             if(type.equals(AppConstant.DYMATIC_WP)){
 
                 //判断视频路径是否为空
                 if(TextUtils.isEmpty(mWallpagerBean.getMovie_url())){
-                    ToastHelper.customToastView(mContext,"视频获取失败，请重新加载");
+                    ToastHelper.customToastView(getApplicationContext(),"视频获取失败，请重新加载");
                     finish();
                     return;
                 }
@@ -266,12 +262,15 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
 
             }
         }
+
+
+
     }
 
 
 
 
-    /** 请求后操作 -- 更新界面 */
+    /** 请求后统一操作 -- 更新界面 */
     private void updateToDesktop(String imgUrl,String categoryName) {
 
         View itemView = recyclerView.getChildAt(0);
@@ -290,7 +289,12 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                 :"#" + categoryName +"#");
 
 
-        playVideoTest(itemView);
+        //发送异步
+        Message msg = Message.obtain();
+        mHandler.sendMessage(msg);
+
+
+//        playVideoTest(itemView);
     }
 
 
@@ -363,15 +367,7 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                 @Override
                 public void onClick(View v) {
 
-                int count = getDownCount();
-                if(count != 3){
-                    downAndRecord();
-                    queryAndUpdate();
-                    return;
-                }
-
-                showAdDialog();
-
+                    checkPermiss();
                 }
             });
 
@@ -420,13 +416,13 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                 public void onClick(View v) {
                     if ("0".equals(mWallpagerBean.getIs_collected())) {
                         mWallpagerBean.setIs_collected("1");
-                        ToastHelper.customToastView(mContext, "收藏成功");
+                        ToastHelper.customToastView(getApplicationContext(), "收藏成功");
                         iconLove.setImageResource(R.mipmap.icon_love);
                         diffRecod("2");
                         updateLove(true);
                     } else {
                         mWallpagerBean.setIs_collected("0");
-                        ToastHelper.customToastView(mContext, "取消收藏");
+                        ToastHelper.customToastView(getApplicationContext(), "取消收藏");
                         iconLove.setImageResource(R.mipmap.icon_unlove);
                         mPresenter.getDeleteCollection(mWallpagerBean.getWallpager_id());
                         updateLove(false);
@@ -442,6 +438,52 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                 }
             });
     }
+
+
+    /** ================== 权限  开始==================== */
+    private void checkPermiss() {
+        if (ContextCompat.checkSelfPermission(DetailActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+        }else {
+
+            mPresenter.getAlertAd();
+        }
+    }
+
+
+    //权限请求的返回
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode){
+
+            case 1:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    downLogic();
+                }else {
+                    ToastHelper.customToastView(getApplicationContext(),"SD卡权限未开启，请先开启权限");
+                }
+
+                break;
+            default:
+                break;
+        }
+    }
+
+
+
+    private void downLogic() {
+        int count = getDownCount();
+        if(count != 3){
+            downAndRecord();
+            queryAndUpdate();
+            return;
+        }
+        showAdDialog();
+    }
+
+    /** ================== 权限  结束 ==================== */
+
 
 
     /** ================== 适配器  开始==================== */
@@ -501,10 +543,10 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                         if(fromWhere.equals(AppConstant.INDEX)){//主界面
                             mPresenter.getIndexRecommendData(mPage);
 
-                        }else if(fromWhere.equals(AppConstant.CATEGORY_NEW)){//分类子项
+                        }else if(fromWhere.contains(AppConstant.CATEGORY)){//分类子项
                             mPresenter.getMoreRecommendData(mPage,mCategory,mOrder);
 
-                        }else if(fromWhere.equals(AppConstant.SEARCH)){
+                        }else if(fromWhere.equals(AppConstant.SEARCH)){//搜索
 
                             if(searchType == AppConstant.FROMINDEX_NAVICATION){
                                 mPresenter.getMoreNavigationData(mPage,navigation);
@@ -514,7 +556,7 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                                 mPresenter.getMoreKeySearchData(mPage,keyWord);
                             }
 
-                        }else if(fromWhere.equals(AppConstant.CATEGORY_NEW_HOT)){//分类最热/最新
+                        }else if(fromWhere.contains(AppConstant.CATEGORY_NEW_HOT_TEST)){//最热/最新
                             mPresenter.getMoreRecommendData(mPage,mCategory,mOrder);
                         }
                     }
@@ -556,25 +598,28 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
         }
 
         //TODO 根据不同的来源发送事件
-        if(fromWhere.equals(AppConstant.INDEX)){//首页
-            EventBus.getDefault().post(new LoveEvent(mPosition,isLove));
+        if(fromWhere.contains(AppConstant.CATEGORY)) {//分类的子项
+            EventBus.getDefault().post(new LoveEvent(fromWhere, mPosition, isLove));
+            return;
+        }else if(fromWhere.equals(AppConstant.INDEX)){//首页
+            EventBus.getDefault().post(new LoveEvent(fromWhere,mPosition,isLove));
+            return;
         }else if(fromWhere.equals(AppConstant.SEARCH)){//搜索页
-            EventBus.getDefault().post(new LoveSearchEvent(mPosition,isLove));
-        }else if(fromWhere.equals(AppConstant.CATEGORY_NEW)){//分类子页
-            EventBus.getDefault().post(new LoveNewEvent(mPosition,isLove));
-        }else if(fromWhere.equals(AppConstant.CATEGORY_NEW_HOT)){//最新最热
-            EventBus.getDefault().post(new LoveHotNewEvent(mPosition,isLove));
-
-        }else if(fromWhere.equals(AppConstant.MY_1)){//下载 收藏 分享
-//            EventBus.getDefault().post(new LoveCreateEvent(mPosition,wallpagerId));
-            EventBus.getDefault().post(new LoveCreateEvent(mPosition,isLove));
+            EventBus.getDefault().post(new LoveEvent(fromWhere,mPosition,isLove));
+            return;
+        }else if(fromWhere.contains(AppConstant.CATEGORY_NEW_HOT_TEST)){//最热/日
+            EventBus.getDefault().post(new LoveEvent(fromWhere,mPosition,isLove));
+            return;
+        }else if(fromWhere.contains(AppConstant.SPECIAL)){//专题页
+            EventBus.getDefault().post(new LoveEvent(fromWhere,mPosition,isLove));
+            return;
+        }else if(fromWhere.contains(AppConstant.FRAGMENT_MY)){//下载 收藏 分享
+            EventBus.getDefault().post(new LoveEvent(fromWhere,mPosition,isLove));
+            return;
         }else if(fromWhere.equals(AppConstant.MY_UPLOAD_WORKD)){//创作
-            EventBus.getDefault().post(new LoveUploadWorksEvent(mPosition,isLove));
-        }else if(fromWhere.equals(AppConstant.SPECIAL)){//专题页
-
-            EventBus.getDefault().post(new LoveSpecialEvent(mPosition,isLove));
+            EventBus.getDefault().post(new LoveEvent(fromWhere,mPosition,isLove));
+            return;
         }
-
 
     }
 
@@ -628,6 +673,7 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
 
         ShareAlertDialog shareAlertDialog = new ShareAlertDialog(mContext)
                 .builder()
+                .setCanceledOnTouchOutside(true)
                 .seShareBeanList(temps);
         shareAlertDialog.setOnDialogItemClickListener(new ShareAlertDialog.OnDialogItemClickListener() {
             @Override
@@ -638,7 +684,13 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                 switch (position) {
                     case 0:
                         KLog.d("微信");
-                        sharePic(SHARE_MEDIA.WEIXIN);
+                        if (isWxInstall(DetailActivity.this)) {
+                            sharePic(SHARE_MEDIA.WEIXIN);
+                        }else{
+                            ToastHelper.customToastView(getApplicationContext(), "请先安装微信客户端");
+                            return;
+                        }
+
                         break;
                     case 1:
                         KLog.d("朋友圈");
@@ -648,9 +700,6 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                         KLog.d("QQ");
                         sharePic(SHARE_MEDIA.QQ);
                         break;
-//                    case 3:
-//                        KLog.d("微博");
-//                        break;
                     case 3:
                         KLog.d("QQ空间");
                         sharePic(SHARE_MEDIA.QZONE);
@@ -661,45 +710,106 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
         shareAlertDialog.show();
     }
 
-    private void sharePic(SHARE_MEDIA platform) {
-        UMImage image = new UMImage(DetailActivity.this,dynamicUrl);
-        UMImage thumb = new UMImage(DetailActivity.this,mWallpagerBean.getThumb_img_url());
-        image.setThumb(thumb);
-        image.compressStyle = UMImage.CompressStyle.SCALE;//大小压缩，默认为大小压缩，适合普通很大的图
-        image.compressStyle = UMImage.CompressStyle.QUALITY;//质量压缩，适合长图的分享
-        //压缩格式设置
-        image.compressFormat = Bitmap.CompressFormat.PNG;//用户分享透明背景的图片可以设置这种方式，但是qq好友，微信朋友圈，不支持透明背景图片，会变成黑色
+    private void sharePic(final SHARE_MEDIA platform) {
 
-        new ShareAction(DetailActivity.this)
-                .setPlatform(platform)
-                .withText("变色龙壁纸是一款非常好的壁纸应用，谁用谁知道，绝对错不了！")
-                .withMedia(image)
-                .setCallback(new UMShareListener() {
-                    @Override
-                    public void onStart(SHARE_MEDIA share_media) {}
+        showDialog();
 
+//        UMImage image = new UMImage(DetailActivity.this,dynamicUrl);
+//        UMImage thumb = new UMImage(DetailActivity.this,mWallpagerBean.getThumb_img_url());
+//        image.setThumb(thumb);
+//        image.compressStyle = UMImage.CompressStyle.SCALE;//大小压缩，默认为大小压缩，适合普通很大的图
+//        image.compressStyle = UMImage.CompressStyle.QUALITY;//质量压缩，适合长图的分享
+//        //压缩格式设置
+//        image.compressFormat = Bitmap.CompressFormat.PNG;//用户分享透明背景的图片可以设置这种方式，但是qq好友，微信朋友圈，不支持透明背景图片，会变成黑色
+//
+//        new ShareAction(DetailActivity.this)
+//                .setPlatform(platform)
+//                .withText("变色龙壁纸是一款非常好的壁纸应用，谁用谁知道，绝对错不了！")
+//                .withMedia(image)
+//                .setCallback(new UMShareListener() {
+//                    @Override
+//                    public void onStart(SHARE_MEDIA share_media) {}
+//
+//                    @Override
+//                    public void onResult(final SHARE_MEDIA share_media) {
+//                        KLog.d("当前线程: " + Thread.currentThread().getName());
+//                        if(dialog != null){dialog.dismiss();}
+//                        Toast.makeText(DetailActivity.this, " 分享成功", Toast.LENGTH_SHORT).show();
+//                    }
+//
+//                    @Override
+//                    public void onError(final SHARE_MEDIA share_media, final Throwable throwable) {
+//                        if (throwable != null) {
+//                            Log.d("throw", "throw:" + throwable.getMessage());
+//                        }
+//                        if(dialog != null){dialog.dismiss();}
+//                        Toast.makeText(DetailActivity.this,  " 分享失败", Toast.LENGTH_SHORT).show();
+//
+//
+//                    }
+//
+//                    @Override
+//                    public void onCancel(final SHARE_MEDIA share_media) {
+//                        if(dialog != null){dialog.dismiss();}
+//                        Toast.makeText(DetailActivity.this,  " 分享取消", Toast.LENGTH_SHORT).show();
+//                    }
+//                })
+//                .share();
+
+        Glide.with(MyApplication.getInstance())
+                .load(dynamicUrl)
+                .asBitmap()
+                .into(new SimpleTarget<Bitmap>() {
                     @Override
-                    public void onResult(final SHARE_MEDIA share_media) {
-                        KLog.d("当前线程: " + Thread.currentThread().getName());
-                        Toast.makeText(DetailActivity.this, " 分享成功", Toast.LENGTH_SHORT).show();
+                    public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+
+                        Bitmap bitmap = compressBitmap(resource);
+
+                        UMImage image = new UMImage(DetailActivity.this,bitmap);
+                        UMImage thumb = new UMImage(DetailActivity.this,mWallpagerBean.getThumb_img_url());
+                        image.setThumb(thumb);
+                        image.compressStyle = UMImage.CompressStyle.SCALE;//大小压缩，默认为大小压缩，适合普通很大的图
+//                        image.compressStyle = UMImage.CompressStyle.QUALITY;//质量压缩，适合长图的分享
+                        //压缩格式设置
+//                        image.compressFormat = Bitmap.CompressFormat.PNG;//用户分享透明背景的图片可以设置这种方式，但是qq好友，微信朋友圈，不支持透明背景图片，会变成黑色
+
+                        new ShareAction(DetailActivity.this)
+                                .setPlatform(platform)
+                                .withMedia(image)
+                                .setCallback(new UMShareListener() {
+                                    @Override
+                                    public void onStart(SHARE_MEDIA share_media) {}
+
+                                    @Override
+                                    public void onResult(final SHARE_MEDIA share_media) {
+                                        KLog.d("当前线程: " + Thread.currentThread().getName());
+                                        if(dialog != null){dialog.dismiss();}
+//                                        Toast.makeText(DetailActivity.this, " 分享成功", Toast.LENGTH_SHORT).show();
+                                    }
+
+                                    @Override
+                                    public void onError(final SHARE_MEDIA share_media, final Throwable throwable) {
+                                        if (throwable != null) {
+                                            Log.d("throw", "throw:" + throwable.getMessage());
+                                        }
+                                        if(dialog != null){dialog.dismiss();}
+                                        Toast.makeText(DetailActivity.this,  " 分享失败", Toast.LENGTH_SHORT).show();
+
+
+                                    }
+
+                                    @Override
+                                    public void onCancel(final SHARE_MEDIA share_media) {
+                                        if(dialog != null){dialog.dismiss();}
+                                        Toast.makeText(DetailActivity.this,  " 分享取消", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                .share();
+
                     }
-
-                    @Override
-                    public void onError(final SHARE_MEDIA share_media, final Throwable throwable) {
-                        if (throwable != null) {
-                            Log.d("throw", "throw:" + throwable.getMessage());
-                        }
-                      Toast.makeText(DetailActivity.this,  " 分享失败", Toast.LENGTH_SHORT).show();
+                });
 
 
-                    }
-
-                    @Override
-                    public void onCancel(final SHARE_MEDIA share_media) {
-                        Toast.makeText(DetailActivity.this,  " 分享取消", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .share();
     }
 
 
@@ -713,7 +823,9 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
         final String destinationUri = getOutputImagePath();
         KLog.d("保存的地址：" + destinationUri);
         KLog.d("下载的地址：" + dynamicUrl);
-        ToastHelper.customToastView(this,"正在下载...");
+
+        ToastHelper.customToastView(getApplicationContext(),"正在下载...");
+
         showDialog();
         /** 委托DownManager 去下载 */
         DownManager downManager = new DownManager(MyApplication.getInstance(), dynamicUrl, destinationUri);
@@ -728,7 +840,6 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                       TestBean testBean = new TestBean();
                       testBean.setUrl(destinationUri);
                       MyApplication.getDbManager().insertTestBean(testBean);
-//                     VideoLiveWallpaperService.startLiveWallpaperPrevivew(DetailActivity.this);
 
                     Intent localIntent = new Intent();
                     localIntent.setAction(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);//android.service.wallpaper.CHANGE_LIVE_WALLPAPER
@@ -747,6 +858,9 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        //友盟回调 则授权回调不成功，获取不到第三方信息
+        UMShareAPI.get(this).onActivityResult(requestCode, resultCode, data);
+
         if(requestCode == 100){
             if(resultCode == RESULT_OK){
                 KLog.d(TAG,"动态壁纸设置成功");
@@ -757,6 +871,7 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
 
     private void showAdDialog() {
         final AdShowDialog adShowDialog = new AdShowDialog(this).builder();
+        adShowDialog.setAdBean(mAdBean);
         adShowDialog.setPositionButton("看视频解锁下载", new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -764,6 +879,22 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                 playAd();
             }
         }).setCanceledOnTouchOutside(true);
+        adShowDialog.setImageViewListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO 2019.1.12 广告点击统计
+                KLog.d("广告的Id: " ,mAdBean.getId() );
+                adClickStatistics(mAdBean.getId());
+
+                KLog.d("url: ",mAdBean.getLink());
+                //不能用静态方法，导致内存泄漏
+                Intent intent = new Intent(mContext, WebViewActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putString("loadUrl", mAdBean.getLink());
+                intent.putExtras(bundle);
+                mContext.startActivity(intent);
+            }
+        });
         adShowDialog.show();
     }
 
@@ -810,6 +941,7 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
 
         ReportAlertDialog reportAlertDialog = new ReportAlertDialog(mContext)
                 .builder()
+                .setCanceledOnTouchOutside(true)
                 .setReportBeanList(temps);
         reportAlertDialog.setOnDialogItemClickListener(new ReportAlertDialog.OnDialogItemClickListener() {
             @Override
@@ -854,7 +986,6 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
     private void setWallpaper() {
         List<String> temps = new ArrayList<>();
         temps.add("桌面壁纸");
-        temps.add("锁屏壁纸");
         temps.add("取消");
 
         PreviewAlertDialog previewAlertDialog = new PreviewAlertDialog(mContext)
@@ -886,9 +1017,6 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
             //TODO 先判断是否已下载，没有下载的话先下载
             diffRecod("1");
             downVideo(1);
-//                    String string = (String) SPHelper.get(DetailActivity.this,"video","");
-//                    KLog.d("string:" ,string);
-//            VideoLiveWallpaperService.startLiveWallpaperPrevivew(DetailActivity.this);
         } else {
              showDialog();
              fun2();
@@ -897,8 +1025,8 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
 
     private void fun2() {
 
-        final int screenWidth = ScreenHepler.getScreenWidth(this);
-        final int screenHeight = ScreenHepler.getScreenHeight(this);
+        final int screenWidth = AppHelper.getScreenWidth(this);
+        final int screenHeight = AppHelper.getScreenHeight(this);
 
         Glide.with(MyApplication.getInstance())
                 .load(mWallpagerBean.getImg_url())
@@ -929,8 +1057,8 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
         int height = bitMap.getHeight();
         KLog.d("图片的宽高：" + bitMap.getWidth() + "  " + bitMap.getHeight());
         // 设置想要的大小
-        int newWidth = ScreenHepler.getScreenWidth(this);
-        int newHeight = ScreenHepler.getScreenHeight(this);
+        int newWidth = AppHelper.getScreenWidth(this);
+        int newHeight = AppHelper.getScreenHeight(this);
         KLog.d("屏幕的宽高：" + newWidth + "  " + newHeight);
 
         /** 1 给予的图片尺寸 宽高【竖屏】 都小于 尺寸的屏幕 -- 直接给予图片的大小 -- ok */
@@ -983,21 +1111,6 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
     }
 
 
-    //设置锁屏壁纸
-    @SuppressLint("NewApi")
-    private void setLockScreenWallpaper() {
-        try {
-            WallpaperManager mWallpaperManager = WallpaperManager.getInstance(this);
-            if (mWallpaperManager != null) {
-                mWallpaperManager.setBitmap(BitmapFactory.decodeResource(this.getResources(), R.mipmap.img_video_1), null, true,
-                        WallpaperManager.FLAG_LOCK | WallpaperManager.FLAG_SYSTEM);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
     //在flyme系统下才有这个方法
     private void SetLockWallPaper() {
 
@@ -1034,10 +1147,16 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
         imgThumb.animate().alpha(1).start();
         imgAll.animate().alpha(1).start();
 
+        if(null != dialog)dialog.dismiss();
+
         if (webView != null) {
             webView.stopLoading();
+            webView.clearHistory();
             webView.destroy();
         }
+
+        mHandler.removeCallbacksAndMessages(null);
+
     }
 
 
@@ -1048,18 +1167,25 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
             commonLogic(list);
     }
 
+
+    @Override
+    public void showAlertAd(AdBean adBean) {
+        mAdBean = adBean;
+        downLogic();
+    }
+
     private void commonLogic(List<MulAdBean> list) {
 
         mTemps.addAll(updateData(list));//转化，累加
         mSize = mTemps.size();//转化
         mDetail_adapter.notifyItemRangeChanged(mPosition + 1,list.size());//更新
 
-        //TODO 发送事件给主界面
-        if(fromWhere.equals(AppConstant.INDEX)){
-            EventBus.getDefault().post(new LoveEvent(mPosition, mPage,true,list));
-        }else if(fromWhere.equals(AppConstant.SEARCH)){
-
-        }
+//        //TODO 发送事件给主界面
+//        if(fromWhere.equals(AppConstant.INDEX)){
+//            EventBus.getDefault().post(new LoveEvent(mPosition, mPage,true,list));
+//        }else if(fromWhere.equals(AppConstant.SEARCH)){
+//
+//        }
 
     }
 
@@ -1133,7 +1259,7 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
 
     @Override
     public void showRecordData() {
-        KLog.d("用户下载");
+//        KLog.d("用户下载");
     }
 
     /** 取消收藏 */
@@ -1156,16 +1282,6 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
     /**
      * =================== 接口方法回调  结束 ===================
      */
-
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-//        View itemView = recyclerView.getChildAt(0);
-//        final ImageView imgThumb = itemView.findViewById(R.id.img_thumb);
-//        imgThumb.animate().alpha(1).start();
-//        imgThumb.animate().alpha(1).start();
-    }
 
 
     /** 构建新的Bean */
@@ -1305,7 +1421,7 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
      */
     @Override
     public void onVideoAdLoadError(WindAdError windAdError, String placementId) {
-        Toast.makeText(mContext, "激励视频广告错误" + windAdError, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getApplicationContext(), "激励视频广告错误" + windAdError, Toast.LENGTH_SHORT).show();
         KLog.d( "onVideoError() called with: error = [" + windAdError + "], placementId = [" + placementId + "]");
     }
 
@@ -1316,7 +1432,7 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
      */
     @Override
     public void onVideoAdPlayError(WindAdError windAdError, String placementId) {
-        Toast.makeText(mContext, "激励视频广告错误" + windAdError, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getApplicationContext(), "激励视频广告错误" + windAdError, Toast.LENGTH_SHORT).show();
         KLog.d( "onVideoError() called with: error = [" + windAdError + "], placementId = [" + placementId + "]");
     }
 
@@ -1337,6 +1453,8 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
         WindRewardedVideoAd.sharedInstance().setWindRewardedVideoAdListener(null);
         mTemps.clear();//防止内存泄漏
         mTemps = null;
+
+        mHandler.removeCallbacksAndMessages(null);
     }
 
 
@@ -1350,6 +1468,7 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
 
     WebSettings webSettings;
 
+    @SuppressLint("NewApi")
     private void setSetting(WebView webview) {
         webSettings = webview.getSettings();
         webSettings.setJavaScriptEnabled(true);//允许使用js
@@ -1403,6 +1522,11 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                 handler.proceed();// 接受所有网站的证书
             }
 
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                if(null != dialog)dialog.dismiss();
+            }
         });
     }
 
@@ -1429,7 +1553,197 @@ public class DetailActivity extends BaesLogicActivity<DetailPresenter>
                 super.onReceivedTitle(view, title);
             }
 
+
         });
     }
+
+
+    /** 添加查询控件的异步任务 */
+
+    @SuppressLint("HandlerLeak")
+    Handler mHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            playVideoTest();
+        }
+    };
+
+
+    private void playVideoTest() {
+        View itemView = recyclerView.getChildAt(0);
+        final ImageView imgAll = itemView.findViewById(R.id.img_all);
+        final RelativeLayout topPart = itemView.findViewById(R.id.top_part);//头部
+        final ImageView back = itemView.findViewById(R.id.back);//返回
+        final ImageView report = itemView.findViewById(R.id.report);//举报
+        final LinearLayout down = itemView.findViewById(R.id.down);//下载
+        final ConstraintLayout bottomPart = itemView.findViewById(R.id.bottom_part);//底部
+        final ImageView iconSave = itemView.findViewById(R.id.icon_save);//设值壁纸
+        final TextView tag = itemView.findViewById(R.id.image_tag);//类别
+        final ImageView iconShare = itemView.findViewById(R.id.icon_share);//分享
+        final ImageView iconLove = itemView.findViewById(R.id.icon_love);//喜好
+        final ImageView iconPreview = itemView.findViewById(R.id.icon_preview);//预览
+        final ImageView deskPreview = itemView.findViewById(R.id.desk_preview);//桌面预览
+        final ImageView lockPreview = itemView.findViewById(R.id.lock_preview);//锁屏预览
+        final WebView webView = itemView.findViewById(R.id.webview);//webview
+        final RelativeLayout part2 = itemView.findViewById(R.id.part2);//整体布局
+        part2.setVisibility(View.VISIBLE);
+        webView.setVisibility(View.GONE);
+
+
+        //大图的事件
+        imgAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e(TAG, "imgAll onClick");
+
+                if(deskPreview.getVisibility() == View.VISIBLE){
+                    deskPreview.setVisibility(View.GONE);
+                }
+
+                if(lockPreview.getVisibility() == View.VISIBLE){
+                    lockPreview.setVisibility(View.GONE);
+                }
+
+                if (topPart.getVisibility() == View.VISIBLE) {
+                    topPart.setVisibility(View.GONE);
+                } else
+                    topPart.setVisibility(View.VISIBLE);
+
+                if (bottomPart.getVisibility() == View.VISIBLE) {
+                    bottomPart.setVisibility(View.GONE);
+                } else
+                    bottomPart.setVisibility(View.VISIBLE);
+            }
+        });
+
+        //返回的事件
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
+        //举报的事件
+        report.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showReport();
+            }
+        });
+
+        //下载的事件
+        down.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                checkPermiss();
+
+            }
+        });
+
+        //分类的事件
+        tag.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name  = mWallpagerBean.getCategory_name();
+                String category = mWallpagerBean.getCategory_id();
+
+//                    CategoryNewHotActivity.openActivity(mContext,category,name);
+
+                Intent intent = new Intent(mContext,CategoryNewHotActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putString("category",category);
+                bundle.putString("keyword",name);
+                intent.putExtras(bundle);
+                mContext.startActivity(intent);
+
+
+            }
+        });
+
+
+        //壁纸的事件
+        iconSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setWallpaper();
+            }
+        });
+
+
+        //分享的事件
+        iconShare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                shareImage();
+            }
+        });
+
+        //TODO 2018.12.26 壁纸喜好逻辑
+        //喜好的事件
+        iconLove.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if ("0".equals(mWallpagerBean.getIs_collected())) {
+                    mWallpagerBean.setIs_collected("1");
+                    ToastHelper.customToastView(getApplicationContext(), "收藏成功");
+                    iconLove.setImageResource(R.mipmap.icon_love);
+                    diffRecod("2");
+                    updateLove(true);
+                } else {
+                    mWallpagerBean.setIs_collected("0");
+                    ToastHelper.customToastView(getApplicationContext(), "取消收藏");
+                    iconLove.setImageResource(R.mipmap.icon_unlove);
+                    mPresenter.getDeleteCollection(mWallpagerBean.getWallpager_id());
+                    updateLove(false);
+                }
+            }
+        });
+
+        //预览的事件
+        iconPreview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                previewImage(deskPreview,lockPreview,topPart,bottomPart);
+            }
+        });
+    }
+
+
+    /** ------------------------------------ 质量压缩  ------------------------------------
+
+     /**
+     * 图片质量压缩
+     */
+    public static Bitmap compressBitmap(Bitmap bitmap) {
+
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        //这里100表示不压缩，把压缩后的数据存放到baos中
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+
+        KLog.d("压缩前的图片是 ：" + baos.toByteArray().length / 1024 + "KB");
+
+        int options = 95;
+        //如果压缩后的大小超出所要求的，继续压缩
+        while (baos.toByteArray().length / 1024 > 250) {//300KB
+            baos.reset();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, options, baos);
+
+            //每次减少5%质量
+            if (options > 5) {//避免出现options<=0
+                options -= 5;
+            } else {
+                break;
+            }
+        }
+
+        byte[] bytes = baos.toByteArray();
+        KLog.d("压缩后的图片是 ：" + baos.toByteArray().length / 1024 + "KB");
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+    }
+
 
 }

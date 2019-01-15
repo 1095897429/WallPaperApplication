@@ -5,8 +5,10 @@ import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Generated;
 
+import java.io.Serializable;
+
 @Entity
-public class TestBean {
+public class TestBean implements Serializable {
 
     @Id
     private Long id;
@@ -38,4 +40,6 @@ public class TestBean {
     public void setUrl(String url) {
         this.url = url;
     }
+
+
 }

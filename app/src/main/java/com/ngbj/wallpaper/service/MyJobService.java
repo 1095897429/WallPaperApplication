@@ -45,7 +45,7 @@ public class MyJobService extends JobService {
     }
 
     private void doJob(JobParameters params) {
-        KLog.d(" ---- doJob ---- ");
+//        KLog.d(" ---- doJob ---- ");
         Message m = Message.obtain();
         m.obj = params;
         handler.sendMessage(m);
@@ -69,10 +69,11 @@ public class MyJobService extends JobService {
             builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NOT_ROAMING);  //非漫游网络状态
             builder.setBackoffCriteria(JobInfo.DEFAULT_INITIAL_BACKOFF_MILLIS, JobInfo.BACKOFF_POLICY_LINEAR);//线性重试方案
             builder.setRequiresCharging(false); // 未充电状态
-            if(jobScheduler.schedule(builder.build()) <= 0 ){
-                KLog.d("工作失败");
-            }else
-                KLog.d("工作成功");
+            jobScheduler.schedule(builder.build());
+//            if(jobScheduler.schedule(builder.build()) <= 0 ){
+//                KLog.d("工作失败");
+//            }else
+//                KLog.d("工作成功");
 
         }
     }

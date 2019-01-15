@@ -14,7 +14,7 @@ public interface InterestContract {
 
     interface View extends BaseContract.BaseView{
         void showInterestData(List<InterestBean> interestBeanList);
-        void showWriteInterestData(String string);
+        void showWriteInterestData();
     }
 
     interface Presenter<T> extends BaseContract.BasePresenter<T>{

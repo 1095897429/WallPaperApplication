@@ -28,6 +28,7 @@ public interface DetailContract {
 
         void showIndexRecommendData(List<MulAdBean> list);
 
+        void showAlertAd(AdBean adBean);
     }
 
     interface Presenter<T> extends BaseContract.BasePresenter<T>{
@@ -51,5 +52,8 @@ public interface DetailContract {
 
         //热搜壁纸搜索 -- 搜索页
         void getMoreHotSearchData(int page,String hotSearchTag);
+
+
+        void getAlertAd();
     }
 }
